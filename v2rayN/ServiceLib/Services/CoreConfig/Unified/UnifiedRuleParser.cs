@@ -104,6 +104,24 @@ public static class UnifiedRuleParser
         return result;
     }
 
+    /// <summary>
+    /// True for an IP address or a CIDR with a prefix length valid for its address family.
+    /// </summary>
+    public static bool IsValidCidr(string? value)
+    {
+        if (value.IsNullOrEmpty())
+        {
+            return false;
+        }
+        var parts = value.Split('/');
+        if (parts.Length > 2 || !IPAddress.TryParse(parts[0], out var address))
+        {
+            return false;
+        }
+        var maxPrefix = address.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
+        return parts.Length == 1 || (int.TryParse(parts[1], out var prefix) && prefix >= 0 && prefix <= maxPrefix);
+    }
+
     public static ProcessMatch? ParseProcess(string? raw)
     {
         if (raw.IsNullOrEmpty())

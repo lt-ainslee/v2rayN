@@ -184,4 +184,28 @@ public class UnifiedPlanTests
         await text.ReplaceLineEndings("\n").Should().BeEqualTo("! dropped\n~ approx\n\nbody");
         await UnifiedPreviewService.Compose(new UnifiedDiagnostics(), "x").Should().StartWith(ResUI.MsgUnifiedPreviewNoIssues);
     }
+
+    [Test]
+    [Arguments("192.168.1.0/24", true)]
+    [Arguments("10.0.0.1", true)]
+    [Arguments("fd00::/8", true)]
+    [Arguments("192.168.1.0/33", false)]
+    [Arguments("fd00::/129", false)]
+    [Arguments("foo", false)]
+    [Arguments("lan.example.com", false)]
+    public async Task IsValidCidr_ShouldCheckAddressAndPrefix(string value, bool expected)
+    {
+        await UnifiedRuleParser.IsValidCidr(value).Should().BeEqualTo(expected);
+    }
+
+    [Test]
+    public async Task Validate_AvailableRuleSets_ShouldIncludeSetsFromOtherSources()
+    {
+        // e.g. a tag from the routing profile's custom sing-box rule set file or a local srss/*.srs file
+        var plan = Build([new() { Id = "r", RuleType = ERuleType.Routing, OutboundTag = Global.BlockTag, Domain = ["ruleset:myads"] }]);
+
+        var result = UnifiedPlanValidator.Validate(plan, ECoreType.sing_box, new UnifiedDiagnostics(), ["myads"]);
+
+        await result.Rules.Single().Domains.Single().Raw.Should().BeEqualTo("ruleset:myads");
+    }
 }

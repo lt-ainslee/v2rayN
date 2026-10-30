@@ -101,19 +101,24 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveRulesAsync()
     {
-        // Validate the new fields first: the rule object is edited in place, so nothing may change on failure.
+        // The rule object is edited in place, so everything is validated before it is changed.
+        var domain = Utils.Convert2Comma(Domain);
+        var ip = Utils.Convert2Comma(IP);
+        var process = Utils.ParseProcess(Process);
+        var domains = AutoSort ? Utils.String2ListSorted(domain) : Utils.String2List(domain);
+        var ips = AutoSort ? Utils.String2ListSorted(ip) : Utils.String2List(ip);
+        var processes = AutoSort ? Utils.String2ListSorted(process) : Utils.String2List(process);
+        var protocols = ProtocolItems?.ToList();
         var sourceIps = Utils.String2List(Utils.Convert2Comma(SourceIp)) ?? [];
-        var sourcePorts = Utils.String2List(SourcePort) ?? [];
-        var invalidSourcePorts = sourcePorts.Where(p => UnifiedRuleParser.ParsePorts(p).Count == 0).ToList();
+
+        var invalidSourcePorts = (Utils.String2List(SourcePort) ?? []).Where(p => UnifiedRuleParser.ParsePorts(p).Count == 0).ToList();
         if (invalidSourcePorts.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourcePort, string.Join("; ", invalidSourcePorts)));
             return;
         }
         // Source conditions are matched against the client address: only CIDRs and geoip:private are meaningful.
-        var invalidSourceIps = sourceIps
-            .Where(ip => UnifiedRuleParser.ParseIp(ip) is not { Negated: false, Kind: EIpMatchKind.Cidr or EIpMatchKind.Private })
-            .ToList();
+        var invalidSourceIps = sourceIps.Where(t => !IsValidSourceIp(t)).ToList();
         if (invalidSourceIps.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourceIp, string.Join("; ", invalidSourceIps)));
@@ -125,7 +130,6 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, "mihomo", string.Join("; ", invalidMihomoRules)));
             return;
         }
-
         foreach (var (name, json) in new[] { ("Xray", XrayJson), ("sing-box", SingboxJson) })
         {
             if (!UnifiedJsonMerge.IsValidObject(json))
@@ -134,23 +138,28 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
                 return;
             }
         }
-        Domain = Utils.Convert2Comma(Domain);
-        IP = Utils.Convert2Comma(IP);
-        Process = Utils.ParseProcess(Process);
 
-        if (AutoSort)
+        var hasRule = domains?.Count > 0
+          || ips?.Count > 0
+          || protocols?.Count > 0
+          || processes?.Count > 0
+          || Port.IsNotEmpty()
+          || Network.IsNotEmpty()
+          || sourceIps.Count > 0
+          || SourcePort.IsNotEmpty();
+        if (!hasRule)
         {
-            SelectedSource.Domain = Utils.String2ListSorted(Domain);
-            SelectedSource.Ip = Utils.String2ListSorted(IP);
-            SelectedSource.Process = Utils.String2ListSorted(Process);
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.RoutingRuleDetailRequiredTips, "Network/Port/Protocol/Domain/IP/Process"));
+            return;
         }
-        else
-        {
-            SelectedSource.Domain = Utils.String2List(Domain);
-            SelectedSource.Ip = Utils.String2List(IP);
-            SelectedSource.Process = Utils.String2List(Process);
-        }
-        SelectedSource.Protocol = ProtocolItems?.ToList();
+
+        Domain = domain;
+        IP = ip;
+        Process = process;
+        SelectedSource.Domain = domains;
+        SelectedSource.Ip = ips;
+        SelectedSource.Process = processes;
+        SelectedSource.Protocol = protocols;
         SelectedSource.InboundTag = InboundTagItems?.ToList();
         SelectedSource.RuleType = RuleType.IsNullOrEmpty() ? null : Enum.Parse<ERuleType>(RuleType);
         SelectedSource.OutboundTag = OutboundTag;
@@ -160,7 +169,6 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         SelectedSource.Enabled = Enabled;
         SelectedSource.SourceIp = sourceIps.Count > 0 ? sourceIps : null;
         SelectedSource.SourcePort = SourcePort.NullIfEmpty();
-
         var coreExt = new RuleCoreExtension
         {
             XrayJson = XrayJson.NullIfEmpty(),
@@ -169,24 +177,18 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         };
         SelectedSource.CoreExt = coreExt.IsEmpty() ? null : coreExt;
 
-        var hasRule = SelectedSource.Domain?.Count > 0
-          || SelectedSource.Ip?.Count > 0
-          || SelectedSource.Protocol?.Count > 0
-          || SelectedSource.Process?.Count > 0
-          || SelectedSource.Port.IsNotEmpty()
-          || SelectedSource.Network.IsNotEmpty()
-          || SelectedSource.SourceIp?.Count > 0
-          || SelectedSource.SourcePort.IsNotEmpty();
-
-        if (!hasRule)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.RoutingRuleDetailRequiredTips, "Network/Port/Protocol/Domain/IP/Process"));
-            return;
-        }
         //NoticeHandler.Instance.Enqueue(ResUI.OperationSuccess);
         RequestClose?.Invoke(this, EventArgs.Empty);
         await Task.CompletedTask;
     }
+
+    private static bool IsValidSourceIp(string value) => UnifiedRuleParser.ParseIp(value) switch
+    {
+        { Negated: true } => false,
+        { Kind: EIpMatchKind.Private } => true,
+        { Kind: EIpMatchKind.Cidr } match => UnifiedRuleParser.IsValidCidr(match.Value),
+        _ => false,
+    };
 
     private async Task SelectProfileAsync()
     {

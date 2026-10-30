@@ -8,10 +8,13 @@ namespace ServiceLib.Services.CoreConfig;
 /// </summary>
 public static class UnifiedPlanValidator
 {
-    public static UnifiedPlan Validate(UnifiedPlan plan, ECoreType core, UnifiedDiagnostics diagnostics)
+    /// <param name="availableRuleSets">
+    /// Rule set names the core can resolve; null means those declared in the plan with a source for the core.
+    /// </param>
+    public static UnifiedPlan Validate(UnifiedPlan plan, ECoreType core, UnifiedDiagnostics diagnostics, IEnumerable<string>? availableRuleSets = null)
     {
         var coreName = CoreCapabilities.CoreDisplayName(core);
-        var ruleSetNames = core switch
+        var ruleSetNames = availableRuleSets?.ToHashSet() ?? core switch
         {
             ECoreType.sing_box => plan.RuleSets.Where(t => t.SingboxSource.IsNotEmpty()).Select(t => t.Name).ToHashSet(),
             ECoreType.mihomo => plan.RuleSets.Where(t => t.MihomoSource.IsNotEmpty()).Select(t => t.Name).ToHashSet(),

@@ -234,6 +234,8 @@ public sealed class UnifiedDiagnostics
 
     public void Info(ECoreType core, string subject, string message) => _items.Add(new(core, EDiagnosticLevel.Info, subject, message));
 
+    public void Add(UnifiedDiagnostic item) => _items.Add(item);
+
     public void AddRange(UnifiedDiagnostics other) => _items.AddRange(other.Items);
 }
 

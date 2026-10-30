@@ -13,6 +13,10 @@ public class MihomoTranslator(
 {
     private const ECoreType Core = ECoreType.mihomo;
     private const string DefaultHealthCheckUrl = "https://www.gstatic.com/generate_204";
+    private const string RuleSetPatternPrefix = "rule-set:";
+
+    /// <summary>Rule sets referenced by the generated DNS section; they need rule-providers too.</summary>
+    private readonly HashSet<string> _dnsRuleSets = [];
 
     private static readonly string[] _privateCidrs =
     [
@@ -46,10 +50,7 @@ public class MihomoTranslator(
         }
 
         // nameserver-policy and fake-ip-filter may reference rule sets as well
-        var usedRuleSets = plan.Dns.Policies.SelectMany(p => p.Domains)
-            .Where(d => d.Kind == EDomainMatchKind.RuleSet)
-            .Select(d => d.Value)
-            .ToHashSet();
+        var usedRuleSets = new HashSet<string>(_dnsRuleSets);
         if (ext.UnifiedMode is EMihomoUnifiedMode.DnsAndRules or EMihomoUnifiedMode.DnsAndReplaceRules)
         {
             ApplyPolicy(fileContent, usedRuleSets);
@@ -78,18 +79,21 @@ public class MihomoTranslator(
         {
             dns["enhanced-mode"] = "fake-ip";
             dns["fake-ip-range"] = dnsPlan.FakeIpRange;
+            List<string> filter;
             if (dnsPlan.GlobalFakeIp)
             {
-                dns["fake-ip-filter"] = BuildFakeIpFilter();
+                filter = BuildFakeIpFilter();
             }
             else
             {
                 // Only domains resolved by the remote DNS get fake IPs.
                 dns["fake-ip-filter-mode"] = "whitelist";
-                dns["fake-ip-filter"] = dnsPlan.Policies
+                filter = dnsPlan.Policies
                     .Where(p => p.Target == EDnsPolicyTarget.Remote && p.Servers == null)
                     .SelectMany(p => p.Domains).Select(ToDnsPattern).OfType<string>().Distinct().ToList();
             }
+            dns["fake-ip-filter"] = filter;
+            TrackRuleSets(filter);
         }
         else
         {
@@ -116,7 +120,7 @@ public class MihomoTranslator(
         {
             // Custom servers are queried directly, e.g. a LAN or corporate resolver.
             var servers = item.Servers != null
-                ? NormalizeServers(item.Servers).Select(t => t == "system" || t.Contains('#') ? t : $"{t}#DIRECT").ToList()
+                ? item.Servers.Select(t => NormalizeServer(t, forceDirect: true)).Distinct().ToList()
                 : item.Target == EDnsPolicyTarget.Direct ? direct : remote;
             if (servers.Count == 0)
             {
@@ -125,7 +129,10 @@ public class MihomoTranslator(
             foreach (var key in item.Domains.Select(ToDnsPattern).OfType<string>())
             {
                 // The first policy that mentions a domain wins, like the rule order elsewhere.
-                policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers.ToList());
+                if (policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers.ToList()))
+                {
+                    TrackRuleSets([key]);
+                }
             }
         }
         if (policy.Count > 0)
@@ -133,6 +140,14 @@ public class MihomoTranslator(
             dns["nameserver-policy"] = policy;
         }
         return dns;
+    }
+
+    private void TrackRuleSets(IEnumerable<string> patterns)
+    {
+        foreach (var pattern in patterns.Where(p => p.StartsWith(RuleSetPatternPrefix, StringComparison.Ordinal)))
+        {
+            _dnsRuleSets.Add(pattern[RuleSetPatternPrefix.Length..]);
+        }
     }
 
     private List<string> BuildFakeIpFilter()
@@ -187,54 +202,58 @@ public class MihomoTranslator(
         EDomainMatchKind.Full => match.Value,
         EDomainMatchKind.Suffix => $"+.{match.Value}",
         EDomainMatchKind.GeoSite => $"geosite:{match.Value}",
-        EDomainMatchKind.RuleSet => $"rule-set:{match.Value}",
+        EDomainMatchKind.RuleSet => $"{RuleSetPatternPrefix}{match.Value}",
         _ => null,
     };
 
     private static List<string> NormalizeServers(IEnumerable<string> servers) => servers
-        .Select(NormalizeServer)
+        .Select(t => NormalizeServer(t))
         .Distinct()
         .ToList();
 
     /// <summary>
     /// Maps the DNS address forms accepted by v2rayN to mihomo's:
     /// dhcp / localhost -> system, Xray "+local" -> queried directly (#DIRECT), sing-box h3:// -> DoH over HTTP/3.
+    /// Parameters are merged with any the address already carries after '#'.
     /// </summary>
-    public static string NormalizeServer(string server)
+    public static string NormalizeServer(string server, bool forceDirect = false)
     {
         server = server.Trim();
-        if (server.StartsWith("dhcp", StringComparison.OrdinalIgnoreCase) || server is "localhost" or "local")
+        if (server.StartsWith("dhcp", StringComparison.OrdinalIgnoreCase) || server is "localhost" or "local" or "system")
         {
             return "system";
         }
-        var schemeEnd = server.IndexOf("://", StringComparison.Ordinal);
-        if (schemeEnd <= 0)
+        var hashIndex = server.IndexOf('#');
+        var address = hashIndex >= 0 ? server[..hashIndex] : server;
+        var parameters = hashIndex >= 0
+            ? server[(hashIndex + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+            : [];
+
+        var schemeEnd = address.IndexOf("://", StringComparison.Ordinal);
+        if (schemeEnd > 0)
         {
-            return server;
+            var scheme = address[..schemeEnd].ToLowerInvariant();
+            var rest = address[(schemeEnd + 3)..];
+            if (scheme.EndsWith("+local", StringComparison.Ordinal))
+            {
+                scheme = scheme[..^"+local".Length];
+                forceDirect = true;
+            }
+            if (scheme == "h3")
+            {
+                scheme = "https";
+                parameters.Add("h3=true");
+            }
+            address = $"{scheme}://{rest}";
         }
-        var scheme = server[..schemeEnd].ToLowerInvariant();
-        var rest = server[(schemeEnd + 3)..];
-        var direct = scheme.EndsWith("+local", StringComparison.Ordinal);
-        if (direct)
+
+        // mihomo takes the outbound as a bare parameter (a proxy or group name), e.g. #DIRECT or #DIRECT&h3=true.
+        var hasOutbound = parameters.Any(p => !p.Contains('='));
+        if (forceDirect && !hasOutbound)
         {
-            scheme = scheme[..^"+local".Length];
+            parameters.Insert(0, "DIRECT");
         }
-        var h3 = scheme == "h3";
-        if (h3)
-        {
-            scheme = "https";
-        }
-        var parameters = new List<string>();
-        if (direct)
-        {
-            parameters.Add("DIRECT");
-        }
-        if (h3)
-        {
-            parameters.Add("h3=true");
-        }
-        var result = $"{scheme}://{rest}";
-        return parameters.Count == 0 ? result : $"{result}#{string.Join("&", parameters)}";
+        return parameters.Count == 0 ? address : $"{address}#{string.Join("&", parameters.Distinct())}";
     }
 
     #endregion DNS

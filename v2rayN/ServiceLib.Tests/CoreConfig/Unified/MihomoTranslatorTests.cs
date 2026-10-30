@@ -345,4 +345,41 @@ public class MihomoTranslatorTests
         await string.Join("\n", Rules(prepended)).Should().BeEqualTo("GEOSITE,gfw,Proxy\nMATCH,DIRECT");
         await diagnostics.Items.Any(d => d.Subject == "rest").Should().BeTrue();
     }
+
+    [Test]
+    [Arguments("h3://10.0.0.53/dns-query", "https://10.0.0.53/dns-query#DIRECT&h3=true")]
+    [Arguments("https+local://dns.example/dns-query#skip-cert-verify=true", "https://dns.example/dns-query#DIRECT&skip-cert-verify=true")]
+    [Arguments("https://dns.example/dns-query#Proxy", "https://dns.example/dns-query#Proxy")]
+    [Arguments("10.0.0.53", "10.0.0.53#DIRECT")]
+    [Arguments("dhcp://auto", "system")]
+    public async Task NormalizeServer_ForceDirect_ShouldMergeParameters(string input, string expected)
+    {
+        await MihomoTranslator.NormalizeServer(input, forceDirect: true).Should().BeEqualTo(expected);
+    }
+
+    [Test]
+    public async Task Apply_CustomFakeIpFilterRuleSet_ShouldGetAProvider()
+    {
+        var ruleSets = new List<RuleSetItem> { new() { Name = "lan", Behavior = "domain", MihomoSource = "https://example.com/lan.yaml" } };
+        var dns = new SimpleDNSItem { DirectDNS = "223.5.5.5", RemoteDNS = "1.1.1.1", FakeIP = true };
+
+        var (result, _) = Translate([], new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly, FakeIpFilter = "rule-set:lan\n+.home" }, dns, ruleSets: ruleSets);
+
+        await ((Dictionary<object, object>)result["rule-providers"]).ContainsKey("lan").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task ParseClashContent_ShouldKeepExplicitStringTags()
+    {
+        var content = CoreConfigClashService.ParseClashContent("""
+            proxies:
+              - name: a
+                type: ss
+                password: !<str> 123456
+            """)!;
+
+        var yaml = CoreConfigClashService.RestoreStrTags(YamlUtils.ToYaml(content));
+
+        await yaml.Should().Contain("!!str 123456");
+    }
 }

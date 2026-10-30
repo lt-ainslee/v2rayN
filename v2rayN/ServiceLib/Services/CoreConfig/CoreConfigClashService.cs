@@ -54,19 +54,8 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
                 return ret;
             }
 
-            var tagYamlStr1 = "!<str>";
-            var tagYamlStr2 = "__strn__";
-            var tagYamlStr3 = "!!str";
-            var txtFile = await File.ReadAllTextAsync(addressFileName);
-            txtFile = txtFile.Replace(tagYamlStr1, tagYamlStr2);
-
-            //YAML anchors
-            if (txtFile.Contains("<<:") && txtFile.Contains('*') && txtFile.Contains('&'))
-            {
-                txtFile = YamlUtils.PreprocessYaml(txtFile);
-            }
-
-            var fileContent = YamlUtils.FromYaml<Dictionary<string, object>>(txtFile);
+            var tagYamlStr2 = StrTagPlaceholder;
+            var fileContent = ParseClashContent(await File.ReadAllTextAsync(addressFileName));
             if (fileContent == null)
             {
                 ret.Msg = ResUI.FailedConversionConfiguration;
@@ -148,7 +137,7 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
                 }
             }
 
-            var txtFileNew = YamlUtils.ToYaml(fileContent).Replace(tagYamlStr2, tagYamlStr3);
+            var txtFileNew = RestoreStrTags(YamlUtils.ToYaml(fileContent));
             foreach (var (realityOptions, shortId) in originalRealityShortIds)
             {
                 realityOptions["short-id"] = shortId;
@@ -172,6 +161,26 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
             return ret;
         }
     }
+
+    /// <summary>
+    /// Stands in for the "!&lt;str&gt;" tag, which YamlDotNet does not round-trip, until the YAML is written back.
+    /// </summary>
+    public const string StrTagPlaceholder = "__strn__";
+
+    /// <summary>
+    /// Parses a Clash configuration the way it is loaded at runtime (explicit string tags, merge keys).
+    /// </summary>
+    public static Dictionary<string, object>? ParseClashContent(string text)
+    {
+        text = text.Replace("!<str>", StrTagPlaceholder);
+        if (text.Contains("<<:") && text.Contains('*') && text.Contains('&'))
+        {
+            text = YamlUtils.PreprocessYaml(text) ?? text;
+        }
+        return YamlUtils.FromYaml<Dictionary<string, object>>(text);
+    }
+
+    public static string RestoreStrTags(string yaml) => yaml.Replace(StrTagPlaceholder, "!!str");
 
     private async Task ApplyUnifiedSettings(Dictionary<string, object> fileContent)
     {

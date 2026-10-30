@@ -12,7 +12,10 @@ public static class UnifiedPlanFactory
             context.RoutingItem,
             context.AppConfig.RoutingBasicItem?.DomainStrategy,
             context.AppConfig.RuleSetItems);
-        return UnifiedPlanValidator.Validate(plan, core, diagnostics ?? new UnifiedDiagnostics());
+        var availableRuleSets = core == ECoreType.sing_box
+            ? SingboxRuleSetSources.GetAvailableNames(context.AppConfig, context.RoutingItem)
+            : null;
+        return UnifiedPlanValidator.Validate(plan, core, diagnostics ?? new UnifiedDiagnostics(), availableRuleSets);
     }
 
     /// <summary>

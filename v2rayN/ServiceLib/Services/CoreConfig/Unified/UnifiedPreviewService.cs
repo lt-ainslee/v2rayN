@@ -1,5 +1,3 @@
-using YamlDotNet.Core;
-
 namespace ServiceLib.Services.CoreConfig;
 
 /// <summary>
@@ -19,7 +17,9 @@ public static class UnifiedPreviewService
             {
                 return ResUI.MsgUnifiedPreviewMihomoOff;
             }
-            var routing = await ConfigHandler.GetDefaultRouting(config);
+            // Read-only lookup: GetDefaultRouting would save the config when no profile is active.
+            var routing = await SQLiteHelper.Instance.TableAsync<RoutingItem>().FirstOrDefaultAsync(it => it.IsActive)
+                ?? new RoutingItem { RuleSet = "[]" };
             var diagnostics = new UnifiedDiagnostics();
             var body = core == ECoreType.mihomo
                 ? await PreviewMihomoAsync(config, routing, diagnostics)
@@ -30,7 +30,7 @@ public static class UnifiedPreviewService
                 var dnsOnly = new UnifiedDiagnostics();
                 foreach (var item in diagnostics.Items.Where(d => d.Subject == "DNS"))
                 {
-                    dnsOnly.Info(item.Core, item.Subject, item.Message);
+                    dnsOnly.Add(item);
                 }
                 diagnostics = dnsOnly;
             }
@@ -130,37 +130,23 @@ public static class UnifiedPreviewService
                 .Cast<object>()
                 .ToList();
         }
-        return YamlUtils.ToYaml(sections);
+        return CoreConfigClashService.RestoreStrTags(YamlUtils.ToYaml(sections));
     }
 
     /// <summary>
     /// Uses the selected server's Clash configuration when it is one, so the preview matches what runs.
+    /// Read-only: the selected server is looked up directly (resolving a stale selection would save the config).
     /// </summary>
     private static async Task<Dictionary<string, object>?> LoadActiveClashConfig(Config config)
     {
-        var node = await ConfigHandler.GetDefaultServer(config);
-        if (node is not { ConfigType: EConfigType.Custom, CoreType: ECoreType.mihomo } || node.Address.IsNullOrEmpty())
+        if (config.IndexId.IsNullOrEmpty()
+            || await AppManager.Instance.GetProfileItem(config.IndexId) is not { ConfigType: EConfigType.Custom, CoreType: ECoreType.mihomo } node
+            || node.Address.IsNullOrEmpty())
         {
             return null;
         }
         var path = File.Exists(node.Address) ? node.Address : Path.Combine(Utils.GetConfigPath(), node.Address);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-        try
-        {
-            var text = await File.ReadAllTextAsync(path);
-            if (text.Contains("<<:") && text.Contains('*') && text.Contains('&'))
-            {
-                text = YamlUtils.PreprocessYaml(text) ?? text;
-            }
-            return YamlUtils.FromYaml<Dictionary<string, object>>(text);
-        }
-        catch (YamlException)
-        {
-            return null;
-        }
+        return File.Exists(path) ? CoreConfigClashService.ParseClashContent(await File.ReadAllTextAsync(path)) : null;
     }
 
     public static Dictionary<string, object> CreateStubClashConfig(MihomoExtension ext)

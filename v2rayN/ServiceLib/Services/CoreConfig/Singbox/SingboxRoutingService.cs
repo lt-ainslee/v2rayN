@@ -521,8 +521,13 @@ public partial class CoreConfigSingboxService
         return SingboxRuleTranslator.ApplyDomain(match, rule);
     }
 
-    private bool IsDeclaredRuleSet(string name) =>
-        _config.RuleSetItems?.Any(t => t.Name == name && t.SingboxSource.IsNotEmpty()) == true;
+    private HashSet<string>? _availableRuleSets;
+
+    private bool IsDeclaredRuleSet(string name)
+    {
+        _availableRuleSets ??= SingboxRuleSetSources.GetAvailableNames(_config, context.RoutingItem);
+        return _availableRuleSets.Contains(name);
+    }
 
     private bool ParseV2Address(string address, Rule4Sbox rule)
     {

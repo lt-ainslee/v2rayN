@@ -152,7 +152,15 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         {
             return;
         }
-        var config = JsonUtils.DeepCopy(_config) ?? _config;
+        // Make sure a routing profile is active using the live configuration (as at startup), so nothing
+        // below has to fix it up and save the preview copy.
+        await ConfigHandler.GetDefaultRouting(_config);
+        // Work on a copy: the preview must never change the live configuration.
+        if (JsonUtils.DeepCopy(_config) is not { } config)
+        {
+            PreviewText = string.Format(ResUI.MsgUnifiedPreviewFailed, nameof(JsonUtils.DeepCopy));
+            return;
+        }
         config.CoreExtensionItem = BuildExtensionItem();
         config.RuleSetItems = ruleSets;
         var core = PreviewCore switch
