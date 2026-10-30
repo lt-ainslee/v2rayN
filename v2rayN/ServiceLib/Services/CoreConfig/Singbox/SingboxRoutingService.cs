@@ -512,69 +512,12 @@ public partial class CoreConfigSingboxService
 
     private static bool ParseV2Domain(string domain, Rule4Sbox rule)
     {
-        if (domain.StartsWith('#') || domain.StartsWith("ext:") || domain.StartsWith("ext-domain:"))
-        {
-            return false;
-        }
-        else if (domain.StartsWith(Global.GeoSitePrefix))
-        {
-            rule.geosite ??= [];
-            rule.geosite?.Add(domain[Global.GeoSitePrefix.Length..]);
-        }
-        else if (domain.StartsWith("regexp:"))
-        {
-            rule.domain_regex ??= [];
-            rule.domain_regex?.Add(domain.Replace(Global.RoutingRuleComma, ",").Substring(7));
-        }
-        else if (domain.StartsWith("domain:"))
-        {
-            rule.domain_suffix ??= [];
-            rule.domain_suffix?.Add(domain.Substring(7));
-        }
-        else if (domain.StartsWith("full:"))
-        {
-            rule.domain ??= [];
-            rule.domain?.Add(domain.Substring(5));
-        }
-        else if (domain.StartsWith("keyword:"))
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain.Substring(8));
-        }
-        else if (domain.StartsWith("dotless:"))
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain.Substring(8));
-        }
-        else
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain);
-        }
-        return true;
+        return UnifiedRuleParser.ParseDomain(domain) is { } match && SingboxRuleTranslator.ApplyDomain(match, rule);
     }
 
     private static bool ParseV2Address(string address, Rule4Sbox rule)
     {
-        if (address.StartsWith("ext:") || address.StartsWith("ext-ip:"))
-        {
-            return false;
-        }
-        else if (address.Equals($"{Global.GeoIPPrefix}private"))
-        {
-            rule.ip_is_private = true;
-        }
-        else if (address.StartsWith(Global.GeoIPPrefix))
-        {
-            rule.geoip ??= [];
-            rule.geoip?.Add(address[Global.GeoIPPrefix.Length..]);
-        }
-        else
-        {
-            rule.ip_cidr ??= [];
-            rule.ip_cidr?.Add(address);
-        }
-        return true;
+        return UnifiedRuleParser.ParseIp(address) is { } match && SingboxRuleTranslator.ApplyIp(match, rule);
     }
 
     private string GenRoutingUserRuleOutbound(string outboundTag)

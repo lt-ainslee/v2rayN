@@ -37,6 +37,7 @@ global using ServiceLib.Models.Configs;
 global using ServiceLib.Models.CoreConfigs;
 global using ServiceLib.Models.Dto;
 global using ServiceLib.Models.Entities;
+global using ServiceLib.Models.Unified;
 global using ServiceLib.Resx;
 global using ServiceLib.Services;
 global using ServiceLib.Services.CoreConfig;
