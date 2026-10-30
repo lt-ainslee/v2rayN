@@ -5840,5 +5840,14 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("MsgUnifiedPolicyMissing", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 Policy "{0}" chosen for "proxy" does not exist in the Clash  的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedProxyGroupMissing {
+            get {
+                return ResourceManager.GetString("MsgUnifiedProxyGroupMissing", resourceCulture);
+            }
+        }
     }
 }

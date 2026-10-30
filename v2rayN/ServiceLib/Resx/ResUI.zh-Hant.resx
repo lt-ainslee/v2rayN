@@ -2044,4 +2044,7 @@
   <data name="menuCoreExtensionSetting" xml:space="preserve">
     <value>核心擴充與規則集</value>
   </data>
+  <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
+    <value>為「代理」指定的策略「{0}」在 Clash 設定中不存在，已改用第一個 select 策略群組</value>
+  </data>
 </root>

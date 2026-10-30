@@ -507,14 +507,34 @@ public partial class CoreConfigSingboxService
         }
     }
 
-    private static bool ParseV2Domain(string domain, Rule4Sbox rule)
+    private bool ParseV2Domain(string domain, Rule4Sbox rule)
     {
-        return UnifiedRuleParser.ParseDomain(domain) is { } match && SingboxRuleTranslator.ApplyDomain(match, rule);
+        if (UnifiedRuleParser.ParseDomain(domain) is not { } match)
+        {
+            return false;
+        }
+        // An undeclared rule set would otherwise be resolved as a geosite/geoip download that does not exist.
+        if (match.Kind == EDomainMatchKind.RuleSet && !IsDeclaredRuleSet(match.Value))
+        {
+            return false;
+        }
+        return SingboxRuleTranslator.ApplyDomain(match, rule);
     }
 
-    private static bool ParseV2Address(string address, Rule4Sbox rule)
+    private bool IsDeclaredRuleSet(string name) =>
+        _config.RuleSetItems?.Any(t => t.Name == name && t.SingboxSource.IsNotEmpty()) == true;
+
+    private bool ParseV2Address(string address, Rule4Sbox rule)
     {
-        return UnifiedRuleParser.ParseIp(address) is { } match && SingboxRuleTranslator.ApplyIp(match, rule);
+        if (UnifiedRuleParser.ParseIp(address) is not { } match)
+        {
+            return false;
+        }
+        if (match.Kind == EIpMatchKind.RuleSet && !IsDeclaredRuleSet(match.Value))
+        {
+            return false;
+        }
+        return SingboxRuleTranslator.ApplyIp(match, rule);
     }
 
     private string GenRoutingUserRuleOutbound(string outboundTag)

@@ -35,7 +35,7 @@ public class MihomoTranslator(
             return;
         }
         fileContent["dns"] = BuildDns(fileContent);
-        var hosts = BuildHosts();
+        var hosts = BuildHosts(fileContent.GetValueOrDefault("hosts") as Dictionary<object, object>);
         if (hosts.Count > 0)
         {
             fileContent["hosts"] = hosts;
@@ -45,10 +45,16 @@ public class MihomoTranslator(
             fileContent["use-system-hosts"] = plan.Dns.UseSystemHosts;
         }
 
+        // nameserver-policy and fake-ip-filter may reference rule sets as well
+        var usedRuleSets = plan.Dns.Policies.SelectMany(p => p.Domains)
+            .Where(d => d.Kind == EDomainMatchKind.RuleSet)
+            .Select(d => d.Value)
+            .ToHashSet();
         if (ext.UnifiedMode is EMihomoUnifiedMode.DnsAndRules or EMihomoUnifiedMode.DnsAndReplaceRules)
         {
-            ApplyPolicy(fileContent);
+            ApplyPolicy(fileContent, usedRuleSets);
         }
+        AddRuleProviders(fileContent, usedRuleSets);
     }
 
     #region DNS
@@ -143,9 +149,9 @@ public class MihomoTranslator(
         return result.Distinct().ToList();
     }
 
-    private Dictionary<object, object> BuildHosts()
+    private Dictionary<object, object> BuildHosts(Dictionary<object, object>? fileHosts)
     {
-        var hosts = new Dictionary<object, object>();
+        var hosts = fileHosts ?? [];
         if (plan.Dns.AddCommonHosts)
         {
             foreach (var (domain, ips) in Global.PredefinedHosts)
@@ -185,19 +191,57 @@ public class MihomoTranslator(
         _ => null,
     };
 
-    /// <summary>
-    /// v2rayN maps "dhcp" to the system resolver; mihomo calls it "system".
-    /// </summary>
     private static List<string> NormalizeServers(IEnumerable<string> servers) => servers
-        .Select(s => s.StartsWith("dhcp", StringComparison.OrdinalIgnoreCase) || s == "localhost" ? "system" : s)
+        .Select(NormalizeServer)
         .Distinct()
         .ToList();
+
+    /// <summary>
+    /// Maps the DNS address forms accepted by v2rayN to mihomo's:
+    /// dhcp / localhost -> system, Xray "+local" -> queried directly (#DIRECT), sing-box h3:// -> DoH over HTTP/3.
+    /// </summary>
+    public static string NormalizeServer(string server)
+    {
+        server = server.Trim();
+        if (server.StartsWith("dhcp", StringComparison.OrdinalIgnoreCase) || server is "localhost" or "local")
+        {
+            return "system";
+        }
+        var schemeEnd = server.IndexOf("://", StringComparison.Ordinal);
+        if (schemeEnd <= 0)
+        {
+            return server;
+        }
+        var scheme = server[..schemeEnd].ToLowerInvariant();
+        var rest = server[(schemeEnd + 3)..];
+        var direct = scheme.EndsWith("+local", StringComparison.Ordinal);
+        if (direct)
+        {
+            scheme = scheme[..^"+local".Length];
+        }
+        var h3 = scheme == "h3";
+        if (h3)
+        {
+            scheme = "https";
+        }
+        var parameters = new List<string>();
+        if (direct)
+        {
+            parameters.Add("DIRECT");
+        }
+        if (h3)
+        {
+            parameters.Add("h3=true");
+        }
+        var result = $"{scheme}://{rest}";
+        return parameters.Count == 0 ? result : $"{result}#{string.Join("&", parameters)}";
+    }
 
     #endregion DNS
 
     #region Policy
 
-    private void ApplyPolicy(Dictionary<string, object> fileContent)
+    private void ApplyPolicy(Dictionary<string, object> fileContent, HashSet<string> usedRuleSets)
     {
         var groups = fileContent.GetValueOrDefault("proxy-groups") as List<object> ?? [];
         var proxyNames = GetNames(fileContent.GetValueOrDefault("proxies"));
@@ -255,7 +299,6 @@ public class MihomoTranslator(
             rules.Add(line);
         }
 
-        var usedRuleSets = new HashSet<string>();
         foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
         {
             var target = ResolveTarget(rule, proxyPolicy, known);
@@ -271,8 +314,6 @@ public class MihomoTranslator(
             rules.AddRange(oldRules);
         }
         fileContent["rules"] = rules;
-
-        AddRuleProviders(fileContent, usedRuleSets);
     }
 
     /// <summary>
@@ -318,9 +359,13 @@ public class MihomoTranslator(
 
     private string ResolveProxyPolicy(List<object> groups, HashSet<string> proxyNames, HashSet<string> known)
     {
-        if (ext.ProxyGroupName.IsNotEmpty() && known.Contains(ext.ProxyGroupName))
+        if (ext.ProxyGroupName.IsNotEmpty())
         {
-            return ext.ProxyGroupName;
+            if (known.Contains(ext.ProxyGroupName))
+            {
+                return ext.ProxyGroupName;
+            }
+            diagnostics.Warn(Core, ext.ProxyGroupName, string.Format(ResUI.MsgUnifiedProxyGroupMissing, ext.ProxyGroupName));
         }
         var firstSelect = groups.OfType<Dictionary<object, object>>()
             .FirstOrDefault(g => g.GetValueOrDefault("type")?.ToString() == "select")
@@ -418,7 +463,8 @@ public class MihomoTranslator(
         }
         foreach (var process in rule.Processes)
         {
-            selectors.Add(process.Kind == EProcessMatchKind.Path ? $"PROCESS-PATH,{process.Value}" : $"PROCESS-NAME,{process.Value}");
+            // mihomo matches the full executable name, including .exe on Windows
+            selectors.Add(process.Kind == EProcessMatchKind.Path ? $"PROCESS-PATH,{process.Value}" : $"PROCESS-NAME,{Utils.GetExeName(process.Value)}");
         }
 
         if (rule.HasSelectors && selectors.Count == 0)
@@ -428,6 +474,20 @@ public class MihomoTranslator(
         }
 
         var constraints = BuildConstraints(rule);
+        if (constraints.Count > 0)
+        {
+            // Logical rules delimit sub-rules with parentheses, so a payload with unbalanced ones would break the rule.
+            foreach (var selector in selectors.Where(s => !HasBalancedParentheses(s)).ToList())
+            {
+                selectors.Remove(selector);
+                diagnostics.Warn(Core, rule.DisplayName, string.Format(ResUI.MsgUnifiedValueIgnored, rule.DisplayName, selector, CoreCapabilities.CoreDisplayName(Core)));
+            }
+            if (rule.HasSelectors && selectors.Count == 0)
+            {
+                diagnostics.Warn(Core, rule.DisplayName, string.Format(ResUI.MsgUnifiedRuleSkipped, rule.DisplayName, ResUI.MsgUnifiedNoSupportedCondition, CoreCapabilities.CoreDisplayName(Core)));
+                return [];
+            }
+        }
         if (selectors.Count == 0)
         {
             return constraints.Count switch
@@ -467,6 +527,20 @@ public class MihomoTranslator(
             constraints.Add(OrOf(rule.SourcePorts.Select(p => $"SRC-PORT,{p}")));
         }
         return constraints;
+    }
+
+    private static bool HasBalancedParentheses(string text)
+    {
+        var depth = 0;
+        foreach (var c in text)
+        {
+            depth += c switch { '(' => 1, ')' => -1, _ => 0 };
+            if (depth < 0)
+            {
+                return false;
+            }
+        }
+        return depth == 0;
     }
 
     private static string OrOf(IEnumerable<string> atoms)

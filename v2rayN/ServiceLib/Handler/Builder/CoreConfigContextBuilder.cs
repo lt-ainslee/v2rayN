@@ -21,8 +21,8 @@ public record CoreConfigContextBuilderAllResult(
     ///     into a single <see cref="NodeValidatorResult" /> for unified notification.
     /// </summary>
     public NodeValidatorResult CombinedValidatorResult => new(
-        [.. MainResult.ValidatorResult.Errors, .. PreSocksResult?.ValidatorResult.Errors ?? []],
-        [.. MainResult.ValidatorResult.Warnings, .. PreSocksResult?.ValidatorResult.Warnings ?? []]);
+        [.. MainResult.ValidatorResult.Errors.Concat(PreSocksResult?.ValidatorResult.Errors ?? []).Distinct()],
+        [.. MainResult.ValidatorResult.Warnings.Concat(PreSocksResult?.ValidatorResult.Warnings ?? []).Distinct()]);
 }
 
 public class CoreConfigContextBuilder
@@ -76,8 +76,12 @@ public class CoreConfigContextBuilder
                 var ruleOutboundNode = await AppManager.Instance.GetProfileItemViaRemarks(ruleItem.OutboundTag);
                 if (ruleOutboundNode == null)
                 {
-                    validatorResult.Warnings.Add(string.Format(ResUI.MsgRoutingRuleOutboundNodeNotFound,
-                        ruleItem.Remarks, ruleItem.OutboundTag));
+                    // Custom configurations (e.g. Clash) resolve targets against their own proxies and groups.
+                    if (node.ConfigType != EConfigType.Custom)
+                    {
+                        validatorResult.Warnings.Add(string.Format(ResUI.MsgRoutingRuleOutboundNodeNotFound,
+                            ruleItem.Remarks, ruleItem.OutboundTag));
+                    }
                     ruleItem.OutboundTag = Global.ProxyTag;
                     continue;
                 }

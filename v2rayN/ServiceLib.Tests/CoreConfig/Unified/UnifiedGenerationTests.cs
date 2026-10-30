@@ -30,6 +30,11 @@ public class UnifiedGenerationTests
             Id = "only-ruleset", Enabled = true, RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag,
             Domain = ["ruleset:ads"], Port = "443",
         },
+        new()
+        {
+            Id = "undeclared", Enabled = true, RuleType = ERuleType.ALL, OutboundTag = Global.DirectTag,
+            Domain = ["ruleset:undeclared"],
+        },
     ];
 
     private static CoreConfigContext CreateContext(ECoreType coreType)
@@ -103,6 +108,8 @@ public class UnifiedGenerationTests
         await adsRule["rule_set"]![0]!.ToString().Should().BeEqualTo("ads");
         await rules.Any(r => r["rule_set"]?.AsArray().Any(t => t!.ToString() == "ads") == true && r["port"] != null).Should().BeTrue();
 
+        // An undeclared rule set must not turn into a (non-existent) geosite download.
+        await json["route"]!["rule_set"]!.AsArray().Any(r => r!["tag"]!.ToString() == "undeclared").Should().BeFalse();
         var ruleSet = json["route"]!["rule_set"]!.AsArray().OfType<JsonObject>().Single(r => r["tag"]!.ToString() == "ads");
         await ruleSet["url"]!.ToString().Should().BeEqualTo("https://example.com/ads.srs");
         await ruleSet["update_interval"]!.ToString().Should().BeEqualTo("60m");

@@ -2046,4 +2046,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="menuCoreExtensionSetting" xml:space="preserve">
     <value>Core Extensions &amp; Rule Sets</value>
   </data>
+  <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
+    <value>Policy "{0}" chosen for "proxy" does not exist in the Clash configuration; using the first select group instead</value>
+  </data>
 </root>

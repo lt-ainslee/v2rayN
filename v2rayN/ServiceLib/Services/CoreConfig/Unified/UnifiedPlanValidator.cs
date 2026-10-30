@@ -30,7 +30,7 @@ public static class UnifiedPlanValidator
         return new UnifiedPlan
         {
             Rules = rules,
-            Dns = ValidateDns(plan.Dns, core, coreName, diagnostics),
+            Dns = ValidateDns(plan.Dns, core, coreName, ruleSetNames, diagnostics),
             Groups = ValidateGroups(plan.Groups, core, coreName, diagnostics),
             RuleSets = plan.RuleSets,
             DomainStrategy = plan.DomainStrategy,
@@ -160,7 +160,7 @@ public static class UnifiedPlanValidator
         return result;
     }
 
-    private static UnifiedDns ValidateDns(UnifiedDns dns, ECoreType core, string coreName, UnifiedDiagnostics diagnostics)
+    private static UnifiedDns ValidateDns(UnifiedDns dns, ECoreType core, string coreName, HashSet<string> ruleSetNames, UnifiedDiagnostics diagnostics)
     {
         void CheckFeature(bool enabled, ECapability capability, string label)
         {
@@ -191,7 +191,11 @@ public static class UnifiedPlanValidator
         {
             if (policy.Target == EDnsPolicyTarget.Block && CoreCapabilities.Get(core, ECapability.DnsPolicyBlock) == EFidelity.Unsupported)
             {
-                diagnostics.Info(core, "DNS", string.Format(ResUI.MsgUnifiedDnsIgnored, $"block: {string.Join(",", policy.Domains.Select(d => d.Raw))}", coreName));
+                // A block derived from a routing rule still blocks the connection, so only explicit policies are reported.
+                if (policy.IsExplicit)
+                {
+                    diagnostics.Info(core, "DNS", string.Format(ResUI.MsgUnifiedDnsIgnored, $"block: {string.Join(",", policy.Domains.Select(d => d.Raw))}", coreName));
+                }
                 continue;
             }
             var domains = policy.Domains.Where(d =>
@@ -202,7 +206,8 @@ public static class UnifiedPlanValidator
                     EDomainMatchKind.Regex => ECapability.DnsPolicyRegex,
                     _ => CoreCapabilities.ToCapability(d),
                 };
-                if (CoreCapabilities.Get(core, capability) != EFidelity.Unsupported)
+                var missingRuleSet = d.Kind == EDomainMatchKind.RuleSet && !ruleSetNames.Contains(d.Value);
+                if (CoreCapabilities.Get(core, capability) != EFidelity.Unsupported && !missingRuleSet)
                 {
                     return true;
                 }

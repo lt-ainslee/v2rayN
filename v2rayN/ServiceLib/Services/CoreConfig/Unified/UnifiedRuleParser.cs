@@ -160,7 +160,7 @@ public static class UnifiedRuleParser
         {
             return null;
         }
-        var sourceId = $"dns-policy-{index}";
+        var sourceId = $"{DnsPolicy.ExplicitIdPrefix}{index}";
         return targets[0].ToLowerInvariant() switch
         {
             "direct" when targets.Count == 1 => new DnsPolicy(domains, EDnsPolicyTarget.Direct, sourceId),

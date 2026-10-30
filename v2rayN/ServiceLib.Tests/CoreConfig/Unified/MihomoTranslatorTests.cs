@@ -258,4 +258,72 @@ public class MihomoTranslatorTests
         await invalid.Count.Should().BeEqualTo(2);
         await RuleSetTextFormat.ToText(items).Should().BeEqualTo("ads = domain, singbox=https://x/ads.srs, mihomo=https://x/ads.mrs, interval=3600");
     }
+
+    [Test]
+    public async Task Apply_DnsOnly_ShouldAddProvidersForRuleSetsUsedByDns()
+    {
+        var rules = new List<RulesItem> { new() { Id = "cn", RuleType = ERuleType.DNS, OutboundTag = Global.DirectTag, Domain = ["ruleset:cn-sites", "ruleset:undeclared"] } };
+        var ruleSets = new List<RuleSetItem> { new() { Name = "cn-sites", Behavior = "domain", MihomoSource = "https://example.com/cn.mrs" } };
+
+        var (result, _) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, ruleSets: ruleSets);
+
+        var policy = (Dictionary<object, object>)((Dictionary<object, object>)result["dns"])["nameserver-policy"];
+        await policy.ContainsKey("rule-set:cn-sites").Should().BeTrue();
+        await policy.ContainsKey("rule-set:undeclared").Should().BeFalse();
+        var providers = (Dictionary<object, object>)result["rule-providers"];
+        await providers.ContainsKey("cn-sites").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task Apply_ShouldMergeHostsWithTheFile()
+    {
+        var content = Load();
+        content["hosts"] = new Dictionary<object, object> { ["router.lan"] = "192.168.1.1" };
+        var plan = UnifiedPlanBuilder.Build(new SimpleDNSItem { Hosts = "full:nas.lan 192.168.1.10" }, new RoutingItem { RuleSet = "[]" }, Global.AsIs);
+
+        new MihomoTranslator(plan, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, false, new UnifiedDiagnostics()).Apply(content);
+
+        var hosts = (Dictionary<object, object>)content["hosts"];
+        await hosts["router.lan"].Should().BeEqualTo("192.168.1.1");
+        await hosts["nas.lan"].Should().BeEqualTo("192.168.1.10");
+    }
+
+    [Test]
+    [Arguments("dhcp://auto", "system")]
+    [Arguments("localhost", "system")]
+    [Arguments("223.5.5.5", "223.5.5.5")]
+    [Arguments("https+local://dns.alidns.com/dns-query", "https://dns.alidns.com/dns-query#DIRECT")]
+    [Arguments("h3://dns.google/dns-query", "https://dns.google/dns-query#h3=true")]
+    [Arguments("tcp://8.8.8.8", "tcp://8.8.8.8")]
+    public async Task NormalizeServer_ShouldMapAddressForms(string input, string expected)
+    {
+        await MihomoTranslator.NormalizeServer(input).Should().BeEqualTo(expected);
+    }
+
+    [Test]
+    public async Task Apply_MissingProxyGroup_ShouldWarnAndFallBack()
+    {
+        var rules = new List<RulesItem> { new() { Id = "g", RuleType = ERuleType.Routing, OutboundTag = Global.ProxyTag, Domain = ["full:a.com"] } };
+
+        var (result, diagnostics) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsAndRules, ProxyGroupName = "Nope" });
+
+        await Rules(result)[0].Should().BeEqualTo("DOMAIN,a.com,Proxy");
+        await diagnostics.Items.Any(d => d.Message.Contains("Nope")).Should().BeTrue();
+    }
+
+    [Test]
+    public async Task TranslateRule_UnbalancedRegexInsideLogicalRule_ShouldBeDropped()
+    {
+        var rules = new List<RulesItem>
+        {
+            new() { Id = "r", RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag, Domain = ["regexp:^a\\(b$", "full:ok.com"], Port = "443" },
+            new() { Id = "plain", RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag, Domain = ["regexp:^a\\(b$"] },
+        };
+
+        var (result, _) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsAndReplaceRules });
+
+        var translated = Rules(result);
+        await translated[0].Should().BeEqualTo("AND,((DOMAIN,ok.com),(DST-PORT,443)),DIRECT");
+        await translated[1].Should().BeEqualTo("DOMAIN-REGEX,^a\\(b$,DIRECT");
+    }
 }

@@ -147,7 +147,13 @@ public enum EDnsPolicyTarget
 }
 
 /// <summary>Domains that must be resolved by a given DNS group, derived from routing rules or set explicitly.</summary>
-public sealed record DnsPolicy(List<DomainMatch> Domains, EDnsPolicyTarget Target, string SourceId, List<string>? Servers = null);
+public sealed record DnsPolicy(List<DomainMatch> Domains, EDnsPolicyTarget Target, string SourceId, List<string>? Servers = null)
+{
+    public const string ExplicitIdPrefix = "dns-policy-";
+
+    /// <summary>True for policies from the explicit DNS policy setting, false for those derived from routing rules.</summary>
+    public bool IsExplicit => SourceId.StartsWith(ExplicitIdPrefix, StringComparison.Ordinal);
+}
 
 public sealed class UnifiedDns
 {
