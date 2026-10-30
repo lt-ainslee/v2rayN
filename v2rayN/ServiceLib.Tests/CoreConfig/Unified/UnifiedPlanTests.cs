@@ -143,6 +143,22 @@ public class UnifiedPlanTests
     }
 
     [Test]
+    public async Task Validate_DnsDiagnostics_ShouldOnlyReportExplicitPolicies()
+    {
+        var plan = Build(
+            [new() { Id = "r", RuleType = ERuleType.ALL, OutboundTag = Global.BlockTag, Domain = ["keyword:ads"] }],
+            new SimpleDNSItem { DnsPolicy = "keyword:corp = direct\ngeosite:ads = block" });
+        var diagnostics = new UnifiedDiagnostics();
+
+        UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, diagnostics);
+
+        var dnsMessages = diagnostics.Items.Where(d => d.Subject == "DNS").Select(d => d.Message).ToList();
+        await dnsMessages.Count.Should().BeEqualTo(2);
+        await dnsMessages.Any(m => m.Contains("keyword:corp")).Should().BeTrue();
+        await dnsMessages.Any(m => m.Contains("geosite:ads")).Should().BeTrue();
+    }
+
+    [Test]
     public async Task JsonMerge_ShouldDeepMergeAndKeepUnmodeledKeys()
     {
         var rule = new Rule4Sbox { outbound = "proxy", domain = ["a.com"] };

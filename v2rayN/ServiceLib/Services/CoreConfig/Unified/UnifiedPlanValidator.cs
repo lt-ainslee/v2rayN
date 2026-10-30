@@ -211,7 +211,12 @@ public static class UnifiedPlanValidator
                 {
                     return true;
                 }
-                diagnostics.Info(core, "DNS", string.Format(ResUI.MsgUnifiedDnsIgnored, d.Raw, coreName));
+                // For policies derived from routing rules the connection is still routed by the rule; only the
+                // choice of DNS server falls back to the default, so only explicit policies are reported.
+                if (policy.IsExplicit)
+                {
+                    diagnostics.Info(core, "DNS", string.Format(ResUI.MsgUnifiedDnsIgnored, d.Raw, coreName));
+                }
                 return false;
             }).ToList();
             if (domains.Count > 0)

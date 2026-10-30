@@ -44,7 +44,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         SaveCmd = ReactiveCommand.CreateFromTask(SaveSettingAsync);
 
         var ext = _config.CoreExtensionItem ?? new CoreExtensionItem();
-        MihomoUnifiedMode = MihomoUnifiedModes[(int)ext.Mihomo.UnifiedMode];
+        MihomoUnifiedMode = MihomoUnifiedModes[Math.Clamp((int)ext.Mihomo.UnifiedMode, 0, MihomoUnifiedModes.Count - 1)];
         MihomoProxyGroupName = ext.Mihomo.ProxyGroupName ?? string.Empty;
         MihomoRespectRules = ext.Mihomo.RespectRules;
         MihomoPreferH3 = ext.Mihomo.PreferH3;
