@@ -102,7 +102,7 @@ public class CoreConfigContextBuilder
             }
         }
 
-        AddUnifiedDiagnostics(context, validatorResult);
+        await AddUnifiedDiagnostics(context, validatorResult);
 
         if (context.IsTunEnabled && context.AppConfig.TunModeItem.RouteExcludeAddress is { Count: > 0 })
         {
@@ -153,7 +153,7 @@ public class CoreConfigContextBuilder
     ///     Validates the shared DNS / routing settings against the core that will run them and reports
     ///     what had to be degraded. Warnings are shown to the user; approximations are only logged.
     /// </summary>
-    private static void AddUnifiedDiagnostics(CoreConfigContext context, NodeValidatorResult validatorResult)
+    private static async Task AddUnifiedDiagnostics(CoreConfigContext context, NodeValidatorResult validatorResult)
     {
         try
         {
@@ -171,7 +171,10 @@ public class CoreConfigContextBuilder
             }
 
             var diagnostics = new UnifiedDiagnostics();
-            UnifiedPlanFactory.ForContext(context, coreType, diagnostics);
+            var availableRuleSets = coreType == ECoreType.mihomo
+                ? CoreConfigClashService.GetAvailableRuleSetNames(context.AppConfig, await CoreConfigClashService.LoadProfileContentAsync(context.Node))
+                : null;
+            UnifiedPlanFactory.ForContext(context, coreType, diagnostics, availableRuleSets);
             foreach (var item in diagnostics.Items)
             {
                 if (coreType == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.DnsOnly && item.Subject != "DNS")

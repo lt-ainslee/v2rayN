@@ -109,9 +109,9 @@ public static class UnifiedPreviewService
         }
         var plan = UnifiedPlanBuilder.Build(config.SimpleDNSItem, routing, config.RoutingBasicItem?.DomainStrategy,
             config.RuleSetItems, await UnifiedPlanBuilder.BuildGroupsAsync(groupProfiles));
-        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, diagnostics);
-
         var fileContent = await LoadActiveClashConfig(config) ?? CreateStubClashConfig(ext);
+        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, diagnostics,
+            CoreConfigClashService.GetAvailableRuleSetNames(config, fileContent));
         new MihomoTranslator(validated, ext, config.ClashUIItem?.EnableIPv6 ?? false, diagnostics).Apply(fileContent);
 
         var sections = new Dictionary<string, object>();
@@ -139,14 +139,9 @@ public static class UnifiedPreviewService
     /// </summary>
     private static async Task<Dictionary<string, object>?> LoadActiveClashConfig(Config config)
     {
-        if (config.IndexId.IsNullOrEmpty()
-            || await AppManager.Instance.GetProfileItem(config.IndexId) is not { ConfigType: EConfigType.Custom, CoreType: ECoreType.mihomo } node
-            || node.Address.IsNullOrEmpty())
-        {
-            return null;
-        }
-        var path = File.Exists(node.Address) ? node.Address : Path.Combine(Utils.GetConfigPath(), node.Address);
-        return File.Exists(path) ? CoreConfigClashService.ParseClashContent(await File.ReadAllTextAsync(path)) : null;
+        return config.IndexId.IsNullOrEmpty()
+            ? null
+            : await CoreConfigClashService.LoadProfileContentAsync(await AppManager.Instance.GetProfileItem(config.IndexId));
     }
 
     public static Dictionary<string, object> CreateStubClashConfig(MihomoExtension ext)

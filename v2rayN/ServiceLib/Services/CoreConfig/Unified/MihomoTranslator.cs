@@ -39,12 +39,14 @@ public class MihomoTranslator(
             return;
         }
         fileContent["dns"] = BuildDns(fileContent);
-        var hosts = BuildHosts(fileContent.GetValueOrDefault("hosts") as Dictionary<object, object>);
+        var fileHosts = fileContent.GetValueOrDefault("hosts") as Dictionary<object, object>;
+        var hosts = BuildHosts(fileHosts, out var added);
         if (hosts.Count > 0)
         {
             fileContent["hosts"] = hosts;
         }
-        if (plan.Dns.UseSystemHosts || hosts.Count > 0)
+        // Only take over the file's use-system-hosts when the shared settings actually provide hosts.
+        if (plan.Dns.UseSystemHosts || added > 0)
         {
             fileContent["use-system-hosts"] = plan.Dns.UseSystemHosts;
         }
@@ -107,9 +109,9 @@ public class MihomoTranslator(
         {
             dns["default-nameserver"] = bootstrap;
         }
-        dns["nameserver"] = dnsPlan.FinalDirect ? direct.ToList() : remote.ToList();
-        dns["proxy-server-nameserver"] = direct.ToList();
-        dns["direct-nameserver"] = direct.ToList();
+        dns["nameserver"] = dnsPlan.FinalDirect ? direct : remote;
+        dns["proxy-server-nameserver"] = direct;
+        dns["direct-nameserver"] = direct;
         if (ext.RespectRules && !dnsPlan.FinalDirect)
         {
             dns["respect-rules"] = true;
@@ -129,7 +131,7 @@ public class MihomoTranslator(
             foreach (var key in item.Domains.Select(ToDnsPattern).OfType<string>())
             {
                 // The first policy that mentions a domain wins, like the rule order elsewhere.
-                if (policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers.ToList()))
+                if (policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers))
                 {
                     TrackRuleSets([key]);
                 }
@@ -164,14 +166,21 @@ public class MihomoTranslator(
         return result.Distinct().ToList();
     }
 
-    private Dictionary<object, object> BuildHosts(Dictionary<object, object>? fileHosts)
+    /// <summary>
+    /// Precedence: hosts written in the DNS settings, then the file's own hosts, then the built-in common hosts.
+    /// </summary>
+    private Dictionary<object, object> BuildHosts(Dictionary<object, object>? fileHosts, out int added)
     {
         var hosts = fileHosts ?? [];
+        added = 0;
         if (plan.Dns.AddCommonHosts)
         {
             foreach (var (domain, ips) in Global.PredefinedHosts)
             {
-                hosts[domain] = ips.Count == 1 ? ips[0] : ips.ToList();
+                if (hosts.TryAdd(domain, ips.Count == 1 ? ips[0] : ips.ToList()))
+                {
+                    added++;
+                }
             }
         }
         foreach (var (key, values) in plan.Dns.Hosts)
@@ -190,6 +199,7 @@ public class MihomoTranslator(
                 continue;
             }
             hosts[pattern] = answers.Count == 1 ? answers[0] : answers;
+            added++;
         }
         return hosts;
     }
@@ -509,7 +519,12 @@ public class MihomoTranslator(
             return [];
         }
 
-        var constraints = BuildConstraints(rule);
+        if (BuildConstraints(rule) is not { } constraints)
+        {
+            diagnostics.Warn(Core, rule.DisplayName, string.Format(ResUI.MsgUnifiedRuleSkipped, rule.DisplayName,
+                $"network: {string.Join(",", rule.Networks)}", CoreCapabilities.CoreDisplayName(Core)));
+            return [];
+        }
         if (constraints.Count > 0)
         {
             // Logical rules delimit sub-rules with parentheses, so a payload with unbalanced ones would break the rule.
@@ -543,7 +558,11 @@ public class MihomoTranslator(
             .ToList();
     }
 
-    private static List<string> BuildConstraints(UnifiedRule rule)
+    /// <summary>
+    /// The AND-ed constraints, empty when they all match everything (port 0-65535, network tcp,udp),
+    /// or null when they cannot be expressed (e.g. only network icmp): dropping them would broaden the rule.
+    /// </summary>
+    private static List<string>? BuildConstraints(UnifiedRule rule)
     {
         var constraints = new List<string>();
         if (rule.Ports.Count > 0 && !rule.Ports.Any(p => p.IsAny))
@@ -551,6 +570,10 @@ public class MihomoTranslator(
             constraints.Add(OrOf(rule.Ports.Select(p => $"DST-PORT,{p}")));
         }
         var networks = rule.Networks.Where(n => n is "tcp" or "udp").Distinct().ToList();
+        if (rule.Networks.Count > 0 && networks.Count == 0)
+        {
+            return null;
+        }
         if (networks.Count == 1)
         {
             constraints.Add($"NETWORK,{networks[0].ToUpperInvariant()}");

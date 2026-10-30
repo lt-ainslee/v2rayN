@@ -54,7 +54,6 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
                 return ret;
             }
 
-            var tagYamlStr2 = StrTagPlaceholder;
             var fileContent = ParseClashContent(await File.ReadAllTextAsync(addressFileName));
             if (fileContent == null)
             {
@@ -129,7 +128,7 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
                 {
                     if (proxy.GetValueOrDefault("reality-opts") is Dictionary<object, object> realityOptions
                         && realityOptions.GetValueOrDefault("short-id") is string shortId
-                        && !shortId.StartsWith(tagYamlStr2, StringComparison.Ordinal))
+                        && !shortId.StartsWith(StrTagPlaceholder, StringComparison.Ordinal))
                     {
                         originalRealityShortIds.Add((realityOptions, shortId));
                         realityOptions["short-id"] = new YamlScalarNode(shortId) { Style = ScalarStyle.DoubleQuoted };
@@ -182,6 +181,32 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
 
     public static string RestoreStrTags(string yaml) => yaml.Replace(StrTagPlaceholder, "!!str");
 
+    /// <summary>
+    /// Loads the Clash configuration of a custom mihomo profile; null when it is not one or the file is missing.
+    /// </summary>
+    public static async Task<Dictionary<string, object>?> LoadProfileContentAsync(ProfileItem? node)
+    {
+        if (node is not { ConfigType: EConfigType.Custom, CoreType: ECoreType.mihomo } || node.Address.IsNullOrEmpty())
+        {
+            return null;
+        }
+        var path = File.Exists(node.Address) ? node.Address : Path.Combine(Utils.GetConfigPath(), node.Address);
+        return File.Exists(path) ? ParseClashContent(await File.ReadAllTextAsync(path)) : null;
+    }
+
+    /// <summary>
+    /// Rule sets mihomo can resolve: declared ones with a mihomo source and the file's own rule-providers.
+    /// </summary>
+    public static HashSet<string> GetAvailableRuleSetNames(Config config, Dictionary<string, object>? fileContent)
+    {
+        var names = new HashSet<string>((config.RuleSetItems ?? []).Where(t => t.MihomoSource.IsNotEmpty()).Select(t => t.Name));
+        if (fileContent?.GetValueOrDefault("rule-providers") is Dictionary<object, object> providers)
+        {
+            names.UnionWith(providers.Keys.Select(k => k.ToString()).OfType<string>());
+        }
+        return names;
+    }
+
     private async Task ApplyUnifiedSettings(Dictionary<string, object> fileContent)
     {
         var ext = config.CoreExtensionItem?.Mihomo;
@@ -201,7 +226,8 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
             await UnifiedPlanBuilder.BuildGroupsAsync(groupProfiles));
 
         // Validation diagnostics are reported when the context is built; only translation results are reported here.
-        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, new UnifiedDiagnostics());
+        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, new UnifiedDiagnostics(),
+            GetAvailableRuleSetNames(config, fileContent));
         var diagnostics = new UnifiedDiagnostics();
         new MihomoTranslator(validated, ext, config.ClashUIItem.EnableIPv6, diagnostics).Apply(fileContent);
         foreach (var item in diagnostics.Items)

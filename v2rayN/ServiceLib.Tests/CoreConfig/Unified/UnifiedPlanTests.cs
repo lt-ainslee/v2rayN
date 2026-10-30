@@ -36,7 +36,7 @@ public class UnifiedPlanTests
     [Test]
     public async Task ParsePorts_ShouldParseSinglesAndRanges()
     {
-        var ports = UnifiedRuleParser.ParsePorts("80, 443,1000-2000,bad");
+        var ports = UnifiedRuleParser.ParsePorts("80, 443,1000-2000,bad,70000,2000-1000,-1");
         await ports.Count.Should().BeEqualTo(3);
         await ports[2].Should().BeEqualTo(new PortRange(1000, 2000));
     }
@@ -193,6 +193,10 @@ public class UnifiedPlanTests
     [Arguments("fd00::/129", false)]
     [Arguments("foo", false)]
     [Arguments("lan.example.com", false)]
+    [Arguments("192.168.1", false)]
+    [Arguments("10", false)]
+    [Arguments("0x7f.0.0.1", false)]
+    [Arguments("fe80::1%eth0", false)]
     public async Task IsValidCidr_ShouldCheckAddressAndPrefix(string value, bool expected)
     {
         await UnifiedRuleParser.IsValidCidr(value).Should().BeEqualTo(expected);

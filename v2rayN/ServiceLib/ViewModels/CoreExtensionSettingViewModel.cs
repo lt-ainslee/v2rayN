@@ -34,7 +34,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
 
     [Reactive] public partial string RuleSets { get; set; }
 
-    public static IReadOnlyList<string> PreviewCores { get; } = ["Xray", "sing-box", "mihomo"];
+    public static IReadOnlyList<string> PreviewCores { get; } = [.. CoreCapabilities.UnifiedCores.Select(CoreCapabilities.CoreDisplayName)];
     [Reactive] public partial string PreviewCore { get; set; }
     [Reactive] public partial string PreviewText { get; set; }
 
@@ -163,12 +163,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         }
         config.CoreExtensionItem = BuildExtensionItem();
         config.RuleSetItems = ruleSets;
-        var core = PreviewCore switch
-        {
-            "sing-box" => ECoreType.sing_box,
-            "mihomo" => ECoreType.mihomo,
-            _ => ECoreType.Xray,
-        };
+        var core = CoreCapabilities.UnifiedCores.First(c => CoreCapabilities.CoreDisplayName(c) == PreviewCore);
         PreviewText = await Task.Run(() => UnifiedPreviewService.PreviewAsync(config, core));
     }
 

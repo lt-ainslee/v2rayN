@@ -254,7 +254,7 @@ public partial class CoreConfigSingboxService
             var ipRules = new List<UnifiedRule>();
             if (routing != null)
             {
-                var plan = UnifiedPlanFactory.ForContext(context, ECoreType.sing_box);
+                var plan = UnifiedPlanFactory.ForContext(context, ECoreType.sing_box, availableRuleSets: AvailableRuleSets);
                 foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
                 {
                     GenRoutingUserRule(rule);
@@ -509,12 +509,13 @@ public partial class CoreConfigSingboxService
 
     private bool ParseV2Domain(string domain, Rule4Sbox rule)
     {
-        if (UnifiedRuleParser.ParseDomain(domain) is not { } match)
-        {
-            return false;
-        }
+        return UnifiedRuleParser.ParseDomain(domain) is { } match && ApplyDomain(match, rule);
+    }
+
+    private bool ApplyDomain(DomainMatch match, Rule4Sbox rule)
+    {
         // An undeclared rule set would otherwise be resolved as a geosite/geoip download that does not exist.
-        if (match.Kind == EDomainMatchKind.RuleSet && !IsDeclaredRuleSet(match.Value))
+        if (match.Kind == EDomainMatchKind.RuleSet && !AvailableRuleSets.Contains(match.Value))
         {
             return false;
         }
@@ -523,11 +524,7 @@ public partial class CoreConfigSingboxService
 
     private HashSet<string>? _availableRuleSets;
 
-    private bool IsDeclaredRuleSet(string name)
-    {
-        _availableRuleSets ??= SingboxRuleSetSources.GetAvailableNames(_config, context.RoutingItem);
-        return _availableRuleSets.Contains(name);
-    }
+    private HashSet<string> AvailableRuleSets => _availableRuleSets ??= SingboxRuleSetSources.GetAvailableNames(_config, context.RoutingItem);
 
     private bool ParseV2Address(string address, Rule4Sbox rule)
     {
@@ -535,7 +532,7 @@ public partial class CoreConfigSingboxService
         {
             return false;
         }
-        if (match.Kind == EIpMatchKind.RuleSet && !IsDeclaredRuleSet(match.Value))
+        if (match.Kind == EIpMatchKind.RuleSet && !AvailableRuleSets.Contains(match.Value))
         {
             return false;
         }

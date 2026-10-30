@@ -382,4 +382,52 @@ public class MihomoTranslatorTests
 
         await yaml.Should().Contain("!!str 123456");
     }
+
+    [Test]
+    public async Task Apply_Hosts_ShouldKeepFileEntriesOverCommonHostsAndLeaveUseSystemHosts()
+    {
+        var content = Load();
+        content["hosts"] = new Dictionary<object, object> { ["dns.google"] = "10.0.0.53" };
+        content["use-system-hosts"] = true;
+        var noHosts = UnifiedPlanBuilder.Build(new SimpleDNSItem(), new RoutingItem { RuleSet = "[]" }, Global.AsIs);
+        new MihomoTranslator(noHosts, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, false, new UnifiedDiagnostics()).Apply(content);
+        await content["use-system-hosts"].Should().BeEqualTo(true);
+
+        var common = UnifiedPlanBuilder.Build(new SimpleDNSItem { AddCommonHosts = true }, new RoutingItem { RuleSet = "[]" }, Global.AsIs);
+        new MihomoTranslator(common, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, false, new UnifiedDiagnostics()).Apply(content);
+
+        var hosts = (Dictionary<object, object>)content["hosts"];
+        await hosts["dns.google"].Should().BeEqualTo("10.0.0.53");
+        await hosts.ContainsKey("dns.alidns.com").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task TranslateRule_InexpressibleNetworkOnly_ShouldBeDroppedNotMatchAll()
+    {
+        var rules = new List<RulesItem>
+        {
+            new() { Id = "icmp", RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag, Network = "icmp" },
+            new() { Id = "next", RuleType = ERuleType.Routing, OutboundTag = Global.BlockTag, Domain = ["full:ads.com"] },
+        };
+
+        var (result, diagnostics) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsAndRules });
+
+        await string.Join("\n", Rules(result)).Should().BeEqualTo("DOMAIN,ads.com,REJECT\nDOMAIN-SUFFIX,original.example.com,Proxy\nMATCH,DIRECT");
+        await diagnostics.Items.Any(d => d.Subject == "icmp").Should().BeTrue();
+    }
+
+    [Test]
+    public async Task Validate_FileRuleProviders_ShouldBeAvailableForDnsPolicies()
+    {
+        var plan = UnifiedPlanBuilder.Build(new SimpleDNSItem { DnsPolicy = "ruleset:netflix = 192.168.1.1" }, new RoutingItem { RuleSet = "[]" }, Global.AsIs);
+        var content = Load();
+        content["rule-providers"] = new Dictionary<object, object> { ["netflix"] = new Dictionary<object, object> { ["type"] = "http" } };
+
+        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, new UnifiedDiagnostics(),
+            CoreConfigClashService.GetAvailableRuleSetNames(new Config(), content));
+        new MihomoTranslator(validated, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, false, new UnifiedDiagnostics()).Apply(content);
+
+        var policy = (Dictionary<object, object>)((Dictionary<object, object>)content["dns"])["nameserver-policy"];
+        await policy["rule-set:netflix"].Should().BeEqualTo("192.168.1.1#DIRECT");
+    }
 }

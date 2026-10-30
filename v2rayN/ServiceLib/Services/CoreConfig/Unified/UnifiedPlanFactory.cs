@@ -5,16 +5,19 @@ public static class UnifiedPlanFactory
     /// <summary>
     /// Builds the plan from the shared settings in the context and validates it for the given core.
     /// </summary>
-    public static UnifiedPlan ForContext(CoreConfigContext context, ECoreType core, UnifiedDiagnostics? diagnostics = null)
+    /// <param name="availableRuleSets">Rule set names the core can resolve; computed for sing-box when null.</param>
+    public static UnifiedPlan ForContext(CoreConfigContext context, ECoreType core, UnifiedDiagnostics? diagnostics = null,
+        IEnumerable<string>? availableRuleSets = null)
     {
         var plan = UnifiedPlanBuilder.Build(
             context.SimpleDnsItem,
             context.RoutingItem,
             context.AppConfig.RoutingBasicItem?.DomainStrategy,
             context.AppConfig.RuleSetItems);
-        var availableRuleSets = core == ECoreType.sing_box
-            ? SingboxRuleSetSources.GetAvailableNames(context.AppConfig, context.RoutingItem)
-            : null;
+        if (availableRuleSets == null && core == ECoreType.sing_box)
+        {
+            availableRuleSets = SingboxRuleSetSources.GetAvailableNames(context.AppConfig, context.RoutingItem);
+        }
         return UnifiedPlanValidator.Validate(plan, core, diagnostics ?? new UnifiedDiagnostics(), availableRuleSets);
     }
 

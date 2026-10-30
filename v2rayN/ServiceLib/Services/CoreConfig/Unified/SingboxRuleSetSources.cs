@@ -15,9 +15,10 @@ public static class SingboxRuleSetSources
             if (routing?.CustomRulesetPath4Singbox.IsNotEmpty() == true
                 && EmbedUtils.LoadResource(routing.CustomRulesetPath4Singbox) is { Length: > 0 } custom)
             {
+                // Same filter as ConvertGeo2Ruleset: entries without type or format are ignored there.
                 names.UnionWith((JsonUtils.Deserialize<List<Ruleset4Sbox>>(custom) ?? [])
-                    .Select(t => t.tag)
-                    .OfType<string>());
+                    .Where(t => t.tag != null && t.type != null && t.format != null)
+                    .Select(t => t.tag!));
             }
             var localSrss = Utils.GetBinPath("srss");
             if (Directory.Exists(localSrss))

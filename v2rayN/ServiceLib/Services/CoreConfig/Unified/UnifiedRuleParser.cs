@@ -80,7 +80,7 @@ public static class UnifiedRuleParser
     }
 
     /// <summary>
-    /// Parses "80,443,1000-2000". Invalid entries are skipped.
+    /// Parses "80,443,1000-2000". Invalid entries (not numbers, outside 0-65535, reversed ranges) are skipped.
     /// </summary>
     public static List<PortRange> ParsePorts(string? raw)
     {
@@ -92,11 +92,12 @@ public static class UnifiedRuleParser
         foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var range = part.Split('-', StringSplitOptions.TrimEntries);
-            if (range.Length == 1 && int.TryParse(range[0], out var port))
+            if (range.Length == 1 && int.TryParse(range[0], out var port) && IsPort(port))
             {
                 result.Add(new(port, port));
             }
-            else if (range.Length == 2 && int.TryParse(range[0], out var from) && int.TryParse(range[1], out var to))
+            else if (range.Length == 2 && int.TryParse(range[0], out var from) && int.TryParse(range[1], out var to)
+                && IsPort(from) && IsPort(to) && from <= to)
             {
                 result.Add(new(from, to));
             }
@@ -114,13 +115,22 @@ public static class UnifiedRuleParser
             return false;
         }
         var parts = value.Split('/');
-        if (parts.Length > 2 || !IPAddress.TryParse(parts[0], out var address))
+        if (parts.Length > 2 || parts[0].Contains('%') || !IPAddress.TryParse(parts[0], out var address))
+        {
+            return false;
+        }
+        // IPAddress.TryParse also accepts shorthand IPv4 such as "10", "1.2.3" or "0x7f.1", which cores reject.
+        if (address.AddressFamily == AddressFamily.InterNetwork
+            && parts[0].Split('.') is var octets
+            && (octets.Length != 4 || octets.Any(o => o.Length == 0 || !o.All(char.IsAsciiDigit))))
         {
             return false;
         }
         var maxPrefix = address.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32;
         return parts.Length == 1 || (int.TryParse(parts[1], out var prefix) && prefix >= 0 && prefix <= maxPrefix);
     }
+
+    private static bool IsPort(int port) => port is >= 0 and <= 65535;
 
     public static ProcessMatch? ParseProcess(string? raw)
     {

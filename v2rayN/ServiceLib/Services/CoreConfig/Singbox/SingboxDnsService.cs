@@ -314,7 +314,7 @@ public partial class CoreConfigSingboxService
         foreach (var policy in UnifiedPlanFactory.ExplicitDnsPolicies(simpleDnsItem))
         {
             var policyRule = new Rule4Sbox();
-            if (policy.Domains.Count(d => ParseV2Domain(d.Raw, policyRule)) == 0)
+            if (policy.Domains.Count(d => ApplyDomain(d, policyRule)) == 0)
             {
                 continue;
             }
