@@ -46,21 +46,15 @@ public partial class CoreConfigV2rayService
                     {
                         _coreConfig.routing.domainStrategy = routing.DomainStrategy;
                     }
-                    var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet);
-                    foreach (var item in rules)
+                    var plan = UnifiedPlanFactory.ForContext(context, ECoreType.Xray);
+                    foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
                     {
-                        if (!item.Enabled)
-                        {
-                            continue;
-                        }
-
-                        if (item.RuleType == ERuleType.DNS)
-                        {
-                            continue;
-                        }
-
-                        var item2 = JsonUtils.Deserialize<RulesItem4Ray>(JsonUtils.Serialize(item));
+                        var start = _coreConfig.routing.rules.Count;
+                        var item2 = JsonUtils.Deserialize<RulesItem4Ray>(JsonUtils.Serialize(rule.ToRulesItem()));
+                        // Only modeled Xray fields are copied; RulesItem-only fields (Id, Remarks...) must not leak.
+                        item2?.ExtensionData = null;
                         GenRoutingUserRule(item2);
+                        XrayRuleTranslator.ApplyToGenerated(rule, _coreConfig.routing.rules, start);
                     }
                 }
                 var balancerTagList = _coreConfig.routing.balancers
@@ -133,6 +127,7 @@ public partial class CoreConfigV2rayService
                     if (it.domain[k].StartsWith('#'))
                     {
                         it.domain.RemoveAt(k);
+                        continue;
                     }
                     it.domain[k] = it.domain[k].Replace(Global.RoutingRuleComma, ",");
                 }

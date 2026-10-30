@@ -1984,4 +1984,25 @@
   <data name="TbClashNameserverRequired" xml:space="preserve">
     <value>启用 DNS 覆写时必须填写 DNS 服务器</value>
   </data>
+  <data name="MsgUnifiedValueIgnored" xml:space="preserve">
+    <value>规则「{0}」：{1} 在 {2} 中不受支持，已忽略该值</value>
+  </data>
+  <data name="MsgUnifiedRuleSkipped" xml:space="preserve">
+    <value>规则「{0}」：{1} 在 {2} 中不受支持，已跳过整条规则</value>
+  </data>
+  <data name="MsgUnifiedNoSupportedCondition" xml:space="preserve">
+    <value>没有剩余可用的域名 / IP / 进程条件</value>
+  </data>
+  <data name="MsgUnifiedApproximated" xml:space="preserve">
+    <value>{0}：{1} 在 {2} 中以近似方式实现</value>
+  </data>
+  <data name="MsgUnifiedRuleSetMissing" xml:space="preserve">
+    <value>规则「{0}」：规则集 {1} 未配置 {2} 的来源，已忽略该值</value>
+  </data>
+  <data name="MsgUnifiedDnsIgnored" xml:space="preserve">
+    <value>DNS：{0} 在 {1} 中不受支持，已忽略</value>
+  </data>
+  <data name="MsgUnifiedPolicyFallback" xml:space="preserve">
+    <value>规则「{0}」：策略「{1}」在 {2} 配置中不存在，已改用「{3}」</value>
+  </data>
 </root>

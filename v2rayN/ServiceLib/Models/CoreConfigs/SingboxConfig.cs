@@ -101,6 +101,10 @@ public class Rule4Sbox
     public string? tag { get; set; }
     public bool? race { get; set; }
     public bool? speculative { get; set; }
+
+    /// <summary>Keys from per-rule core extensions that are not modeled above.</summary>
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 [Serializable]

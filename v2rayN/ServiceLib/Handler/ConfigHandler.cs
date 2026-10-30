@@ -171,6 +171,11 @@ public static class ConfigHandler
             ProxyServerNameserver = "https://dns.alidns.com/dns-query",
             FallbackFilterGeoIPCode = "CN",
         };
+        config.CoreExtensionItem ??= new();
+        config.CoreExtensionItem.Xray ??= new();
+        config.CoreExtensionItem.Singbox ??= new();
+        config.CoreExtensionItem.Mihomo ??= new();
+        config.RuleSetItems ??= [];
         config.SystemProxyItem ??= new();
         config.WebDavItem ??= new();
         config.CheckUpdateItem ??= new();

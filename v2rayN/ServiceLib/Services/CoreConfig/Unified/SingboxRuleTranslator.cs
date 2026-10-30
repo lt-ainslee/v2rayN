@@ -111,12 +111,43 @@ public static class SingboxRuleTranslator
     }
 
     /// <summary>
-    /// Merges the object-level extension (a JSON object) into the generated rule.
+    /// Applies source conditions and the per-rule extension to the rules generated from one IR rule,
+    /// i.e. rules[start..].
     /// </summary>
-    public static Rule4Sbox ApplyExtension(Rule4Sbox rule, RuleCoreExtension? ext)
+    public static void ApplyToGenerated(UnifiedRule unified, List<Rule4Sbox> rules, int start)
     {
-        return ext?.SingboxJson.IsNullOrEmpty() == false
-            ? UnifiedJsonMerge.Merge(rule, ext.SingboxJson) ?? rule
-            : rule;
+        for (var i = start; i < rules.Count; i++)
+        {
+            var rule = rules[i];
+            if (unified.SourceIps.Count > 0 || unified.SourcePorts.Count > 0)
+            {
+                if (rule.type == "logical")
+                {
+                    // A logical rule only carries mode/rules/action, so AND the source on top of it.
+                    var source = new Rule4Sbox();
+                    ApplySource(unified, source);
+                    var inner = JsonUtils.DeepCopy(rule) ?? rule;
+                    inner.outbound = null;
+                    inner.action = null;
+                    rule = new Rule4Sbox
+                    {
+                        type = "logical",
+                        mode = "and",
+                        outbound = rule.outbound,
+                        action = rule.action,
+                        rules = [inner, source],
+                    };
+                }
+                else
+                {
+                    ApplySource(unified, rule);
+                }
+            }
+            if (unified.CoreExt?.SingboxJson.IsNullOrEmpty() == false)
+            {
+                rule = UnifiedJsonMerge.Merge(rule, unified.CoreExt.SingboxJson) ?? rule;
+            }
+            rules[i] = rule;
+        }
     }
 }

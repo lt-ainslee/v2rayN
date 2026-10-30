@@ -234,6 +234,18 @@
       },
       {
         "type": "field",
+        "outboundTag": "proxy",
+        "domain": [
+          "geosite:google",
+          "domain:youtube.com",
+          "keyword:gstatic",
+          "regexp:^api\\d+\\.example\\.org$",
+          "twitter",
+          "dotless:intranet"
+        ]
+      },
+      {
+        "type": "field",
         "port": "123,5000-6000",
         "network": "udp",
         "outboundTag": "direct"

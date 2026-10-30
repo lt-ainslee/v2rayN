@@ -1992,4 +1992,25 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbClashNameserverRequired" xml:space="preserve">
     <value>Nameserver is required when DNS override is enabled</value>
   </data>
+  <data name="MsgUnifiedValueIgnored" xml:space="preserve">
+    <value>Rule "{0}": {1} is not supported by {2}; this value was ignored</value>
+  </data>
+  <data name="MsgUnifiedRuleSkipped" xml:space="preserve">
+    <value>Rule "{0}": {1} is not supported by {2}; the whole rule was skipped</value>
+  </data>
+  <data name="MsgUnifiedNoSupportedCondition" xml:space="preserve">
+    <value>no supported domain / IP / process condition left</value>
+  </data>
+  <data name="MsgUnifiedApproximated" xml:space="preserve">
+    <value>{0}: {1} is approximated in {2}</value>
+  </data>
+  <data name="MsgUnifiedRuleSetMissing" xml:space="preserve">
+    <value>Rule "{0}": rule set {1} has no source for {2}; this value was ignored</value>
+  </data>
+  <data name="MsgUnifiedDnsIgnored" xml:space="preserve">
+    <value>DNS: {0} is not supported by {1} and was ignored</value>
+  </data>
+  <data name="MsgUnifiedPolicyFallback" xml:space="preserve">
+    <value>Rule "{0}": policy "{1}" does not exist in the {2} configuration; using "{3}" instead</value>
+  </data>
 </root>

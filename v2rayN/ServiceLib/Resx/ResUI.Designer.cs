@@ -5678,5 +5678,68 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("TbClashNameserverRequired", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}": {1} is not supported by {2}; this value was igno 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedValueIgnored {
+            get {
+                return ResourceManager.GetString("MsgUnifiedValueIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}": {1} is not supported by {2}; the whole rule was  的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedRuleSkipped {
+            get {
+                return ResourceManager.GetString("MsgUnifiedRuleSkipped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 no supported domain / IP / process condition left 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedNoSupportedCondition {
+            get {
+                return ResourceManager.GetString("MsgUnifiedNoSupportedCondition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 {0}: {1} is approximated in {2} 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedApproximated {
+            get {
+                return ResourceManager.GetString("MsgUnifiedApproximated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}": rule set {1} has no source for {2}; this value w 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedRuleSetMissing {
+            get {
+                return ResourceManager.GetString("MsgUnifiedRuleSetMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS: {0} is not supported by {1} and was ignored 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedDnsIgnored {
+            get {
+                return ResourceManager.GetString("MsgUnifiedDnsIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}": policy "{1}" does not exist in the {2} configura 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedPolicyFallback {
+            get {
+                return ResourceManager.GetString("MsgUnifiedPolicyFallback", resourceCulture);
+            }
+        }
     }
 }

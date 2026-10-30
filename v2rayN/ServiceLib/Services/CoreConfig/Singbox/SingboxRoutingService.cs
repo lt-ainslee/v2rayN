@@ -251,36 +251,26 @@ public partial class CoreConfigSingboxService
                 _coreConfig.route.rules.Add(resolveRule);
             }
 
-            var ipRules = new List<RulesItem>();
+            var ipRules = new List<UnifiedRule>();
             if (routing != null)
             {
-                var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet);
-                foreach (var item1 in rules ?? [])
+                var plan = UnifiedPlanFactory.ForContext(context, ECoreType.sing_box);
+                foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
                 {
-                    if (!item1.Enabled)
-                    {
-                        continue;
-                    }
+                    GenRoutingUserRule(rule);
 
-                    if (item1.RuleType == ERuleType.DNS)
+                    if (rule.Ips.Count > 0)
                     {
-                        continue;
-                    }
-
-                    GenRoutingUserRule(item1);
-
-                    if (item1.Ip?.Count > 0)
-                    {
-                        ipRules.Add(item1);
+                        ipRules.Add(rule);
                     }
                 }
             }
             if (_config.RoutingBasicItem.DomainStrategy == Global.IPIfNonMatch)
             {
                 _coreConfig.route.rules.Add(resolveRule);
-                foreach (var item2 in ipRules)
+                foreach (var rule in ipRules)
                 {
-                    GenRoutingUserRule(item2);
+                    GenRoutingUserRule(rule);
                 }
             }
         }
@@ -330,6 +320,13 @@ public partial class CoreConfigSingboxService
         }
 
         return directExeSet.ToList();
+    }
+
+    private void GenRoutingUserRule(UnifiedRule unified)
+    {
+        var start = _coreConfig.route.rules.Count;
+        GenRoutingUserRule(unified.ToRulesItem());
+        SingboxRuleTranslator.ApplyToGenerated(unified, _coreConfig.route.rules, start);
     }
 
     private void GenRoutingUserRule(RulesItem? item)

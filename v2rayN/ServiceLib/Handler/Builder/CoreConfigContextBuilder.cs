@@ -98,6 +98,8 @@ public class CoreConfigContextBuilder
             }
         }
 
+        AddUnifiedDiagnostics(context, validatorResult);
+
         if (context.IsTunEnabled && context.AppConfig.TunModeItem.RouteExcludeAddress is { Count: > 0 })
         {
             var appConfig = JsonUtils.DeepCopy(config);
@@ -143,6 +145,51 @@ public class CoreConfigContextBuilder
     ///     the main build succeeds, also builds the optional pre-socks context required for TUN
     ///     protection or pre-socks proxy chaining.
     /// </summary>
+    /// <summary>
+    ///     Validates the shared DNS / routing settings against the core that will run them and reports
+    ///     what had to be degraded. Warnings are shown to the user; approximations are only logged.
+    /// </summary>
+    private static void AddUnifiedDiagnostics(CoreConfigContext context, NodeValidatorResult validatorResult)
+    {
+        try
+        {
+            var mihomoMode = context.AppConfig.CoreExtensionItem?.Mihomo.UnifiedMode ?? EMihomoUnifiedMode.Off;
+            ECoreType? core = context.Node.ConfigType switch
+            {
+                EConfigType.Custom when context.Node.CoreType == ECoreType.mihomo && mihomoMode != EMihomoUnifiedMode.Off => ECoreType.mihomo,
+                EConfigType.Custom => null,
+                _ when context.RunCoreType == ECoreType.sing_box => ECoreType.sing_box,
+                _ => ECoreType.Xray,
+            };
+            if (core is not { } coreType)
+            {
+                return;
+            }
+
+            var diagnostics = new UnifiedDiagnostics();
+            UnifiedPlanFactory.ForContext(context, coreType, diagnostics);
+            foreach (var item in diagnostics.Items)
+            {
+                if (coreType == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.DnsOnly && item.Subject != "DNS")
+                {
+                    continue;
+                }
+                if (item.Level == EDiagnosticLevel.Warning)
+                {
+                    validatorResult.Warnings.Add(item.Message);
+                }
+                else
+                {
+                    Logging.SaveLog(item.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(nameof(AddUnifiedDiagnostics), ex);
+        }
+    }
+
     public static async Task<CoreConfigContextBuilderAllResult> BuildAll(Config config, ProfileItem node)
     {
         var mainResult = await Build(config, node);

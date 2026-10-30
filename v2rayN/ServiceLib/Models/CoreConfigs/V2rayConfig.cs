@@ -204,6 +204,7 @@ public class Dns4Ray
     public bool? serveStale { get; set; }
     public bool? enableParallelQuery { get; set; }
     public string? queryStrategy { get; set; }
+    public bool? disableCache { get; set; }
     public string? tag { get; set; }
 }
 
@@ -247,6 +248,14 @@ public class RulesItem4Ray
     public List<string>? protocol { get; set; }
 
     public List<string>? process { get; set; }
+
+    public List<string>? source { get; set; }
+
+    public string? sourcePort { get; set; }
+
+    /// <summary>Keys from per-rule core extensions that are not modeled above.</summary>
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 public class BalancersItem4Ray
