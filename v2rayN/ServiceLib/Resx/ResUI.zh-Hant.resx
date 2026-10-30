@@ -2068,4 +2068,7 @@
   <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
     <value>統一設定未套用到 Clash 設定（mihomo 頁為「關閉」），將依設定檔原樣執行。</value>
   </data>
+  <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
+    <value>規則「{0}」比對所有流量，其後的規則（包括 Clash 設定原有的規則）不會生效</value>
+  </data>
 </root>

@@ -326,4 +326,23 @@ public class MihomoTranslatorTests
         await translated[0].Should().BeEqualTo("AND,((DOMAIN,ok.com),(DST-PORT,443)),DIRECT");
         await translated[1].Should().BeEqualTo("DOMAIN-REGEX,^a\\(b$,DIRECT");
     }
+
+    [Test]
+    public async Task Apply_CatchAllRule_ShouldBecomeMatchAndEndTheRules()
+    {
+        // The "blacklist" preset ends with port 0-65535 -> direct: unmatched traffic must go direct, not to the proxy.
+        var rules = new List<RulesItem>
+        {
+            new() { Id = "gfw", RuleType = ERuleType.Routing, OutboundTag = Global.ProxyTag, Domain = ["geosite:gfw"] },
+            new() { Id = "rest", RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag, Port = "0-65535" },
+            new() { Id = "unreachable", RuleType = ERuleType.Routing, OutboundTag = Global.BlockTag, Domain = ["full:x.com"] },
+        };
+
+        var (replaced, _) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsAndReplaceRules });
+        var (prepended, diagnostics) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsAndRules });
+
+        await string.Join("\n", Rules(replaced)).Should().BeEqualTo("GEOSITE,gfw,Proxy\nMATCH,DIRECT");
+        await string.Join("\n", Rules(prepended)).Should().BeEqualTo("GEOSITE,gfw,Proxy\nMATCH,DIRECT");
+        await diagnostics.Items.Any(d => d.Subject == "rest").Should().BeTrue();
+    }
 }

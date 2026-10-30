@@ -299,19 +299,36 @@ public class MihomoTranslator(
             rules.Add(line);
         }
 
+        var catchAll = false;
         foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
         {
             var target = ResolveTarget(rule, proxyPolicy, known);
-            rules.AddRange(TranslateRule(rule, target, usedRuleSets));
+            var translated = TranslateRule(rule, target, usedRuleSets);
+            rules.AddRange(translated);
+            if (translated.Any(t => t.StartsWith("MATCH,", StringComparison.Ordinal)))
+            {
+                // Nothing after a catch-all rule is reached, so stop like the core would.
+                catchAll = true;
+                if (ext.UnifiedMode == EMihomoUnifiedMode.DnsAndRules)
+                {
+                    diagnostics.Info(Core, rule.DisplayName, string.Format(ResUI.MsgUnifiedCatchAllRule, rule.DisplayName));
+                }
+                break;
+            }
         }
 
-        if (ext.UnifiedMode == EMihomoUnifiedMode.DnsAndReplaceRules)
+        // After a catch-all rule neither the default nor the original rules can be reached.
+        if (!catchAll)
         {
-            rules.Add($"MATCH,{proxyPolicy}");
-        }
-        else if (fileContent.GetValueOrDefault("rules") is List<object> oldRules)
-        {
-            rules.AddRange(oldRules);
+            if (ext.UnifiedMode == EMihomoUnifiedMode.DnsAndReplaceRules)
+            {
+                // Same default as Xray / sing-box: unmatched traffic goes through the proxy.
+                rules.Add($"MATCH,{proxyPolicy}");
+            }
+            else if (fileContent.GetValueOrDefault("rules") is List<object> oldRules)
+            {
+                rules.AddRange(oldRules);
+            }
         }
         fileContent["rules"] = rules;
     }
@@ -492,7 +509,8 @@ public class MihomoTranslator(
         {
             return constraints.Count switch
             {
-                0 => [],
+                // Only trivial constraints such as port 0-65535 or network tcp,udp: the rule matches everything.
+                0 => rule.HasConstraints ? [$"MATCH,{target}"] : [],
                 1 => [$"{constraints[0]},{target}"],
                 _ => [$"AND,({string.Join(",", constraints.Select(c => $"({c})"))}),{target}"],
             };

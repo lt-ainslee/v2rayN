@@ -2070,4 +2070,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
     <value>The shared settings are not applied to Clash configurations (mihomo tab: Off), so the configuration file is used as is.</value>
   </data>
+  <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
+    <value>Rule "{0}" matches all traffic; the rules after it, including the Clash configuration's own rules, are not reached</value>
+  </data>
 </root>

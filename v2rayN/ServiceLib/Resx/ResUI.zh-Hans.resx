@@ -2062,4 +2062,7 @@
   <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
     <value>统一配置未应用到 Clash 配置（mihomo 页为「关闭」），将按配置文件原样运行。</value>
   </data>
+  <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
+    <value>规则「{0}」匹配所有流量，其后的规则（包括 Clash 配置原有的规则）不会生效</value>
+  </data>
 </root>

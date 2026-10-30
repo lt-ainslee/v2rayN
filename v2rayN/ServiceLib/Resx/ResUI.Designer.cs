@@ -5912,5 +5912,14 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("MsgUnifiedPreviewMihomoOff", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}" matches all traffic; the rules after it, includin 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedCatchAllRule {
+            get {
+                return ResourceManager.GetString("MsgUnifiedCatchAllRule", resourceCulture);
+            }
+        }
     }
 }
