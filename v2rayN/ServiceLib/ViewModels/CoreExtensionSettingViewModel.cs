@@ -34,7 +34,10 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
 
     [Reactive] public partial string RuleSets { get; set; }
 
-    public string CapabilityMatrix { get; } = CoreCapabilityMatrix.ToText();
+    public IReadOnlyList<CoreCapabilityRow> CapabilityRows { get; } = CoreCapabilityMatrix.Rows();
+
+    /// <summary>The other mihomo options only take effect when the shared settings are applied.</summary>
+    public bool IsMihomoUnifiedEnabled => MihomoUnifiedMode != MihomoUnifiedModes[0];
 
     public ReactiveCommand<RxVoid, RxVoid> SaveCmd { get; }
 
@@ -59,6 +62,9 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         XrayDnsDisableCache = ext.Xray.DnsDisableCache ?? false;
 
         RuleSets = RuleSetTextFormat.ToText(_config.RuleSetItems);
+
+        this.WhenAnyValue(x => x.MihomoUnifiedMode)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(IsMihomoUnifiedEnabled)));
     }
 
     private async Task SaveSettingAsync()

@@ -268,6 +268,21 @@
                 </CheckBox>
             </StackPanel>
 
+            <Button
+                x:Name="btnSave"
+                MinWidth="100"
+                Content="{x:Static resx:ResUI.TbConfirm}"
+                IsDefault="True"
+                Style="{StaticResource DefButton}" />
+            <Button
+                x:Name="btnCancel"
+                MinWidth="100"
+                Margin="{StaticResource MarginLeftRight8}"
+                Content="{x:Static resx:ResUI.TbCancel}"
+                IsCancel="true"
+                Style="{StaticResource DefButton}" />
+        </StackPanel>
+
         <Expander
             Margin="{StaticResource Margin8}"
             DockPanel.Dock="Bottom"
@@ -308,20 +323,6 @@
                     VerticalScrollBarVisibility="Auto" />
             </UniformGrid>
         </Expander>
-            <Button
-                x:Name="btnSave"
-                MinWidth="100"
-                Content="{x:Static resx:ResUI.TbConfirm}"
-                IsDefault="True"
-                Style="{StaticResource DefButton}" />
-            <Button
-                x:Name="btnCancel"
-                MinWidth="100"
-                Margin="{StaticResource MarginLeftRight8}"
-                Content="{x:Static resx:ResUI.TbCancel}"
-                IsCancel="true"
-                Style="{StaticResource DefButton}" />
-        </StackPanel>
 
         <Grid Margin="{StaticResource Margin8}">
             <Grid.ColumnDefinitions>
