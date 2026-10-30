@@ -54,6 +54,7 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     public ReactiveCommand<RxVoid, RxVoid> RoutingSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> DNSSettingCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> ClashOverrideSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> FullConfigTemplateCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> GlobalHotkeySettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> RebootAsAdminCmd { get; }
@@ -209,6 +210,10 @@ public partial class MainWindowViewModel : MyReactiveObject
         DNSSettingCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await DNSSettingAsync();
+        });
+        ClashOverrideSettingCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await ClashOverrideSettingAsync();
         });
         FullConfigTemplateCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -619,6 +624,16 @@ public partial class MainWindowViewModel : MyReactiveObject
     {
         var dnsSettingViewModel = new DNSSettingViewModel();
         var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(dnsSettingViewModel);
+        if (ret == true)
+        {
+            await Reload();
+        }
+    }
+
+    private async Task ClashOverrideSettingAsync()
+    {
+        var clashOverrideSettingViewModel = new ClashOverrideSettingViewModel();
+        var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(clashOverrideSettingViewModel);
         if (ret == true)
         {
             await Reload();

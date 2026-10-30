@@ -110,6 +110,16 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 }
             }
 
+            //DNS and policy override
+            try
+            {
+                ClashOverrideService.Apply(fileContent, config.ClashOverrideItem, config.ClashUIItem.EnableIPv6);
+            }
+            catch (Exception ex)
+            {
+                Logging.SaveLog($"{_tag}-Override", ex);
+            }
+
             //Mixin
             try
             {

@@ -199,6 +199,10 @@
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuDNSSetting}" />
                                 <MenuItem
+                                    x:Name="menuClashOverrideSetting"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="{x:Static resx:ResUI.menuClashOverrideSetting}" />
+                                <MenuItem
                                     x:Name="menuFullConfigTemplate"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuFullConfigTemplate}" />

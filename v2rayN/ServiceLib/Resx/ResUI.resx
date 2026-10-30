@@ -1905,4 +1905,91 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="menuAddMasqueServer" xml:space="preserve">
     <value>Add [MASQUE]</value>
   </data>
+  <data name="menuClashOverrideSetting" xml:space="preserve">
+    <value>Clash Override Settings (DNS / Policy)</value>
+  </data>
+  <data name="ThClashDnsOverride" xml:space="preserve">
+    <value>DNS Override</value>
+  </data>
+  <data name="ThClashPolicyOverride" xml:space="preserve">
+    <value>Policy Override</value>
+  </data>
+  <data name="TbClashOverrideTips" xml:space="preserve">
+    <value>Only applies to Clash (mihomo) custom configurations. The original configuration file is not modified; overrides are applied when the configuration is generated.</value>
+  </data>
+  <data name="TbClashEnableDnsOverride" xml:space="preserve">
+    <value>Enable DNS override</value>
+  </data>
+  <data name="TbClashEnhancedMode" xml:space="preserve">
+    <value>Enhanced mode</value>
+  </data>
+  <data name="TbClashFakeIPRange" xml:space="preserve">
+    <value>Fake-IP range</value>
+  </data>
+  <data name="TbClashFakeIPFilter" xml:space="preserve">
+    <value>Fake-IP filter</value>
+  </data>
+  <data name="TbClashRespectRules" xml:space="preserve">
+    <value>Respect rules</value>
+  </data>
+  <data name="TbClashRespectRulesTips" xml:space="preserve">
+    <value>DNS connections follow the routing rules. When the proxy server nameserver is empty, the nameserver is used.</value>
+  </data>
+  <data name="TbClashDefaultNameserver" xml:space="preserve">
+    <value>Default nameserver (IP only)</value>
+  </data>
+  <data name="TbClashNameserver" xml:space="preserve">
+    <value>Nameserver</value>
+  </data>
+  <data name="TbClashFallback" xml:space="preserve">
+    <value>Fallback nameserver</value>
+  </data>
+  <data name="TbClashFallbackFilterGeoIP" xml:space="preserve">
+    <value>Fallback filter GeoIP (code)</value>
+  </data>
+  <data name="TbClashProxyServerNameserver" xml:space="preserve">
+    <value>Proxy server nameserver</value>
+  </data>
+  <data name="TbClashDirectNameserver" xml:space="preserve">
+    <value>Direct nameserver</value>
+  </data>
+  <data name="TbClashNameserverPolicy" xml:space="preserve">
+    <value>Nameserver policy (domain = dns1, dns2)</value>
+  </data>
+  <data name="TbClashListTips" xml:space="preserve">
+    <value>One entry per line (commas are also accepted). Lines starting with # are ignored.</value>
+  </data>
+  <data name="TbClashEnablePolicyOverride" xml:space="preserve">
+    <value>Enable policy override</value>
+  </data>
+  <data name="TbClashProxyGroups" xml:space="preserve">
+    <value>Proxy groups</value>
+  </data>
+  <data name="TbClashProxyGroupsTips" xml:space="preserve">
+    <value>One group per line: name = type, member1, member2, key=value. Types: select / url-test / fallback / load-balance / relay. Options: url, interval, tolerance, timeout, lazy, strategy, filter, exclude-filter, include-all, include-all-proxies, use=provider1|provider2, hidden, icon. Wrap values containing commas in double quotes. A group with an existing name replaces the original group; unknown members are removed.</value>
+  </data>
+  <data name="TbClashRuleProviders" xml:space="preserve">
+    <value>Rule providers</value>
+  </data>
+  <data name="TbClashRuleProvidersTips" xml:space="preserve">
+    <value>One provider per line: name = behavior, url or local path, format=yaml|text|mrs, interval=86400, proxy=policy. Behaviors: domain / ipcidr / classical. The format is inferred from the file extension when omitted.</value>
+  </data>
+  <data name="TbClashRules" xml:space="preserve">
+    <value>Custom rules</value>
+  </data>
+  <data name="TbClashRulesTips" xml:space="preserve">
+    <value>Clash rule format, e.g. DOMAIN-SUFFIX,google.com,Proxy or RULE-SET,my-set,Proxy. Rules whose policy does not exist are skipped.</value>
+  </data>
+  <data name="TbClashReplaceRules" xml:space="preserve">
+    <value>Replace original rules</value>
+  </data>
+  <data name="TbClashReplaceRulesTips" xml:space="preserve">
+    <value>When off, custom rules are inserted before the original rules.</value>
+  </data>
+  <data name="TbClashOverrideInvalidLines" xml:space="preserve">
+    <value>{0}: invalid line(s): {1}</value>
+  </data>
+  <data name="TbClashNameserverRequired" xml:space="preserve">
+    <value>Nameserver is required when DNS override is enabled</value>
+  </data>
 </root>

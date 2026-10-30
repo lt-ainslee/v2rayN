@@ -219,6 +219,59 @@ public class ClashUIItem
     public List<ColumnItem> ConnectionsColumnItem { get; set; }
 }
 
+/// <summary>
+/// OpenClash-like structured overrides applied to Clash (mihomo) custom configurations.
+/// Multi-line fields hold one entry per line; lines starting with '#' are ignored.
+/// </summary>
+[Serializable]
+public class ClashOverrideItem
+{
+    #region DNS override
+
+    public bool EnableDnsOverride { get; set; }
+    public string? EnhancedMode { get; set; }
+    public string? FakeIPRange { get; set; }
+    public string? FakeIPFilter { get; set; }
+    public bool RespectRules { get; set; }
+    public string? DefaultNameserver { get; set; }
+    public string? Nameserver { get; set; }
+    public string? Fallback { get; set; }
+    public bool FallbackFilterGeoIP { get; set; }
+    public string? FallbackFilterGeoIPCode { get; set; }
+    public string? ProxyServerNameserver { get; set; }
+    public string? DirectNameserver { get; set; }
+
+    /// <summary>
+    /// domain-pattern = dns1, dns2
+    /// </summary>
+    public string? NameserverPolicy { get; set; }
+
+    #endregion DNS override
+
+    #region Policy override
+
+    public bool EnablePolicyOverride { get; set; }
+
+    /// <summary>
+    /// name = type, member1, member2, key=value
+    /// </summary>
+    public string? ProxyGroups { get; set; }
+
+    /// <summary>
+    /// name = behavior, url-or-path, key=value
+    /// </summary>
+    public string? RuleProviders { get; set; }
+
+    /// <summary>
+    /// Clash rule lines, e.g. DOMAIN-SUFFIX,google.com,Proxy
+    /// </summary>
+    public string? Rules { get; set; }
+
+    public bool ReplaceRules { get; set; }
+
+    #endregion Policy override
+}
+
 [Serializable]
 public class SystemProxyItem
 {

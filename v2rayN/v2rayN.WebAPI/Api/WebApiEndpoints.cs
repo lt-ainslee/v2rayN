@@ -160,6 +160,9 @@ public static class WebApiEndpoints
         app.MapGet("/api/settings/dns/simple", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetSimpleDNSAsync(), "dns.simpleLoaded"));
         app.MapPut("/api/settings/dns/simple", async (ServiceLib.Models.Configs.SimpleDNSItem input, V2rayRuntime runtime) =>
             ApiReplies.Operation(await runtime.UpdateSimpleDNSAsync(input)));
+        app.MapGet("/api/settings/clash-override", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetClashOverrideAsync(), ApiMessageKeys.CommonLoaded));
+        app.MapPut("/api/settings/clash-override", async (ServiceLib.Models.Configs.ClashOverrideItem input, V2rayRuntime runtime) =>
+            ApiReplies.Operation(await runtime.UpdateClashOverrideAsync(input)));
         app.MapGet("/api/settings/dns/profiles", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetDnsProfilesAsync(), "dns.profilesLoaded"));
         app.MapPut("/api/settings/dns/profiles/{coreType}", async (ECoreType coreType, DnsProfileInput input, V2rayRuntime runtime) =>
             ApiReplies.Operation(await runtime.UpdateDnsProfileAsync(coreType, input), failureStatus: StatusCodes.Status404NotFound));

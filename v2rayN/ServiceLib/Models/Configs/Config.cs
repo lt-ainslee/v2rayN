@@ -26,6 +26,7 @@ public class Config
     public Mux4SboxItem Mux4SboxItem { get; set; }
     public HysteriaItem HysteriaItem { get; set; }
     public ClashUIItem ClashUIItem { get; set; }
+    public ClashOverrideItem ClashOverrideItem { get; set; }
     public SystemProxyItem SystemProxyItem { get; set; }
     public WebDavItem WebDavItem { get; set; }
     public CheckUpdateItem CheckUpdateItem { get; set; }

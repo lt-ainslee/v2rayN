@@ -8,6 +8,7 @@ using ServiceLib.Models.Configs;
 using ServiceLib.Models.CoreConfigs;
 using ServiceLib.Models.Entities;
 using ServiceLib.Services;
+using ServiceLib.Services.CoreConfig;
 using v2rayN.WebAPI.Contracts;
 
 namespace v2rayN.WebAPI.Services;
@@ -509,6 +510,26 @@ public sealed partial class V2rayRuntime
             await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
         });
         return await CompleteCoreAffectingChangeAsync("dns", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
+    }
+
+    public Task<ClashOverrideItem> GetClashOverrideAsync() => Task.FromResult(Config.ClashOverrideItem);
+
+    public async Task<OperationView> UpdateClashOverrideAsync(ClashOverrideItem input)
+    {
+        var validation = ClashOverrideService.Validate(input);
+        if (!validation.IsValid)
+        {
+            return OperationView.Fail("clash_override_invalid", ApiMessageKeys.CommonInvalidInput, validation);
+        }
+        await using var applyContext = await BeginCoreSettingsApplyAsync();
+        if (applyContext.Failure is { } applyFailure) return applyFailure;
+        var fingerprint = GetCoreConfigurationFingerprint();
+        await _mutations.RunAsync(async () =>
+        {
+            Config.ClashOverrideItem = input;
+            await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
+        });
+        return await CompleteCoreAffectingChangeAsync("clash-override", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
     }
 
     public async Task<IReadOnlyList<DnsProfileView>> GetDnsProfilesAsync() =>
@@ -1436,6 +1457,7 @@ public sealed partial class V2rayRuntime
             MaxSplit = Config.Fragment4RayItem?.MaxSplit ?? string.Empty,
         },
         Config.SimpleDNSItem,
+        Config.ClashOverrideItem,
         Routing = new
         {
             DomainStrategy = Config.RoutingBasicItem.DomainStrategy ?? string.Empty,

@@ -76,6 +76,7 @@
                         <MenuItem x:Name="menuOptionSetting" Header="{x:Static resx:ResUI.menuOptionSetting}" />
                         <MenuItem x:Name="menuRoutingSetting" Header="{x:Static resx:ResUI.menuRoutingSetting}" />
                         <MenuItem x:Name="menuDNSSetting" Header="{x:Static resx:ResUI.menuDNSSetting}" />
+                        <MenuItem x:Name="menuClashOverrideSetting" Header="{x:Static resx:ResUI.menuClashOverrideSetting}" />
                         <MenuItem x:Name="menuFullConfigTemplate" Header="{x:Static resx:ResUI.menuFullConfigTemplate}" />
                         <MenuItem
                             x:Name="menuGlobalHotkeySetting"
