@@ -101,6 +101,39 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveRulesAsync()
     {
+        // Validate the new fields first: the rule object is edited in place, so nothing may change on failure.
+        var sourceIps = Utils.String2List(Utils.Convert2Comma(SourceIp)) ?? [];
+        var sourcePorts = Utils.String2List(SourcePort) ?? [];
+        var invalidSourcePorts = sourcePorts.Where(p => UnifiedRuleParser.ParsePorts(p).Count == 0).ToList();
+        if (invalidSourcePorts.Count > 0)
+        {
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourcePort, string.Join("; ", invalidSourcePorts)));
+            return;
+        }
+        // Source conditions are matched against the client address: only CIDRs and geoip:private are meaningful.
+        var invalidSourceIps = sourceIps
+            .Where(ip => UnifiedRuleParser.ParseIp(ip) is not { Negated: false, Kind: EIpMatchKind.Cidr or EIpMatchKind.Private })
+            .ToList();
+        if (invalidSourceIps.Count > 0)
+        {
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourceIp, string.Join("; ", invalidSourceIps)));
+            return;
+        }
+        var invalidMihomoRules = UnifiedRuleParser.SplitLines(MihomoRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
+        if (invalidMihomoRules.Count > 0)
+        {
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, "mihomo", string.Join("; ", invalidMihomoRules)));
+            return;
+        }
+
+        foreach (var (name, json) in new[] { ("Xray", XrayJson), ("sing-box", SingboxJson) })
+        {
+            if (!UnifiedJsonMerge.IsValidObject(json))
+            {
+                NoticeManager.Instance.Enqueue(string.Format(ResUI.TbRuleCoreExtInvalidJson, name));
+                return;
+            }
+        }
         Domain = Utils.Convert2Comma(Domain);
         IP = Utils.Convert2Comma(IP);
         Process = Utils.ParseProcess(Process);
@@ -125,17 +158,9 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         SelectedSource.Port = Port;
         SelectedSource.Network = Network;
         SelectedSource.Enabled = Enabled;
-        SelectedSource.SourceIp = Utils.String2List(Utils.Convert2Comma(SourceIp));
+        SelectedSource.SourceIp = sourceIps.Count > 0 ? sourceIps : null;
         SelectedSource.SourcePort = SourcePort.NullIfEmpty();
 
-        foreach (var (name, json) in new[] { ("Xray", XrayJson), ("sing-box", SingboxJson) })
-        {
-            if (!UnifiedJsonMerge.IsValidObject(json))
-            {
-                NoticeManager.Instance.Enqueue(string.Format(ResUI.TbRuleCoreExtInvalidJson, name));
-                return;
-            }
-        }
         var coreExt = new RuleCoreExtension
         {
             XrayJson = XrayJson.NullIfEmpty(),
