@@ -31,6 +31,12 @@ public partial class CoreConfigSingboxService
             AddRuleSets(ruleSets, rule.rule_set);
         }
 
+        // rule sets referenced directly (ruleset:name), also inside logical rules
+        foreach (var rule in Flatten(_coreConfig.route.rules))
+        {
+            AddRuleSets(ruleSets, rule.rule_set);
+        }
+
         //convert dns geosite & geoip to ruleset
         foreach (var rule in _coreConfig.dns?.rules.Where(t => t.geosite?.Count > 0).ToList() ?? [])
         {
@@ -84,12 +90,17 @@ public partial class CoreConfigSingboxService
         {
             if (item.IsNullOrEmpty())
             { continue; }
-            var customRuleset = customRulesets.FirstOrDefault(t => t.tag != null && t.tag.Equals(item))
-                ?? ToSingboxRuleset(_config.RuleSetItems?.FirstOrDefault(t => t.Name == item && t.SingboxSource.IsNotEmpty()));
-            if (customRuleset is { type: "remote", http_client: null })
+            var customRuleset = customRulesets.FirstOrDefault(t => t.tag != null && t.tag.Equals(item));
+            if (customRuleset is null
+                && ToSingboxRuleset(_config.RuleSetItems?.FirstOrDefault(t => t.Name == item && t.SingboxSource.IsNotEmpty())) is { } declared)
             {
-                containRemoteRuleset = true;
-                customRuleset.http_client = Global.SingboxSrsDownloadHttpClientTag;
+                // Declared rule sets download like the built-in ones; custom rule set files keep their own settings.
+                if (declared.type == "remote")
+                {
+                    containRemoteRuleset = true;
+                    declared.http_client = Global.SingboxSrsDownloadHttpClientTag;
+                }
+                customRuleset = declared;
             }
             if (customRuleset is null)
             {
@@ -133,6 +144,18 @@ public partial class CoreConfigSingboxService
                 tag = Global.SingboxSrsDownloadHttpClientTag,
                 detour = Global.ProxyTag,
             });
+        }
+    }
+
+    private static IEnumerable<Rule4Sbox> Flatten(IEnumerable<Rule4Sbox>? rules)
+    {
+        foreach (var rule in rules ?? [])
+        {
+            yield return rule;
+            foreach (var inner in Flatten(rule.rules))
+            {
+                yield return inner;
+            }
         }
     }
 

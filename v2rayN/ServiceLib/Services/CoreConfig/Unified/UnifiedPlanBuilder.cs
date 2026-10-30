@@ -74,12 +74,18 @@ public static class UnifiedPlanBuilder
     }
 
     /// <summary>
-    /// The last rule being a catch-all direct rule means unmatched queries should use the direct DNS.
-    /// Same logic as sing-box UseDirectDns.
+    /// The last effective routing rule being a catch-all direct rule means unmatched queries should use the
+    /// direct DNS. Disabled and DNS-only rules do not count, and any restriction (source, protocol, inbound)
+    /// means the rule does not catch everything.
     /// </summary>
-    public static bool IsFinalDirect(List<RulesItem> rules)
+    public static bool IsFinalDirect(List<RulesItem>? rules)
     {
-        if (rules.LastOrDefault() is not { OutboundTag: Global.DirectTag } lastRule)
+        if (rules?.LastOrDefault(r => r.Enabled && r.RuleType != ERuleType.DNS) is not { OutboundTag: Global.DirectTag } lastRule)
+        {
+            return false;
+        }
+        if (lastRule.SourceIp?.Count > 0 || lastRule.SourcePort.IsNotEmpty()
+            || lastRule.Protocol?.Count > 0 || lastRule.InboundTag?.Count > 0)
         {
             return false;
         }

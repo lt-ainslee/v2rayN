@@ -39,16 +39,15 @@ public class MihomoTranslator(
             return;
         }
         fileContent["dns"] = BuildDns(fileContent);
-        var fileHosts = fileContent.GetValueOrDefault("hosts") as Dictionary<object, object>;
-        var hosts = BuildHosts(fileHosts, out var added);
+        var hosts = BuildHosts(fileContent.GetValueOrDefault("hosts") as Dictionary<object, object>);
         if (hosts.Count > 0)
         {
             fileContent["hosts"] = hosts;
         }
-        // Only take over the file's use-system-hosts when the shared settings actually provide hosts.
-        if (plan.Dns.UseSystemHosts || added > 0)
+        // Only ever enable system hosts: mihomo uses them by default and the file may rely on that.
+        if (plan.Dns.UseSystemHosts)
         {
-            fileContent["use-system-hosts"] = plan.Dns.UseSystemHosts;
+            fileContent["use-system-hosts"] = true;
         }
 
         // nameserver-policy and fake-ip-filter may reference rule sets as well
@@ -90,8 +89,9 @@ public class MihomoTranslator(
             {
                 // Only domains resolved by the remote DNS get fake IPs.
                 dns["fake-ip-filter-mode"] = "whitelist";
+                // Explicit policies pick a DNS server and resolve real IPs, as in Xray and sing-box.
                 filter = dnsPlan.Policies
-                    .Where(p => p.Target == EDnsPolicyTarget.Remote && p.Servers == null)
+                    .Where(p => p.Target == EDnsPolicyTarget.Remote && p.Servers == null && !p.IsExplicit)
                     .SelectMany(p => p.Domains).Select(ToDnsPattern).OfType<string>().Distinct().ToList();
             }
             dns["fake-ip-filter"] = filter;
@@ -169,18 +169,14 @@ public class MihomoTranslator(
     /// <summary>
     /// Precedence: hosts written in the DNS settings, then the file's own hosts, then the built-in common hosts.
     /// </summary>
-    private Dictionary<object, object> BuildHosts(Dictionary<object, object>? fileHosts, out int added)
+    private Dictionary<object, object> BuildHosts(Dictionary<object, object>? fileHosts)
     {
         var hosts = fileHosts ?? [];
-        added = 0;
         if (plan.Dns.AddCommonHosts)
         {
             foreach (var (domain, ips) in Global.PredefinedHosts)
             {
-                if (hosts.TryAdd(domain, ips.Count == 1 ? ips[0] : ips.ToList()))
-                {
-                    added++;
-                }
+                hosts.TryAdd(domain, ips.Count == 1 ? ips[0] : ips.ToList());
             }
         }
         foreach (var (key, values) in plan.Dns.Hosts)
@@ -199,7 +195,6 @@ public class MihomoTranslator(
                 continue;
             }
             hosts[pattern] = answers.Count == 1 ? answers[0] : answers;
-            added++;
         }
         return hosts;
     }

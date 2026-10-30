@@ -212,4 +212,14 @@ public class UnifiedPlanTests
 
         await result.Rules.Single().Domains.Single().Raw.Should().BeEqualTo("ruleset:myads");
     }
+
+    [Test]
+    public async Task IsFinalDirect_ShouldIgnoreDisabledAndRestrictedRules()
+    {
+        RulesItem catchAll = new() { OutboundTag = Global.DirectTag, Port = "0-65535" };
+        await UnifiedPlanBuilder.IsFinalDirect([catchAll]).Should().BeTrue();
+        await UnifiedPlanBuilder.IsFinalDirect([catchAll, new() { Enabled = false, OutboundTag = Global.ProxyTag, Port = "0-65535" }]).Should().BeTrue();
+        await UnifiedPlanBuilder.IsFinalDirect([new() { OutboundTag = Global.DirectTag, SourceIp = ["192.168.1.50/32"] }]).Should().BeFalse();
+        await UnifiedPlanBuilder.IsFinalDirect([new() { OutboundTag = Global.DirectTag, Protocol = ["bittorrent"] }]).Should().BeFalse();
+    }
 }

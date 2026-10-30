@@ -53,6 +53,7 @@ public partial class CoreConfigV2rayService
                         var item2 = JsonUtils.Deserialize<RulesItem4Ray>(JsonUtils.Serialize(rule.ToRulesItem()));
                         // Only modeled Xray fields are copied; RulesItem-only fields (Id, Remarks...) must not leak.
                         item2?.ExtensionData = null;
+                        XrayRuleTranslator.ApplySource(rule, item2);
                         GenRoutingUserRule(item2);
                         XrayRuleTranslator.ApplyToGenerated(rule, _coreConfig.routing.rules, start);
                     }
@@ -158,6 +159,8 @@ public partial class CoreConfigV2rayService
                     || userRule.protocol?.Count > 0
                     || userRule.inboundTag?.Count > 0
                     || userRule.network != null
+                    || userRule.source?.Count > 0
+                    || userRule.sourcePort.IsNotEmpty()
                     )
                 {
                     var it = JsonUtils.DeepCopy(userRule);

@@ -189,7 +189,9 @@ public partial class CoreConfigV2rayService
                 dnsServerDomains.Add($"full:{domain}");
             }
         }
-        foreach (var dns in remoteDNSAddress)
+        var explicitPolicies = UnifiedPlanFactory.ExplicitDnsPolicies(simpleDNSItem);
+        // Custom policy servers given by hostname are resolved by the bootstrap DNS, like the others.
+        foreach (var dns in explicitPolicies.SelectMany(p => p.Servers ?? []).Concat(remoteDNSAddress))
         {
             var (domain, _, _, _) = Utils.ParseUrl(dns);
             if (domain == "localhost")
@@ -289,7 +291,7 @@ public partial class CoreConfigV2rayService
         }
 
         // Explicit DNS policies take priority over the ones derived from routing rules.
-        foreach (var policy in UnifiedPlanFactory.ExplicitDnsPolicies(simpleDNSItem))
+        foreach (var policy in explicitPolicies)
         {
             var policyDomains = policy.Domains
                 .Where(d => d.Kind != EDomainMatchKind.RuleSet)
@@ -333,17 +335,7 @@ public partial class CoreConfigV2rayService
         AddDnsServers(directDNSAddress, directGeositeList, true);
         AddDnsServers(directDNSAddress, expectedDomainList, true, expectedIPs);
 
-        var useDirectDns = false;
-
-        if (rules?.LastOrDefault() is { OutboundTag: Global.DirectTag } lastRule)
-        {
-            var noDomain = lastRule.Domain == null || lastRule.Domain.Count == 0;
-            var noProcess = lastRule.Process == null || lastRule.Process.Count == 0;
-            var isAnyIp = lastRule.Ip == null || lastRule.Ip.Count == 0 || lastRule.Ip.Contains("0.0.0.0/0");
-            var isAnyPort = string.IsNullOrEmpty(lastRule.Port) || lastRule.Port == "0-65535";
-            var isAnyNetwork = string.IsNullOrEmpty(lastRule.Network) || lastRule.Network == "tcp,udp";
-            useDirectDns = noDomain && noProcess && isAnyIp && isAnyPort && isAnyNetwork;
-        }
+        var useDirectDns = UnifiedPlanBuilder.IsFinalDirect(rules);
 
         if (!useDirectDns)
         {

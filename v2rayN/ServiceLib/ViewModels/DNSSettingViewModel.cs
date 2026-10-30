@@ -107,6 +107,15 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveSettingAsync()
     {
+        // Validate before changing the config: nothing may be half-applied when saving is refused.
+        var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
+            .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
+            .ToList();
+        if (invalidPolicies.Count > 0)
+        {
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbDnsPolicy, string.Join("; ", invalidPolicies)));
+            return;
+        }
         _config.SimpleDNSItem.UseSystemHosts = UseSystemHosts;
         _config.SimpleDNSItem.AddCommonHosts = AddCommonHosts;
         _config.SimpleDNSItem.FakeIP = FakeIP;
@@ -123,14 +132,6 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         _config.SimpleDNSItem.DirectExpectedIPs = DirectExpectedIPs;
         _config.SimpleDNSItem.ParallelQuery = ParallelQuery;
         _config.SimpleDNSItem.ServeStale = ServeStale;
-        var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
-            .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
-            .ToList();
-        if (invalidPolicies.Count > 0)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbDnsPolicy, string.Join("; ", invalidPolicies)));
-            return;
-        }
         _config.SimpleDNSItem.EnableHappyEyeballs = EnableHappyEyeballs;
         _config.SimpleDNSItem.DnsPolicy = DnsPolicy.NullIfEmpty();
         if (NormalDNSCompatible.IsNotEmpty())

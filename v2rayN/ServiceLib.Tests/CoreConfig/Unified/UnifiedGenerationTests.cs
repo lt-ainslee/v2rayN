@@ -35,6 +35,16 @@ public class UnifiedGenerationTests
             Id = "undeclared", Enabled = true, RuleType = ERuleType.ALL, OutboundTag = Global.DirectTag,
             Domain = ["ruleset:undeclared"],
         },
+        new()
+        {
+            Id = "source-only", Enabled = true, RuleType = ERuleType.Routing, OutboundTag = Global.DirectTag,
+            SourceIp = ["192.168.1.50/32"],
+        },
+        new()
+        {
+            Id = "routing-only-set", Enabled = true, RuleType = ERuleType.Routing, OutboundTag = Global.ProxyTag,
+            Ip = ["ruleset:streaming-ip"],
+        },
     ];
 
     private static CoreConfigContext CreateContext(ECoreType coreType)
@@ -43,7 +53,11 @@ public class UnifiedGenerationTests
         config.SimpleDNSItem.DirectDNS = "223.5.5.5";
         config.SimpleDNSItem.RemoteDNS = "https://1.1.1.1/dns-query";
         config.SimpleDNSItem.DnsPolicy = "full:corp.example.com, domain:intra.example.com = 10.0.0.53\ngeosite:apple-cn = direct";
-        config.RuleSetItems = [new RuleSetItem { Name = "ads", Behavior = "domain", SingboxSource = "https://example.com/ads.srs", UpdateInterval = 3600 }];
+        config.RuleSetItems =
+        [
+            new RuleSetItem { Name = "ads", Behavior = "domain", SingboxSource = "https://example.com/ads.srs", UpdateInterval = 3600 },
+            new RuleSetItem { Name = "streaming-ip", Behavior = "ipcidr", SingboxSource = "https://example.com/streaming-ip.srs" },
+        ];
         config.CoreExtensionItem = new CoreExtensionItem
         {
             Xray = new XrayExtension { DnsQueryStrategy = "UseIPv6", DnsDisableCache = true },
@@ -83,6 +97,8 @@ public class UnifiedGenerationTests
         await adsRule["domain"]!.AsArray().Count.Should().BeEqualTo(1);
         await rules.Any(r => r!["port"]?.ToString() == "443" && r["outboundTag"]?.ToString() == Global.DirectTag).Should().BeFalse();
 
+        await rules.Any(r => r!["source"]?[0]?.ToString() == "192.168.1.50/32" && r["domain"] == null && r["ip"] == null).Should().BeTrue();
+
         var dns = json["dns"]!;
         await dns["queryStrategy"]!.ToString().Should().BeEqualTo("UseIPv6");
         await dns["disableCache"]!.GetValue<bool>().Should().BeTrue();
@@ -108,6 +124,9 @@ public class UnifiedGenerationTests
         await adsRule["rule_set"]![0]!.ToString().Should().BeEqualTo("ads");
         await rules.Any(r => r["rule_set"]?.AsArray().Any(t => t!.ToString() == "ads") == true && r["port"] != null).Should().BeTrue();
 
+        await rules.Any(r => r["source_ip_cidr"]?[0]?.ToString() == "192.168.1.50/32").Should().BeTrue();
+        // A rule set used only by routing rules still needs its definition.
+        await json["route"]!["rule_set"]!.AsArray().Any(r => r!["tag"]!.ToString() == "streaming-ip").Should().BeTrue();
         // An undeclared rule set must not turn into a (non-existent) geosite download.
         await json["route"]!["rule_set"]!.AsArray().Any(r => r!["tag"]!.ToString() == "undeclared").Should().BeFalse();
         var ruleSet = json["route"]!["rule_set"]!.AsArray().OfType<JsonObject>().Single(r => r["tag"]!.ToString() == "ads");

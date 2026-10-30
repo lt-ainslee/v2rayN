@@ -496,7 +496,8 @@ public partial class CoreConfigSingboxService
             }
 
             if (!hasDomainIp
-                && (rule.port != null || rule.port_range != null || rule.protocol != null || rule.inbound != null || rule.network != null))
+                && (rule.port != null || rule.port_range != null || rule.protocol != null || rule.inbound != null || rule.network != null
+                    || item.SourceIp?.Count > 0 || item.SourcePort.IsNotEmpty()))
             {
                 rules.Add(rule);
             }

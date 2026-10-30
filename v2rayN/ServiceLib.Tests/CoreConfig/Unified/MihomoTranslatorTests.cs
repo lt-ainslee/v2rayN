@@ -252,10 +252,13 @@ public class MihomoTranslatorTests
             ads = domain, singbox=https://x/ads.srs, mihomo=https://x/ads.mrs, interval=3600
             bad = nope, singbox=x
             nosrc = domain, interval=1
+            ads = domain, singbox=https://x/duplicate.srs
             """, invalid);
 
         await items.Single().UpdateInterval.Should().BeEqualTo(3600);
-        await invalid.Count.Should().BeEqualTo(2);
+        await invalid.Count.Should().BeEqualTo(3);
+        var withComma = RuleSetTextFormat.Parse("q = classical, mihomo=https://x/list?a=1,2&b=3, interval=60", null).Single();
+        await withComma.MihomoSource.Should().BeEqualTo("https://x/list?a=1,2&b=3");
         await RuleSetTextFormat.ToText(items).Should().BeEqualTo("ads = domain, singbox=https://x/ads.srs, mihomo=https://x/ads.mrs, interval=3600");
     }
 
@@ -429,5 +432,28 @@ public class MihomoTranslatorTests
 
         var policy = (Dictionary<object, object>)((Dictionary<object, object>)content["dns"])["nameserver-policy"];
         await policy["rule-set:netflix"].Should().BeEqualTo("192.168.1.1#DIRECT");
+    }
+
+    [Test]
+    public async Task Apply_ExplicitRemotePolicy_ShouldNotGetFakeIpWhitelisted()
+    {
+        var rules = new List<RulesItem> { new() { Id = "gfw", RuleType = ERuleType.ALL, OutboundTag = Global.ProxyTag, Domain = ["geosite:gfw"] } };
+        var dns = new SimpleDNSItem { DirectDNS = "223.5.5.5", RemoteDNS = "1.1.1.1", FakeIP = true, GlobalFakeIp = false, DnsPolicy = "full:real.example.com = remote" };
+
+        var (result, _) = Translate(rules, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, dns);
+
+        var filter = (List<object>)((Dictionary<object, object>)result["dns"])["fake-ip-filter"];
+        await filter.Should().BeEquivalentTo(new List<object> { "geosite:gfw" });
+    }
+
+    [Test]
+    public async Task Apply_SystemHostsOff_ShouldNotDisableTheFileDefault()
+    {
+        var content = Load();
+        var plan = UnifiedPlanBuilder.Build(new SimpleDNSItem { AddCommonHosts = true, UseSystemHosts = false }, new RoutingItem { RuleSet = "[]" }, Global.AsIs);
+
+        new MihomoTranslator(plan, new MihomoExtension { UnifiedMode = EMihomoUnifiedMode.DnsOnly }, false, new UnifiedDiagnostics()).Apply(content);
+
+        await content.ContainsKey("use-system-hosts").Should().BeFalse();
     }
 }

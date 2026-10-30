@@ -4,8 +4,12 @@ namespace ServiceLib.Services.CoreConfig;
 /// Text form of the rule set list, one per line:
 /// name = behavior, singbox=source, mihomo=source, interval=86400
 /// </summary>
-public static class RuleSetTextFormat
+public static partial class RuleSetTextFormat
 {
+    /// <summary>A comma that starts the next option, so commas inside a source URL are kept.</summary>
+    [GeneratedRegex(@",(?=\s*(?:singbox|sing-box|mihomo|clash|interval)\s*=)", RegexOptions.IgnoreCase)]
+    private static partial Regex OptionSeparator();
+
     public static List<RuleSetItem> Parse(string? text, List<string>? invalidLines)
     {
         var result = new List<RuleSetItem>();
@@ -13,10 +17,16 @@ public static class RuleSetTextFormat
         {
             var idx = line.IndexOf('=');
             var name = idx > 0 ? line[..idx].Trim() : string.Empty;
-            var parts = idx > 0
-                ? line[(idx + 1)..].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                : [];
-            if (name.IsNullOrEmpty() || parts.Length < 2 || !Global.ClashRuleProviderBehaviors.Contains(parts[0].ToLowerInvariant()))
+            // behavior, then options split only before "key=" so that sources may contain commas
+            var body = idx > 0 ? line[(idx + 1)..] : string.Empty;
+            var comma = body.IndexOf(',');
+            var parts = comma > 0
+                ? [body[..comma].Trim(), .. OptionSeparator().Split(body[(comma + 1)..]).Select(t => t.Trim()).Where(t => t.Length > 0)]
+                : new[] { body.Trim() };
+            if (name.IsNullOrEmpty()
+                || parts.Length < 2
+                || !Global.ClashRuleProviderBehaviors.Contains(parts[0].ToLowerInvariant())
+                || result.Any(t => t.Name == name))
             {
                 invalidLines?.Add(line);
                 continue;
