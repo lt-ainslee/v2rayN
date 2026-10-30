@@ -45,8 +45,10 @@ public class YamlUtils
         {
             return result;
         }
+        // Shared objects are written out in full: core configs should not depend on YAML anchors and aliases.
         var serializer = new SerializerBuilder()
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
+                .DisableAliases()
                 .Build();
 
         try

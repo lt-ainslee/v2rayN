@@ -2049,4 +2049,25 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
     <value>Policy "{0}" chosen for "proxy" does not exist in the Clash configuration; using the first select group instead</value>
   </data>
+  <data name="ThUnifiedPreview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="TbPreviewCore" xml:space="preserve">
+    <value>Core</value>
+  </data>
+  <data name="TbPreviewGenerate" xml:space="preserve">
+    <value>Generate preview</value>
+  </data>
+  <data name="TbPreviewTips" xml:space="preserve">
+    <value>Shows what the selected core receives from the values entered here (even before saving) and the active routing profile: compatibility notes first (! dropped, ~ approximated), then the generated DNS and routing sections. For mihomo, the selected server's Clash configuration is used when it is one.</value>
+  </data>
+  <data name="MsgUnifiedPreviewNoIssues" xml:space="preserve">
+    <value>No compatibility issues.</value>
+  </data>
+  <data name="MsgUnifiedPreviewFailed" xml:space="preserve">
+    <value>Preview failed: {0}</value>
+  </data>
+  <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
+    <value>The shared settings are not applied to Clash configurations (mihomo tab: Off), so the configuration file is used as is.</value>
+  </data>
 </root>

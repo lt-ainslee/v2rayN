@@ -349,6 +349,59 @@
                     </Grid>
                 </ScrollViewer>
             </TabItem>
+            <TabItem Header="{x:Static resx:ResUI.ThUnifiedPreview}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="Auto,Auto,*"
+                        RowDefinitions="Auto,Auto">
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbPreviewCore}"
+                            TextWrapping="Wrap" />
+
+                        <StackPanel
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+                            <ComboBox
+                                x:Name="cmbPreviewCore"
+                                Width="200"
+                                Margin="{StaticResource Margin4}"
+                                VerticalAlignment="Center" />
+                            <Button
+                                x:Name="btnPreview"
+                                Margin="{StaticResource Margin4}"
+                                Content="{x:Static resx:ResUI.TbPreviewGenerate}" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbPreviewTips}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            x:Name="txtPreview"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="3"
+                            Height="420"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="1"
+                            Classes="TextArea"
+                            IsReadOnly="True"
+                            TextWrapping="NoWrap" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
             <TabItem Header="{x:Static resx:ResUI.ThCapabilityMatrix}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid

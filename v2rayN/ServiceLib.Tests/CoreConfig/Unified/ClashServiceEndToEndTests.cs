@@ -66,7 +66,10 @@ public class ClashServiceEndToEndTests
 
             var result = await new CoreConfigClashService(config, false, context).GenerateClientCustomConfig(node, output);
             await result.Success.Should().BeTrue().Because(result.Msg);
-            return YamlUtils.FromYaml<Dictionary<string, object>>(await File.ReadAllTextAsync(output));
+            var yaml = await File.ReadAllTextAsync(output);
+            // Shared lists must be written out, not as YAML anchors / aliases.
+            await Regex.IsMatch(yaml, @":\s+[&*]o\d").Should().BeFalse().Because(yaml);
+            return YamlUtils.FromYaml<Dictionary<string, object>>(yaml);
         }
         finally
         {

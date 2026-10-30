@@ -2041,4 +2041,25 @@
   <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
     <value>为「代理」指定的策略「{0}」在 Clash 配置中不存在，已改用第一个 select 策略组</value>
   </data>
+  <data name="ThUnifiedPreview" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="TbPreviewCore" xml:space="preserve">
+    <value>内核</value>
+  </data>
+  <data name="TbPreviewGenerate" xml:space="preserve">
+    <value>生成预览</value>
+  </data>
+  <data name="TbPreviewTips" xml:space="preserve">
+    <value>显示所选内核会收到的内容，基于此处已填写的值（无需先保存）和当前路由方案：先列出兼容性说明（! 为已移除，~ 为近似实现），再给出生成的 DNS 与路由部分。对 mihomo，若当前选中的服务器是 Clash 配置，则使用该配置。</value>
+  </data>
+  <data name="MsgUnifiedPreviewNoIssues" xml:space="preserve">
+    <value>没有兼容性问题。</value>
+  </data>
+  <data name="MsgUnifiedPreviewFailed" xml:space="preserve">
+    <value>预览失败：{0}</value>
+  </data>
+  <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
+    <value>统一配置未应用到 Clash 配置（mihomo 页为「关闭」），将按配置文件原样运行。</value>
+  </data>
 </root>

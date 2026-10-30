@@ -13,6 +13,7 @@ public partial class CoreExtensionSettingWindow : WindowBase<CoreExtensionSettin
 
         cmbMihomoUnifiedMode.ItemsSource = CoreExtensionSettingViewModel.MihomoUnifiedModes;
         cmbXrayDnsQueryStrategy.ItemsSource = CoreExtensionSettingViewModel.XrayQueryStrategies;
+        cmbPreviewCore.ItemsSource = CoreExtensionSettingViewModel.PreviewCores;
 
         this.WhenActivated(disposables =>
         {
@@ -39,6 +40,9 @@ public partial class CoreExtensionSettingWindow : WindowBase<CoreExtensionSettin
             this.Bind(ViewModel, vm => vm.RuleSets, v => v.txtRuleSets.Text).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.CapabilityRows, v => v.lstCapabilityMatrix.ItemsSource).DisposeWith(disposables);
 
+            this.Bind(ViewModel, vm => vm.PreviewCore, v => v.cmbPreviewCore.SelectedItem).DisposeWith(disposables);
+            this.OneWayBind(ViewModel, vm => vm.PreviewText, v => v.txtPreview.Text).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.PreviewCmd, v => v.btnPreview).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
         });
     }

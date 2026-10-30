@@ -170,4 +170,18 @@ public class UnifiedPlanTests
         await merged.outbound.Should().BeEqualTo("proxy");
         await json.Should().Contain("\"custom_key\":1");
     }
+
+    [Test]
+    public async Task PreviewCompose_ShouldListDistinctDiagnosticsBeforeBody()
+    {
+        var diagnostics = new UnifiedDiagnostics();
+        diagnostics.Warn(ECoreType.mihomo, "r", "dropped");
+        diagnostics.Warn(ECoreType.mihomo, "r", "dropped");
+        diagnostics.Info(ECoreType.mihomo, "DNS", "approx");
+
+        var text = UnifiedPreviewService.Compose(diagnostics, "body");
+
+        await text.ReplaceLineEndings("\n").Should().BeEqualTo("! dropped\n~ approx\n\nbody");
+        await UnifiedPreviewService.Compose(new UnifiedDiagnostics(), "x").Should().StartWith(ResUI.MsgUnifiedPreviewNoIssues);
+    }
 }

@@ -34,17 +34,25 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
 
     [Reactive] public partial string RuleSets { get; set; }
 
+    public static IReadOnlyList<string> PreviewCores { get; } = ["Xray", "sing-box", "mihomo"];
+    [Reactive] public partial string PreviewCore { get; set; }
+    [Reactive] public partial string PreviewText { get; set; }
+
     public IReadOnlyList<CoreCapabilityRow> CapabilityRows { get; } = CoreCapabilityMatrix.Rows();
 
     /// <summary>The other mihomo options only take effect when the shared settings are applied.</summary>
     public bool IsMihomoUnifiedEnabled => MihomoUnifiedMode != MihomoUnifiedModes[0];
 
     public ReactiveCommand<RxVoid, RxVoid> SaveCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> PreviewCmd { get; }
 
     public CoreExtensionSettingViewModel()
     {
         _config = AppManager.Instance.Config;
         SaveCmd = ReactiveCommand.CreateFromTask(SaveSettingAsync);
+        PreviewCmd = ReactiveCommand.CreateFromTask(PreviewAsync);
+        PreviewCore = PreviewCores[0];
+        PreviewText = string.Empty;
 
         var ext = _config.CoreExtensionItem ?? new CoreExtensionItem();
         MihomoUnifiedMode = MihomoUnifiedModes[Math.Clamp((int)ext.Mihomo.UnifiedMode, 0, MihomoUnifiedModes.Count - 1)];
@@ -67,23 +75,30 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
             .Subscribe(_ => this.RaisePropertyChanged(nameof(IsMihomoUnifiedEnabled)));
     }
 
-    private async Task SaveSettingAsync()
+    /// <summary>
+    /// Validates the text fields; returns the parsed rule sets, or null after notifying the user.
+    /// </summary>
+    private List<RuleSetItem>? ValidateInput()
     {
         var invalidGroups = new List<string>();
         ClashSyntax.ParseProxyGroups(MihomoExtraProxyGroups, invalidGroups);
         var invalidRules = UnifiedRuleParser.SplitLines(MihomoExtraRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
         var invalidRuleSets = new List<string>();
         var ruleSets = RuleSetTextFormat.Parse(RuleSets, invalidRuleSets);
-        if (invalidGroups.Count > 0 || invalidRules.Count > 0 || invalidRuleSets.Count > 0)
+        if (invalidGroups.Count == 0 && invalidRules.Count == 0 && invalidRuleSets.Count == 0)
         {
-            NotifyInvalidLines(ResUI.TbClashProxyGroups, invalidGroups);
-            NotifyInvalidLines(ResUI.TbClashRules, invalidRules);
-            NotifyInvalidLines(ResUI.TbRuleSets, invalidRuleSets);
-            return;
+            return ruleSets;
         }
+        NotifyInvalidLines(ResUI.TbClashProxyGroups, invalidGroups);
+        NotifyInvalidLines(ResUI.TbClashRules, invalidRules);
+        NotifyInvalidLines(ResUI.TbRuleSets, invalidRuleSets);
+        return null;
+    }
 
+    private CoreExtensionItem BuildExtensionItem()
+    {
         var mode = (EMihomoUnifiedMode)Math.Max(0, MihomoUnifiedModes.ToList().IndexOf(MihomoUnifiedMode));
-        _config.CoreExtensionItem = new CoreExtensionItem
+        return new CoreExtensionItem
         {
             Mihomo = new MihomoExtension
             {
@@ -106,6 +121,15 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
                 DnsDisableCache = XrayDnsDisableCache ? true : null,
             },
         };
+    }
+
+    private async Task SaveSettingAsync()
+    {
+        if (ValidateInput() is not { } ruleSets)
+        {
+            return;
+        }
+        _config.CoreExtensionItem = BuildExtensionItem();
         _config.RuleSetItems = ruleSets;
 
         if (await ConfigHandler.SaveConfig(_config) == 0)
@@ -117,6 +141,27 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
         }
+    }
+
+    /// <summary>
+    /// Previews the selected core with the values currently entered, before they are saved.
+    /// </summary>
+    private async Task PreviewAsync()
+    {
+        if (ValidateInput() is not { } ruleSets)
+        {
+            return;
+        }
+        var config = JsonUtils.DeepCopy(_config) ?? _config;
+        config.CoreExtensionItem = BuildExtensionItem();
+        config.RuleSetItems = ruleSets;
+        var core = PreviewCore switch
+        {
+            "sing-box" => ECoreType.sing_box,
+            "mihomo" => ECoreType.mihomo,
+            _ => ECoreType.Xray,
+        };
+        PreviewText = await Task.Run(() => UnifiedPreviewService.PreviewAsync(config, core));
     }
 
     private static void NotifyInvalidLines(string section, List<string> lines)

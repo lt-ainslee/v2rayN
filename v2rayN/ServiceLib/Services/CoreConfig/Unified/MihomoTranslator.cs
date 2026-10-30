@@ -103,9 +103,9 @@ public class MihomoTranslator(
         {
             dns["default-nameserver"] = bootstrap;
         }
-        dns["nameserver"] = dnsPlan.FinalDirect ? direct : remote;
-        dns["proxy-server-nameserver"] = direct;
-        dns["direct-nameserver"] = direct;
+        dns["nameserver"] = dnsPlan.FinalDirect ? direct.ToList() : remote.ToList();
+        dns["proxy-server-nameserver"] = direct.ToList();
+        dns["direct-nameserver"] = direct.ToList();
         if (ext.RespectRules && !dnsPlan.FinalDirect)
         {
             dns["respect-rules"] = true;
@@ -125,7 +125,7 @@ public class MihomoTranslator(
             foreach (var key in item.Domains.Select(ToDnsPattern).OfType<string>())
             {
                 // The first policy that mentions a domain wins, like the rule order elsewhere.
-                policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers);
+                policy.TryAdd(key, servers.Count == 1 ? servers[0] : servers.ToList());
             }
         }
         if (policy.Count > 0)

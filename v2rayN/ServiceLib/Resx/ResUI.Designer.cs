@@ -5849,5 +5849,68 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("MsgUnifiedProxyGroupMissing", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 Preview 的本地化字符串。
+        /// </summary>
+        public static string ThUnifiedPreview {
+            get {
+                return ResourceManager.GetString("ThUnifiedPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Core 的本地化字符串。
+        /// </summary>
+        public static string TbPreviewCore {
+            get {
+                return ResourceManager.GetString("TbPreviewCore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Generate preview 的本地化字符串。
+        /// </summary>
+        public static string TbPreviewGenerate {
+            get {
+                return ResourceManager.GetString("TbPreviewGenerate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Shows what the selected core receives from the values entere 的本地化字符串。
+        /// </summary>
+        public static string TbPreviewTips {
+            get {
+                return ResourceManager.GetString("TbPreviewTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No compatibility issues. 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedPreviewNoIssues {
+            get {
+                return ResourceManager.GetString("MsgUnifiedPreviewNoIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Preview failed: {0} 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedPreviewFailed {
+            get {
+                return ResourceManager.GetString("MsgUnifiedPreviewFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 The shared settings are not applied to Clash configurations  的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedPreviewMihomoOff {
+            get {
+                return ResourceManager.GetString("MsgUnifiedPreviewMihomoOff", resourceCulture);
+            }
+        }
     }
 }
