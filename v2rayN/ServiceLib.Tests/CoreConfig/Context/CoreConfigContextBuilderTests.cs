@@ -1,5 +1,7 @@
 namespace ServiceLib.Tests.CoreConfig.Context;
 
+// These tests replace the global AppManager config, so they must not run concurrently.
+[NotInParallel(CoreConfigTestFactory.AppManagerConfigKey)]
 public class CoreConfigContextBuilderTests
 {
     [Test]

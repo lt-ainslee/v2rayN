@@ -1,5 +1,7 @@
 namespace ServiceLib.Tests.CoreConfig.V2ray;
 
+// These tests replace the global AppManager config, so they must not run concurrently.
+[NotInParallel(CoreConfigTestFactory.AppManagerConfigKey)]
 public class CoreConfigV2rayServiceTests
 {
     [Test]

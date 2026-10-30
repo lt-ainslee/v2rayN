@@ -8,6 +8,8 @@ namespace ServiceLib.Tests.CoreConfig.Unified;
 /// DNS and routing settings, so refactors of the shared translation layer cannot change output.
 /// Set UPDATE_SNAPSHOTS=1 to regenerate the snapshot files after an intended change.
 /// </summary>
+// These tests replace the global AppManager config, so they must not run concurrently.
+[NotInParallel(CoreConfigTestFactory.AppManagerConfigKey)]
 public partial class GoldenOutputTests
 {
     public static IEnumerable<Func<(string Name, string DomainStrategy, bool FakeIp, bool ParallelQuery)>> Scenarios()
@@ -141,6 +143,10 @@ public partial class GoldenOutputTests
             await File.WriteAllTextAsync(path, actual);
         }
         var expected = (await File.ReadAllTextAsync(path)).ReplaceLineEndings("\n");
+        if (actual != expected)
+        {
+            await File.WriteAllTextAsync(Path.ChangeExtension(path, ".actual"), actual);
+        }
         await actual.Should().BeEqualTo(expected).Because($"snapshot {name} changed; rerun with UPDATE_SNAPSHOTS=1 if intended");
     }
 

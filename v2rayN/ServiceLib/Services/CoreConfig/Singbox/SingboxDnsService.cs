@@ -61,7 +61,8 @@ public partial class CoreConfigSingboxService
         };
         if (simpleDnsItem.AddCommonHosts == true)
         {
-            hostsDns.predefined = Global.PredefinedHosts;
+            // Copy: user and system hosts are added below and must not leak into the shared defaults.
+            hostsDns.predefined = Global.PredefinedHosts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToList());
         }
 
         if (simpleDnsItem.UseSystemHosts == true)

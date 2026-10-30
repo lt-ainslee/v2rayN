@@ -2,6 +2,8 @@ namespace ServiceLib.Tests.CoreConfig;
 
 internal static class CoreConfigTestFactory
 {
+    public const string AppManagerConfigKey = "AppManagerConfig";
+
     public static void BindAppManagerConfig(Config config)
     {
         var field = typeof(AppManager).GetField("_config", BindingFlags.Instance | BindingFlags.NonPublic);
