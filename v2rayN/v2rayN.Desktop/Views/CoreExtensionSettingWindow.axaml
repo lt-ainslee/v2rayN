@@ -1,5 +1,5 @@
 <Window
-    x:Class="v2rayN.Desktop.Views.ClashOverrideSettingWindow"
+    x:Class="v2rayN.Desktop.Views.CoreExtensionSettingWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,11 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
-    Title="{x:Static resx:ResUI.menuClashOverrideSetting}"
+    Title="{x:Static resx:ResUI.menuCoreExtensionSetting}"
     Width="900"
-    Height="600"
-    x:DataType="vms:ClashOverrideSettingViewModel"
-    Design.DataContext="{x:Static dd:DesignData.ClashOverrideSetting}"
+    Height="650"
+    x:DataType="vms:CoreExtensionSettingViewModel"
+    Design.DataContext="{x:Static dd:DesignData.CoreExtensionSetting}"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -37,69 +37,68 @@
         <TextBlock
             Margin="{StaticResource Margin4}"
             DockPanel.Dock="Top"
-            Text="{x:Static resx:ResUI.TbClashOverrideTips}"
+            Text="{x:Static resx:ResUI.TbCoreExtensionTips}"
             TextWrapping="Wrap" />
 
         <TabControl HorizontalContentAlignment="Stretch">
-            <TabItem Header="{x:Static resx:ResUI.ThClashDnsOverride}">
-                <ScrollViewer VerticalScrollBarVisibility="Visible">
+            <TabItem Header="mihomo">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid
-                        Margin="{StaticResource Margin8}"
+                        Margin="{StaticResource Margin4}"
                         ColumnDefinitions="Auto,Auto,*"
-                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
                         <TextBlock
                             Grid.Row="0"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashEnableDnsOverride}"
+                            Text="{x:Static resx:ResUI.TbMihomoUnifiedMode}"
                             TextWrapping="Wrap" />
 
-                        <ToggleSwitch
-                            x:Name="togEnableDnsOverride"
+                        <ComboBox
+                            x:Name="cmbMihomoUnifiedMode"
                             Grid.Row="0"
                             Grid.Column="1"
+                            Width="400"
                             Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            IsEditable="False" />
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbMihomoUnifiedModeTips}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbMihomoProxyGroupName}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            x:Name="txtMihomoProxyGroupName"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Width="400"
+                            Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center" />
 
                         <TextBlock
                             Grid.Row="1"
-                            Grid.Column="0"
+                            Grid.Column="2"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashEnhancedMode}"
+                            Text="{x:Static resx:ResUI.TbMihomoProxyGroupNameTips}"
                             TextWrapping="Wrap" />
-
-                        <ComboBox
-                            x:Name="cmbEnhancedMode"
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Width="400"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            IsEditable="True" />
 
                         <TextBlock
                             Grid.Row="2"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashFakeIPRange}"
-                            TextWrapping="Wrap" />
-
-                        <ComboBox
-                            x:Name="cmbFakeIPRange"
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            Width="400"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            IsEditable="True" />
-
-                        <TextBlock
-                            Grid.Row="3"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
@@ -107,15 +106,15 @@
                             TextWrapping="Wrap" />
 
                         <ToggleSwitch
-                            x:Name="togRespectRules"
-                            Grid.Row="3"
+                            x:Name="togMihomoRespectRules"
+                            Grid.Row="2"
                             Grid.Column="1"
                             Margin="{StaticResource Margin4}"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center" />
 
                         <TextBlock
-                            Grid.Row="3"
+                            Grid.Row="2"
                             Grid.Column="2"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
@@ -123,133 +122,23 @@
                             TextWrapping="Wrap" />
 
                         <TextBlock
-                            Grid.Row="4"
+                            Grid.Row="3"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashDefaultNameserver}"
+                            Text="{x:Static resx:ResUI.TbMihomoPreferH3}"
                             TextWrapping="Wrap" />
 
-                        <TextBox
-                            x:Name="txtDefaultNameserver"
-                            Grid.Row="4"
+                        <ToggleSwitch
+                            x:Name="togMihomoPreferH3"
+                            Grid.Row="3"
                             Grid.Column="1"
-                            Width="400"
-                            Height="70"
                             Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
 
                         <TextBlock
                             Grid.Row="4"
-                            Grid.Column="2"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashListTips}"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="5"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashNameserver}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtNameserver"
-                            Grid.Row="5"
-                            Grid.Column="1"
-                            Width="400"
-                            Height="70"
-                            Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="6"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashFallback}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtFallback"
-                            Grid.Row="6"
-                            Grid.Column="1"
-                            Width="400"
-                            Height="70"
-                            Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="7"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashFallbackFilterGeoIP}"
-                            TextWrapping="Wrap" />
-
-                        <StackPanel
-                            Grid.Row="7"
-                            Grid.Column="1"
-                            Orientation="Horizontal">
-                            <ToggleSwitch
-                                x:Name="togFallbackFilterGeoIP"
-                                Margin="{StaticResource Margin4}"
-                                VerticalAlignment="Center" />
-                            <TextBox
-                                x:Name="txtFallbackFilterGeoIPCode"
-                                Width="100"
-                                Margin="{StaticResource Margin4}"
-                                VerticalAlignment="Center" />
-                        </StackPanel>
-
-                        <TextBlock
-                            Grid.Row="8"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashProxyServerNameserver}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtProxyServerNameserver"
-                            Grid.Row="8"
-                            Grid.Column="1"
-                            Width="400"
-                            Height="70"
-                            Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="9"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashDirectNameserver}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtDirectNameserver"
-                            Grid.Row="9"
-                            Grid.Column="1"
-                            Width="400"
-                            Height="70"
-                            Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="10"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
@@ -257,94 +146,34 @@
                             TextWrapping="Wrap" />
 
                         <TextBox
-                            x:Name="txtFakeIPFilter"
-                            Grid.Row="10"
+                            x:Name="txtMihomoFakeIpFilter"
+                            Grid.Row="4"
                             Grid.Column="1"
                             Width="400"
-                            Height="70"
+                            Height="90"
                             Margin="{StaticResource Margin4}"
                             BorderThickness="1"
                             Classes="TextArea"
                             TextWrapping="Wrap" />
 
                         <TextBlock
-                            Grid.Row="11"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashNameserverPolicy}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtNameserverPolicy"
-                            Grid.Row="11"
-                            Grid.Column="1"
-                            Width="400"
-                            Height="70"
-                            Margin="{StaticResource Margin4}"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            TextWrapping="Wrap" />
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem Header="{x:Static resx:ResUI.ThClashPolicyOverride}">
-                <ScrollViewer VerticalScrollBarVisibility="Visible">
-                    <Grid
-                        Margin="{StaticResource Margin8}"
-                        ColumnDefinitions="Auto,Auto,*"
-                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-
-                        <TextBlock
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashEnablePolicyOverride}"
-                            TextWrapping="Wrap" />
-
-                        <ToggleSwitch
-                            x:Name="togEnablePolicyOverride"
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center" />
-
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashReplaceRules}"
-                            TextWrapping="Wrap" />
-
-                        <ToggleSwitch
-                            x:Name="togReplaceRules"
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center" />
-
-                        <TextBlock
-                            Grid.Row="1"
+                            Grid.Row="4"
                             Grid.Column="2"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashReplaceRulesTips}"
+                            Text="{x:Static resx:ResUI.TbMihomoFakeIpFilterTips}"
                             TextWrapping="Wrap" />
 
                         <TextBlock
-                            Grid.Row="2"
+                            Grid.Row="5"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashProxyGroups}"
+                            Text="{x:Static resx:ResUI.TbMihomoExtraProxyGroups}"
                             TextWrapping="Wrap" />
 
                         <TextBlock
-                            Grid.Row="2"
+                            Grid.Row="5"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
                             Margin="{StaticResource Margin4}"
@@ -353,58 +182,28 @@
                             TextWrapping="Wrap" />
 
                         <TextBox
-                            x:Name="txtProxyGroups"
-                            Grid.Row="3"
+                            x:Name="txtMihomoExtraProxyGroups"
+                            Grid.Row="6"
                             Grid.Column="0"
                             Grid.ColumnSpan="3"
                             Height="160"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Stretch"
+                            PlaceholderText="{x:Static resx:ResUI.TbMihomoExtraProxyGroups}"
                             BorderThickness="1"
                             Classes="TextArea"
-                            PlaceholderText="{x:Static resx:ResUI.TbClashProxyGroups}"
                             TextWrapping="NoWrap" />
 
                         <TextBlock
-                            Grid.Row="4"
+                            Grid.Row="7"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashRuleProviders}"
+                            Text="{x:Static resx:ResUI.TbMihomoExtraRules}"
                             TextWrapping="Wrap" />
 
                         <TextBlock
-                            Grid.Row="4"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="2"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashRuleProvidersTips}"
-                            TextWrapping="Wrap" />
-
-                        <TextBox
-                            x:Name="txtRuleProviders"
-                            Grid.Row="5"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="3"
-                            Height="160"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Stretch"
-                            BorderThickness="1"
-                            Classes="TextArea"
-                            PlaceholderText="{x:Static resx:ResUI.TbClashRuleProviders}"
-                            TextWrapping="NoWrap" />
-
-                        <TextBlock
-                            Grid.Row="6"
-                            Grid.Column="0"
-                            Margin="{StaticResource Margin4}"
-                            VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbClashRules}"
-                            TextWrapping="Wrap" />
-
-                        <TextBlock
-                            Grid.Row="6"
+                            Grid.Row="7"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
                             Margin="{StaticResource Margin4}"
@@ -413,16 +212,178 @@
                             TextWrapping="Wrap" />
 
                         <TextBox
-                            x:Name="txtRules"
-                            Grid.Row="7"
+                            x:Name="txtMihomoExtraRules"
+                            Grid.Row="8"
                             Grid.Column="0"
                             Grid.ColumnSpan="3"
                             Height="160"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Stretch"
+                            PlaceholderText="{x:Static resx:ResUI.TbMihomoExtraRules}"
                             BorderThickness="1"
                             Classes="TextArea"
-                            PlaceholderText="{x:Static resx:ResUI.TbClashRules}"
+                            TextWrapping="NoWrap" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="sing-box">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="Auto,Auto,*"
+                        RowDefinitions="Auto,Auto">
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbSingboxDnsClientSubnet}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            x:Name="txtSingboxDnsClientSubnet"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Width="400"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbSingboxDnsIndependentCache}"
+                            TextWrapping="Wrap" />
+
+                        <ToggleSwitch
+                            x:Name="togSingboxDnsIndependentCache"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="{StaticResource Margin4}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Xray">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="Auto,Auto,*"
+                        RowDefinitions="Auto,Auto">
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbXrayDnsQueryStrategy}"
+                            TextWrapping="Wrap" />
+
+                        <ComboBox
+                            x:Name="cmbXrayDnsQueryStrategy"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Width="400"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            IsEditable="False" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbXrayDnsDisableCache}"
+                            TextWrapping="Wrap" />
+
+                        <ToggleSwitch
+                            x:Name="togXrayDnsDisableCache"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="{StaticResource Margin4}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="{x:Static resx:ResUI.TbRuleSets}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="Auto,Auto,*"
+                        RowDefinitions="Auto,Auto">
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbRuleSets}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbRuleSetsTips}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            x:Name="txtRuleSets"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="3"
+                            Height="160"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Stretch"
+                            PlaceholderText="{x:Static resx:ResUI.TbRuleSets}"
+                            BorderThickness="1"
+                            Classes="TextArea"
+                            TextWrapping="NoWrap" />
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="{x:Static resx:ResUI.ThCapabilityMatrix}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="Auto,Auto,*"
+                        RowDefinitions="Auto,Auto">
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.ThCapabilityMatrix}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbCapabilityMatrixTips}"
+                            TextWrapping="Wrap" />
+
+                        <TextBox
+                            x:Name="txtCapabilityMatrix"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="3"
+                            Height="420"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Stretch"
+                            FontFamily="Consolas, Courier New, monospace"
+                            IsReadOnly="True"
+                            BorderThickness="1"
+                            Classes="TextArea"
                             TextWrapping="NoWrap" />
                     </Grid>
                 </ScrollViewer>

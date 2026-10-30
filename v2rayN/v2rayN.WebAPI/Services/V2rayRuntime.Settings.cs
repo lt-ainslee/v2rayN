@@ -7,6 +7,7 @@ using ServiceLib.Manager;
 using ServiceLib.Models.Configs;
 using ServiceLib.Models.CoreConfigs;
 using ServiceLib.Models.Entities;
+using ServiceLib.Models.Unified;
 using ServiceLib.Services;
 using ServiceLib.Services.CoreConfig;
 using v2rayN.WebAPI.Contracts;
@@ -512,24 +513,50 @@ public sealed partial class V2rayRuntime
         return await CompleteCoreAffectingChangeAsync("dns", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
     }
 
-    public Task<ClashOverrideItem> GetClashOverrideAsync() => Task.FromResult(Config.ClashOverrideItem);
+    public Task<CoreExtensionItem> GetCoreExtensionsAsync() => Task.FromResult(Config.CoreExtensionItem);
 
-    public async Task<OperationView> UpdateClashOverrideAsync(ClashOverrideItem input)
+    public async Task<OperationView> UpdateCoreExtensionsAsync(CoreExtensionItem input)
     {
-        var validation = ClashOverrideService.Validate(input);
-        if (!validation.IsValid)
+        var invalidLines = new List<string>();
+        ClashSyntax.ParseProxyGroups(input.Mihomo?.ExtraProxyGroups, invalidLines);
+        invalidLines.AddRange(UnifiedRuleParser.SplitLines(input.Mihomo?.ExtraRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2));
+        if (input.Xray == null || input.Singbox == null || input.Mihomo == null || invalidLines.Count > 0)
         {
-            return OperationView.Fail("clash_override_invalid", ApiMessageKeys.CommonInvalidInput, validation);
+            return OperationView.Fail("core_extensions_invalid", ApiMessageKeys.CommonInvalidInput, invalidLines);
         }
         await using var applyContext = await BeginCoreSettingsApplyAsync();
         if (applyContext.Failure is { } applyFailure) return applyFailure;
         var fingerprint = GetCoreConfigurationFingerprint();
         await _mutations.RunAsync(async () =>
         {
-            Config.ClashOverrideItem = input;
+            Config.CoreExtensionItem = input;
             await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
         });
-        return await CompleteCoreAffectingChangeAsync("clash-override", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
+        return await CompleteCoreAffectingChangeAsync("core-extensions", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
+    }
+
+    public Task<List<RuleSetItem>> GetRuleSetsAsync() => Task.FromResult(Config.RuleSetItems);
+
+    public async Task<OperationView> UpdateRuleSetsAsync(List<RuleSetItem> input)
+    {
+        var invalid = input.Where(t => t.Name.IsNullOrEmpty()
+                || !Global.ClashRuleProviderBehaviors.Contains(t.Behavior)
+                || (t.SingboxSource.IsNullOrEmpty() && t.MihomoSource.IsNullOrEmpty()))
+            .Select(t => t.Name)
+            .ToList();
+        if (invalid.Count > 0 || input.Select(t => t.Name).Distinct().Count() != input.Count)
+        {
+            return OperationView.Fail("rule_sets_invalid", ApiMessageKeys.CommonInvalidInput, invalid);
+        }
+        await using var applyContext = await BeginCoreSettingsApplyAsync();
+        if (applyContext.Failure is { } applyFailure) return applyFailure;
+        var fingerprint = GetCoreConfigurationFingerprint();
+        await _mutations.RunAsync(async () =>
+        {
+            Config.RuleSetItems = input;
+            await EnsureConfigSaveSucceededAsync(() => ConfigHandler.SaveConfig(Config));
+        });
+        return await CompleteCoreAffectingChangeAsync("rule-sets", fingerprint != GetCoreConfigurationFingerprint(), applyContext);
     }
 
     public async Task<IReadOnlyList<DnsProfileView>> GetDnsProfilesAsync() =>
@@ -1457,7 +1484,8 @@ public sealed partial class V2rayRuntime
             MaxSplit = Config.Fragment4RayItem?.MaxSplit ?? string.Empty,
         },
         Config.SimpleDNSItem,
-        Config.ClashOverrideItem,
+        Config.CoreExtensionItem,
+        Config.RuleSetItems,
         Routing = new
         {
             DomainStrategy = Config.RoutingBasicItem.DomainStrategy ?? string.Empty,

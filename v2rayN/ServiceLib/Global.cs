@@ -758,13 +758,6 @@ public class Global
         "11.0.0.0/8",
     ];
 
-    public static readonly List<string> ClashEnhancedModes =
-    [
-        "fake-ip",
-        "redir-host",
-        "normal",
-    ];
-
     public static readonly List<string> ClashProxyGroupTypes =
     [
         "select",

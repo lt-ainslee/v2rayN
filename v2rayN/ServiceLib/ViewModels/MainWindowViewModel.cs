@@ -54,7 +54,7 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     public ReactiveCommand<RxVoid, RxVoid> RoutingSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> DNSSettingCmd { get; }
-    public ReactiveCommand<RxVoid, RxVoid> ClashOverrideSettingCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> CoreExtensionSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> FullConfigTemplateCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> GlobalHotkeySettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> RebootAsAdminCmd { get; }
@@ -211,9 +211,9 @@ public partial class MainWindowViewModel : MyReactiveObject
         {
             await DNSSettingAsync();
         });
-        ClashOverrideSettingCmd = ReactiveCommand.CreateFromTask(async () =>
+        CoreExtensionSettingCmd = ReactiveCommand.CreateFromTask(async () =>
         {
-            await ClashOverrideSettingAsync();
+            await CoreExtensionSettingAsync();
         });
         FullConfigTemplateCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -630,10 +630,10 @@ public partial class MainWindowViewModel : MyReactiveObject
         }
     }
 
-    private async Task ClashOverrideSettingAsync()
+    private async Task CoreExtensionSettingAsync()
     {
-        var clashOverrideSettingViewModel = new ClashOverrideSettingViewModel();
-        var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(clashOverrideSettingViewModel);
+        var coreExtensionSettingViewModel = new CoreExtensionSettingViewModel();
+        var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(coreExtensionSettingViewModel);
         if (ret == true)
         {
             await Reload();

@@ -5419,69 +5419,6 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Clash Override Settings (DNS / Policy) 的本地化字符串。
-        /// </summary>
-        public static string menuClashOverrideSetting {
-            get {
-                return ResourceManager.GetString("menuClashOverrideSetting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 DNS Override 的本地化字符串。
-        /// </summary>
-        public static string ThClashDnsOverride {
-            get {
-                return ResourceManager.GetString("ThClashDnsOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Policy Override 的本地化字符串。
-        /// </summary>
-        public static string ThClashPolicyOverride {
-            get {
-                return ResourceManager.GetString("ThClashPolicyOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Only applies to Clash (mihomo) custom configurations. The or 的本地化字符串。
-        /// </summary>
-        public static string TbClashOverrideTips {
-            get {
-                return ResourceManager.GetString("TbClashOverrideTips", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Enable DNS override 的本地化字符串。
-        /// </summary>
-        public static string TbClashEnableDnsOverride {
-            get {
-                return ResourceManager.GetString("TbClashEnableDnsOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Enhanced mode 的本地化字符串。
-        /// </summary>
-        public static string TbClashEnhancedMode {
-            get {
-                return ResourceManager.GetString("TbClashEnhancedMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Fake-IP range 的本地化字符串。
-        /// </summary>
-        public static string TbClashFakeIPRange {
-            get {
-                return ResourceManager.GetString("TbClashFakeIPRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Fake-IP filter 的本地化字符串。
         /// </summary>
         public static string TbClashFakeIPFilter {
@@ -5509,87 +5446,6 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Default nameserver (IP only) 的本地化字符串。
-        /// </summary>
-        public static string TbClashDefaultNameserver {
-            get {
-                return ResourceManager.GetString("TbClashDefaultNameserver", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Nameserver 的本地化字符串。
-        /// </summary>
-        public static string TbClashNameserver {
-            get {
-                return ResourceManager.GetString("TbClashNameserver", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Fallback nameserver 的本地化字符串。
-        /// </summary>
-        public static string TbClashFallback {
-            get {
-                return ResourceManager.GetString("TbClashFallback", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Fallback filter GeoIP (code) 的本地化字符串。
-        /// </summary>
-        public static string TbClashFallbackFilterGeoIP {
-            get {
-                return ResourceManager.GetString("TbClashFallbackFilterGeoIP", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Proxy server nameserver 的本地化字符串。
-        /// </summary>
-        public static string TbClashProxyServerNameserver {
-            get {
-                return ResourceManager.GetString("TbClashProxyServerNameserver", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Direct nameserver 的本地化字符串。
-        /// </summary>
-        public static string TbClashDirectNameserver {
-            get {
-                return ResourceManager.GetString("TbClashDirectNameserver", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Nameserver policy (domain = dns1, dns2) 的本地化字符串。
-        /// </summary>
-        public static string TbClashNameserverPolicy {
-            get {
-                return ResourceManager.GetString("TbClashNameserverPolicy", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 One entry per line (commas are also accepted). Lines startin 的本地化字符串。
-        /// </summary>
-        public static string TbClashListTips {
-            get {
-                return ResourceManager.GetString("TbClashListTips", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Enable policy override 的本地化字符串。
-        /// </summary>
-        public static string TbClashEnablePolicyOverride {
-            get {
-                return ResourceManager.GetString("TbClashEnablePolicyOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Proxy groups 的本地化字符串。
         /// </summary>
         public static string TbClashProxyGroups {
@@ -5604,24 +5460,6 @@ namespace ServiceLib.Resx {
         public static string TbClashProxyGroupsTips {
             get {
                 return ResourceManager.GetString("TbClashProxyGroupsTips", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Rule providers 的本地化字符串。
-        /// </summary>
-        public static string TbClashRuleProviders {
-            get {
-                return ResourceManager.GetString("TbClashRuleProviders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 One provider per line: name = behavior, url or local path, f 的本地化字符串。
-        /// </summary>
-        public static string TbClashRuleProvidersTips {
-            get {
-                return ResourceManager.GetString("TbClashRuleProvidersTips", resourceCulture);
             }
         }
         
@@ -5644,38 +5482,11 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Replace original rules 的本地化字符串。
-        /// </summary>
-        public static string TbClashReplaceRules {
-            get {
-                return ResourceManager.GetString("TbClashReplaceRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 When off, custom rules are inserted before the original rule 的本地化字符串。
-        /// </summary>
-        public static string TbClashReplaceRulesTips {
-            get {
-                return ResourceManager.GetString("TbClashReplaceRulesTips", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 {0}: invalid line(s): {1} 的本地化字符串。
         /// </summary>
         public static string TbClashOverrideInvalidLines {
             get {
                 return ResourceManager.GetString("TbClashOverrideInvalidLines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Nameserver is required when DNS override is enabled 的本地化字符串。
-        /// </summary>
-        public static string TbClashNameserverRequired {
-            get {
-                return ResourceManager.GetString("TbClashNameserverRequired", resourceCulture);
             }
         }
         
@@ -5739,6 +5550,294 @@ namespace ServiceLib.Resx {
         public static string MsgUnifiedPolicyFallback {
             get {
                 return ResourceManager.GetString("MsgUnifiedPolicyFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Core Extensions &amp; Rule Sets 的本地化字符串。
+        /// </summary>
+        public static string menuCoreExtensionSetting {
+            get {
+                return ResourceManager.GetString("menuCoreExtensionSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS settings and routing rules are shared by all cores. The  的本地化字符串。
+        /// </summary>
+        public static string TbCoreExtensionTips {
+            get {
+                return ResourceManager.GetString("TbCoreExtensionTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Apply shared settings to Clash configs 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedMode {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off (keep the configuration file) 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedModeOff {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedModeOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS only 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedModeDnsOnly {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedModeDnsOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS + rules (before the original rules) 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedModeDnsAndRules {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedModeDnsAndRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS + rules (replace the original rules) 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedModeReplaceRules {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedModeReplaceRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Clash configs bring their own proxies and groups. Rules targ 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedModeTips {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedModeTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Policy for "proxy" 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoProxyGroupName {
+            get {
+                return ResourceManager.GetString("TbMihomoProxyGroupName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Empty: the first select group of the configuration 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoProxyGroupNameTips {
+            get {
+                return ResourceManager.GetString("TbMihomoProxyGroupNameTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Prefer HTTP/3 for DoH 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoPreferH3 {
+            get {
+                return ResourceManager.GetString("TbMihomoPreferH3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 One pattern per line. Empty: the built-in filter list 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoFakeIpFilterTips {
+            get {
+                return ResourceManager.GetString("TbMihomoFakeIpFilterTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extra proxy groups 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoExtraProxyGroups {
+            get {
+                return ResourceManager.GetString("TbMihomoExtraProxyGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Extra rules (before the shared rules) 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoExtraRules {
+            get {
+                return ResourceManager.GetString("TbMihomoExtraRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS client subnet (ECS) 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsClientSubnet {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsClientSubnet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Independent DNS cache per server 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsIndependentCache {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsIndependentCache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS query strategy 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsQueryStrategy {
+            get {
+                return ResourceManager.GetString("TbXrayDnsQueryStrategy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Disable DNS cache 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableCache {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableCache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rule sets 的本地化字符串。
+        /// </summary>
+        public static string TbRuleSets {
+            get {
+                return ResourceManager.GetString("TbRuleSets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 One per line: name = behavior, singbox=URL or path (.srs/.js 的本地化字符串。
+        /// </summary>
+        public static string TbRuleSetsTips {
+            get {
+                return ResourceManager.GetString("TbRuleSetsTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Capability matrix 的本地化字符串。
+        /// </summary>
+        public static string ThCapabilityMatrix {
+            get {
+                return ResourceManager.GetString("ThCapabilityMatrix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 ✓ native   ≈ approximate   ✗ unsupported (removed; a rule is 的本地化字符串。
+        /// </summary>
+        public static string TbCapabilityMatrixTips {
+            get {
+                return ResourceManager.GetString("TbCapabilityMatrixTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS policy 的本地化字符串。
+        /// </summary>
+        public static string TbDnsPolicy {
+            get {
+                return ResourceManager.GetString("TbDnsPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 One per line: domain-match[, domain-match] = direct | remote 的本地化字符串。
+        /// </summary>
+        public static string TbDnsPolicyTips {
+            get {
+                return ResourceManager.GetString("TbDnsPolicyTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Source IP 的本地化字符串。
+        /// </summary>
+        public static string TbRuleSourceIp {
+            get {
+                return ResourceManager.GetString("TbRuleSourceIp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Source port 的本地化字符串。
+        /// </summary>
+        public static string TbRuleSourcePort {
+            get {
+                return ResourceManager.GetString("TbRuleSourcePort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Core extensions (optional) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCoreExt {
+            get {
+                return ResourceManager.GetString("TbRuleCoreExt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Xray: JSON object merged into the generated rule 的本地化字符串。
+        /// </summary>
+        public static string TbRuleXrayJson {
+            get {
+                return ResourceManager.GetString("TbRuleXrayJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 sing-box: JSON object merged into the generated rule 的本地化字符串。
+        /// </summary>
+        public static string TbRuleSingboxJson {
+            get {
+                return ResourceManager.GetString("TbRuleSingboxJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 mihomo: Clash rules that replace the translation ({target} = 的本地化字符串。
+        /// </summary>
+        public static string TbRuleMihomoRules {
+            get {
+                return ResourceManager.GetString("TbRuleMihomoRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Core extension: {0} is not a valid JSON object 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCoreExtInvalidJson {
+            get {
+                return ResourceManager.GetString("TbRuleCoreExtInvalidJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rule "{0}": policy "{1}" does not exist; the rule was skippe 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedPolicyMissing {
+            get {
+                return ResourceManager.GetString("MsgUnifiedPolicyMissing", resourceCulture);
             }
         }
     }

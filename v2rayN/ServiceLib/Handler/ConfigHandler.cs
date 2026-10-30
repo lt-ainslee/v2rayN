@@ -162,15 +162,6 @@ public static class ConfigHandler
         };
         config.ClashUIItem ??= new();
         config.ClashUIItem.ConnectionsColumnItem ??= [];
-        config.ClashOverrideItem ??= new()
-        {
-            EnhancedMode = Global.ClashEnhancedModes.First(),
-            FakeIPRange = Global.FakeIPRanges.First(),
-            DefaultNameserver = "223.5.5.5\n119.29.29.29",
-            Nameserver = "https://dns.alidns.com/dns-query\nhttps://doh.pub/dns-query",
-            ProxyServerNameserver = "https://dns.alidns.com/dns-query",
-            FallbackFilterGeoIPCode = "CN",
-        };
         config.CoreExtensionItem ??= new();
         config.CoreExtensionItem.Xray ??= new();
         config.CoreExtensionItem.Singbox ??= new();

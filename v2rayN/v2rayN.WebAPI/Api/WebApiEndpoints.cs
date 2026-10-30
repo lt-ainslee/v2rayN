@@ -160,9 +160,19 @@ public static class WebApiEndpoints
         app.MapGet("/api/settings/dns/simple", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetSimpleDNSAsync(), "dns.simpleLoaded"));
         app.MapPut("/api/settings/dns/simple", async (ServiceLib.Models.Configs.SimpleDNSItem input, V2rayRuntime runtime) =>
             ApiReplies.Operation(await runtime.UpdateSimpleDNSAsync(input)));
-        app.MapGet("/api/settings/clash-override", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetClashOverrideAsync(), ApiMessageKeys.CommonLoaded));
-        app.MapPut("/api/settings/clash-override", async (ServiceLib.Models.Configs.ClashOverrideItem input, V2rayRuntime runtime) =>
-            ApiReplies.Operation(await runtime.UpdateClashOverrideAsync(input)));
+        app.MapGet("/api/settings/core-extensions", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetCoreExtensionsAsync(), ApiMessageKeys.CommonLoaded));
+        app.MapPut("/api/settings/core-extensions", async (ServiceLib.Models.Unified.CoreExtensionItem input, V2rayRuntime runtime) =>
+            ApiReplies.Operation(await runtime.UpdateCoreExtensionsAsync(input)));
+        app.MapGet("/api/settings/rule-sets", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetRuleSetsAsync(), ApiMessageKeys.CommonLoaded));
+        app.MapPut("/api/settings/rule-sets", async (List<ServiceLib.Models.Unified.RuleSetItem> input, V2rayRuntime runtime) =>
+            ApiReplies.Operation(await runtime.UpdateRuleSetsAsync(input)));
+        app.MapGet("/api/settings/capabilities", () => ApiReplies.Ok(
+            ServiceLib.Services.CoreConfig.CoreCapabilities.UnifiedCores.ToDictionary(
+                core => core.ToString(),
+                core => Enum.GetValues<ServiceLib.Services.CoreConfig.ECapability>().ToDictionary(
+                    c => c.ToString(),
+                    c => ServiceLib.Services.CoreConfig.CoreCapabilities.Get(core, c).ToString())),
+            ApiMessageKeys.CommonLoaded));
         app.MapGet("/api/settings/dns/profiles", async (V2rayRuntime runtime) => ApiReplies.Ok(await runtime.GetDnsProfilesAsync(), "dns.profilesLoaded"));
         app.MapPut("/api/settings/dns/profiles/{coreType}", async (ECoreType coreType, DnsProfileInput input, V2rayRuntime runtime) =>
             ApiReplies.Operation(await runtime.UpdateDnsProfileAsync(coreType, input), failureStatus: StatusCodes.Status404NotFound));

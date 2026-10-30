@@ -7,8 +7,10 @@ namespace ServiceLib.Services.CoreConfig;
 /// Core configuration file processing class.
 /// The TUN state is taken as a snapshot so the generated config always agrees
 /// with the launch elevation decision (see CoreManager.ShouldRunAsSudo).
+/// When a context is given, the shared DNS / routing settings are applied according to
+/// the mihomo extension's unified mode.
 /// </summary>
-public class CoreConfigClashService(Config config, bool isTunEnabled)
+public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfigContext? context = null)
 {
     private static readonly string _tag = "CoreConfigClashService";
 
@@ -110,14 +112,14 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 }
             }
 
-            //DNS and policy override
+            //Shared DNS / routing settings
             try
             {
-                ClashOverrideService.Apply(fileContent, config.ClashOverrideItem, config.ClashUIItem.EnableIPv6);
+                await ApplyUnifiedSettings(fileContent);
             }
             catch (Exception ex)
             {
-                Logging.SaveLog($"{_tag}-Override", ex);
+                Logging.SaveLog($"{_tag}-Unified", ex);
             }
 
             //Mixin
@@ -168,6 +170,34 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
             Logging.SaveLog(_tag, ex);
             ret.Msg = ResUI.FailedGenDefaultConfiguration;
             return ret;
+        }
+    }
+
+    private async Task ApplyUnifiedSettings(Dictionary<string, object> fileContent)
+    {
+        var ext = config.CoreExtensionItem?.Mihomo;
+        if (ext == null || ext.UnifiedMode == EMihomoUnifiedMode.Off || context == null)
+        {
+            return;
+        }
+
+        var groupProfiles = context.AllProxiesMap
+            .Where(kvp => kvp.Key.StartsWith("remark:"))
+            .Select(kvp => kvp.Value);
+        var plan = UnifiedPlanBuilder.Build(
+            context.SimpleDnsItem,
+            context.RoutingItem,
+            config.RoutingBasicItem?.DomainStrategy,
+            config.RuleSetItems,
+            await UnifiedPlanBuilder.BuildGroupsAsync(groupProfiles));
+
+        // Validation diagnostics are reported when the context is built; only translation results are reported here.
+        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, new UnifiedDiagnostics());
+        var diagnostics = new UnifiedDiagnostics();
+        new MihomoTranslator(validated, ext, config.ClashUIItem.EnableIPv6, diagnostics).Apply(fileContent);
+        foreach (var item in diagnostics.Items)
+        {
+            NoticeManager.Instance.SendMessage(item.Message);
         }
     }
 

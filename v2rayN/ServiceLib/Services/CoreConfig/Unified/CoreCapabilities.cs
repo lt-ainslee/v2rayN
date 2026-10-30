@@ -161,3 +161,39 @@ public static class CoreCapabilities
         _ => core.ToString(),
     };
 }
+
+public static class CoreCapabilityMatrix
+{
+    /// <summary>
+    /// Renders the capability table as aligned text: ✓ native, ≈ approximate, ✗ unsupported.
+    /// </summary>
+    public static string ToText()
+    {
+        var cores = CoreCapabilities.UnifiedCores;
+        var names = Enum.GetValues<ECapability>().Select(c => c.ToString()).ToList();
+        var width = names.Max(n => n.Length) + 2;
+        var sb = new StringBuilder();
+        sb.Append("".PadRight(width));
+        foreach (var core in cores)
+        {
+            sb.Append(CoreCapabilities.CoreDisplayName(core).PadRight(10));
+        }
+        sb.AppendLine();
+        foreach (var capability in Enum.GetValues<ECapability>())
+        {
+            sb.Append(capability.ToString().PadRight(width));
+            foreach (var core in cores)
+            {
+                var mark = CoreCapabilities.Get(core, capability) switch
+                {
+                    EFidelity.Native => "✓",
+                    EFidelity.Approximate => "≈",
+                    _ => "✗",
+                };
+                sb.Append(mark.PadRight(10));
+            }
+            sb.AppendLine();
+        }
+        return sb.ToString();
+    }
+}
