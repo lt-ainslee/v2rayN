@@ -108,8 +108,9 @@ public class MihomoTranslator(
         var policy = new Dictionary<object, object>();
         foreach (var item in dnsPlan.Policies)
         {
+            // Custom servers are queried directly, e.g. a LAN or corporate resolver.
             var servers = item.Servers != null
-                ? NormalizeServers(item.Servers)
+                ? NormalizeServers(item.Servers).Select(t => t == "system" || t.Contains('#') ? t : $"{t}#DIRECT").ToList()
                 : item.Target == EDnsPolicyTarget.Direct ? direct : remote;
             if (servers.Count == 0)
             {

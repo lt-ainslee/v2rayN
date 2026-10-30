@@ -2017,7 +2017,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>DNS policy</value>
   </data>
   <data name="TbDnsPolicyTips" xml:space="preserve">
-    <value>One per line: domain-match[, domain-match] = direct | remote | block | dns1, dns2. Takes priority over policies derived from routing rules and applies to all cores.</value>
+    <value>One per line: domain-match[, domain-match] = direct | remote | block | dns1, dns2 (custom servers are queried directly). Takes priority over policies derived from routing rules and applies to all cores.</value>
   </data>
   <data name="TbRuleSourceIp" xml:space="preserve">
     <value>Source IP</value>

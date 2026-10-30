@@ -107,7 +107,7 @@ public class MihomoTranslatorTests
         await ((List<object>)dns["default-nameserver"]).Single().Should().BeEqualTo("119.29.29.29");
         await ((List<object>)dns["fake-ip-filter"]).Should().Contain("+.lan");
         var policy = (Dictionary<object, object>)dns["nameserver-policy"];
-        await policy["corp.example.com"].Should().BeEqualTo("10.0.0.53");
+        await policy["corp.example.com"].Should().BeEqualTo("10.0.0.53#DIRECT");
         await policy["geosite:cn"].Should().BeEqualTo("223.5.5.5");
         await policy["+.google.com"].Should().BeEqualTo("https://1.1.1.1/dns-query");
         await policy.ContainsKey("keyword:corp").Should().BeFalse();

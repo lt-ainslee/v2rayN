@@ -2009,7 +2009,7 @@
     <value>DNS 策略</value>
   </data>
   <data name="TbDnsPolicyTips" xml:space="preserve">
-    <value>每行一条：域名匹配[, 域名匹配] = direct | remote | block | DNS1, DNS2。优先于由路由规则派生的策略，对所有内核生效。</value>
+    <value>每行一条：域名匹配[, 域名匹配] = direct | remote | block | DNS1, DNS2（自定义服务器直连查询）。优先于由路由规则派生的策略，对所有内核生效。</value>
   </data>
   <data name="TbRuleSourceIp" xml:space="preserve">
     <value>源 IP</value>

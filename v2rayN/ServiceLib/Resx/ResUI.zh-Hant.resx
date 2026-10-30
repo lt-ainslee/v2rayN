@@ -2015,7 +2015,7 @@
     <value>DNS 策略</value>
   </data>
   <data name="TbDnsPolicyTips" xml:space="preserve">
-    <value>每行一條：網域比對[, 網域比對] = direct | remote | block | DNS1, DNS2。優先於由路由規則衍生的策略，對所有核心生效。</value>
+    <value>每行一條：網域比對[, 網域比對] = direct | remote | block | DNS1, DNS2（自訂伺服器直連查詢）。優先於由路由規則衍生的策略，對所有核心生效。</value>
   </data>
   <data name="TbRuleSourceIp" xml:space="preserve">
     <value>來源 IP</value>

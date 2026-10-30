@@ -73,6 +73,7 @@ public static class CoreCapabilities
         [ECapability.IpRuleSet] = EFidelity.Unsupported,
         [ECapability.GroupSelect] = EFidelity.Approximate,
         [ECapability.GroupFallback] = EFidelity.Approximate,
+        [ECapability.DnsPolicyBlock] = EFidelity.Unsupported,
     };
 
     private static readonly Dictionary<ECapability, EFidelity> _singbox = new()

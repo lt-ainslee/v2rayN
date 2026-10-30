@@ -20,7 +20,7 @@
             Margin="{StaticResource Margin4}"
             ColumnDefinitions="Auto,Auto,*"
             DockPanel.Dock="Top"
-            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
             <TextBlock
                 Grid.Row="0"
                 Grid.Column="0"
@@ -191,6 +191,34 @@
                 VerticalAlignment="Center"
                 Text="{x:Static resx:ResUI.TbRoutingTips}"
                 TextWrapping="Wrap" />
+
+            <TextBlock
+                Grid.Row="7"
+                Grid.Column="0"
+                Margin="{StaticResource Margin4}"
+                VerticalAlignment="Center"
+                Text="{x:Static resx:ResUI.TbRuleSourceIp}" />
+            <TextBox
+                x:Name="txtSourceIp"
+                Grid.Row="7"
+                Grid.Column="1"
+                Width="300"
+                Margin="{StaticResource Margin4}"
+                HorizontalAlignment="Left" />
+
+            <TextBlock
+                Grid.Row="8"
+                Grid.Column="0"
+                Margin="{StaticResource Margin4}"
+                VerticalAlignment="Center"
+                Text="{x:Static resx:ResUI.TbRuleSourcePort}" />
+            <TextBox
+                x:Name="txtSourcePort"
+                Grid.Row="8"
+                Grid.Column="1"
+                Width="300"
+                Margin="{StaticResource Margin4}"
+                HorizontalAlignment="Left" />
         </Grid>
 
         <StackPanel
@@ -206,6 +234,42 @@
                     <TextBlock Text="{x:Static resx:ResUI.TbAutoSort}" />
                 </CheckBox>
             </StackPanel>
+
+        <Expander
+            Margin="{StaticResource Margin4}"
+            HorizontalAlignment="Stretch"
+            DockPanel.Dock="Bottom"
+            Header="{x:Static resx:ResUI.TbRuleCoreExt}">
+            <Grid ColumnDefinitions="*,*,*">
+                <TextBox
+                    x:Name="txtXrayJson"
+                    Grid.Column="0"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    BorderThickness="1"
+                    Classes="TextArea"
+                    PlaceholderText="{x:Static resx:ResUI.TbRuleXrayJson}"
+                    TextWrapping="NoWrap" />
+                <TextBox
+                    x:Name="txtSingboxJson"
+                    Grid.Column="1"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    BorderThickness="1"
+                    Classes="TextArea"
+                    PlaceholderText="{x:Static resx:ResUI.TbRuleSingboxJson}"
+                    TextWrapping="NoWrap" />
+                <TextBox
+                    x:Name="txtMihomoRules"
+                    Grid.Column="2"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    BorderThickness="1"
+                    Classes="TextArea"
+                    PlaceholderText="{x:Static resx:ResUI.TbRuleMihomoRules}"
+                    TextWrapping="NoWrap" />
+            </Grid>
+        </Expander>
             <Button
                 x:Name="btnSave"
                 MinWidth="100"

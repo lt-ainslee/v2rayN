@@ -42,7 +42,7 @@
                         x:Name="gridBasicDNSSettings"
                         Margin="{StaticResource Margin8}"
                         ColumnDefinitions="Auto,Auto,*"
-                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
                         <TextBlock
                             x:Name="txtBasicDNSSettingsInvalid"
@@ -231,6 +231,30 @@
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
                             Text="{x:Static resx:ResUI.TbEnableHappyEyeballsTip}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="11"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbDnsPolicy}" />
+                        <TextBox
+                            x:Name="txtDnsPolicy"
+                            Grid.Row="11"
+                            Grid.Column="1"
+                            Width="300"
+                            Height="90"
+                            Margin="{StaticResource Margin4}"
+                            BorderThickness="1"
+                            Classes="TextArea"
+                            TextWrapping="NoWrap" />
+                        <TextBlock
+                            Grid.Row="11"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbDnsPolicyTips}"
                             TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>

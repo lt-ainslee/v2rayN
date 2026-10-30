@@ -40,6 +40,21 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
     [Reactive]
     public partial bool Enabled { get; set; }
 
+    [Reactive]
+    public partial string SourceIp { get; set; }
+
+    [Reactive]
+    public partial string SourcePort { get; set; }
+
+    [Reactive]
+    public partial string XrayJson { get; set; }
+
+    [Reactive]
+    public partial string SingboxJson { get; set; }
+
+    [Reactive]
+    public partial string MihomoRules { get; set; }
+
     public ReactiveCommand<RxVoid, RxVoid> SelectProfileCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> SaveCmd { get; }
 
@@ -77,6 +92,11 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         Port = SelectedSource.Port;
         Network = SelectedSource.Network;
         Enabled = SelectedSource.Enabled;
+        SourceIp = Utils.List2String(SelectedSource.SourceIp, true);
+        SourcePort = SelectedSource.SourcePort ?? string.Empty;
+        XrayJson = SelectedSource.CoreExt?.XrayJson ?? string.Empty;
+        SingboxJson = SelectedSource.CoreExt?.SingboxJson ?? string.Empty;
+        MihomoRules = SelectedSource.CoreExt?.MihomoRules ?? string.Empty;
     }
 
     private async Task SaveRulesAsync()
@@ -105,13 +125,33 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         SelectedSource.Port = Port;
         SelectedSource.Network = Network;
         SelectedSource.Enabled = Enabled;
+        SelectedSource.SourceIp = Utils.String2List(Utils.Convert2Comma(SourceIp));
+        SelectedSource.SourcePort = SourcePort.NullIfEmpty();
+
+        foreach (var (name, json) in new[] { ("Xray", XrayJson), ("sing-box", SingboxJson) })
+        {
+            if (!UnifiedJsonMerge.IsValidObject(json))
+            {
+                NoticeManager.Instance.Enqueue(string.Format(ResUI.TbRuleCoreExtInvalidJson, name));
+                return;
+            }
+        }
+        var coreExt = new RuleCoreExtension
+        {
+            XrayJson = XrayJson.NullIfEmpty(),
+            SingboxJson = SingboxJson.NullIfEmpty(),
+            MihomoRules = MihomoRules.NullIfEmpty(),
+        };
+        SelectedSource.CoreExt = coreExt.IsEmpty() ? null : coreExt;
 
         var hasRule = SelectedSource.Domain?.Count > 0
           || SelectedSource.Ip?.Count > 0
           || SelectedSource.Protocol?.Count > 0
           || SelectedSource.Process?.Count > 0
           || SelectedSource.Port.IsNotEmpty()
-          || SelectedSource.Network.IsNotEmpty();
+          || SelectedSource.Network.IsNotEmpty()
+          || SelectedSource.SourceIp?.Count > 0
+          || SelectedSource.SourcePort.IsNotEmpty();
 
         if (!hasRule)
         {

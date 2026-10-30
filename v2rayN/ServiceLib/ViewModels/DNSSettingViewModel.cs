@@ -21,6 +21,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
     [Reactive] public partial bool ParallelQuery { get; set; }
     [Reactive] public partial bool ServeStale { get; set; }
     [Reactive] public partial bool EnableHappyEyeballs { get; set; }
+    [Reactive] public partial string DnsPolicy { get; set; }
 
     [Reactive] public partial bool UseSystemHostsCompatible { get; set; }
     [Reactive] public partial string DomainStrategy4FreedomCompatible { get; set; } = string.Empty;
@@ -87,6 +88,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         ParallelQuery = item.ParallelQuery ?? false;
         ServeStale = item.ServeStale ?? false;
         EnableHappyEyeballs = item.EnableHappyEyeballs ?? false;
+        DnsPolicy = item.DnsPolicy ?? string.Empty;
         var item1 = await AppManager.Instance.GetDNSItem(ECoreType.Xray);
         RayCustomDNSEnableCompatible = item1.Enabled;
         UseSystemHostsCompatible = item1.UseSystemHosts;
@@ -121,7 +123,16 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         _config.SimpleDNSItem.DirectExpectedIPs = DirectExpectedIPs;
         _config.SimpleDNSItem.ParallelQuery = ParallelQuery;
         _config.SimpleDNSItem.ServeStale = ServeStale;
+        var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
+            .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
+            .ToList();
+        if (invalidPolicies.Count > 0)
+        {
+            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbDnsPolicy, string.Join("; ", invalidPolicies)));
+            return;
+        }
         _config.SimpleDNSItem.EnableHappyEyeballs = EnableHappyEyeballs;
+        _config.SimpleDNSItem.DnsPolicy = DnsPolicy.NullIfEmpty();
         if (NormalDNSCompatible.IsNotEmpty())
         {
             var obj = JsonUtils.ParseJson(NormalDNSCompatible);

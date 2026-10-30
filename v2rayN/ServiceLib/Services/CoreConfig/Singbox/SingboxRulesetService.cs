@@ -84,7 +84,13 @@ public partial class CoreConfigSingboxService
         {
             if (item.IsNullOrEmpty())
             { continue; }
-            var customRuleset = customRulesets.FirstOrDefault(t => t.tag != null && t.tag.Equals(item));
+            var customRuleset = customRulesets.FirstOrDefault(t => t.tag != null && t.tag.Equals(item))
+                ?? ToSingboxRuleset(_config.RuleSetItems?.FirstOrDefault(t => t.Name == item && t.SingboxSource.IsNotEmpty()));
+            if (customRuleset is { type: "remote", http_client: null })
+            {
+                containRemoteRuleset = true;
+                customRuleset.http_client = Global.SingboxSrsDownloadHttpClientTag;
+            }
             if (customRuleset is null)
             {
                 var pathSrs = Path.Combine(localSrss, $"{item}.srs");
@@ -128,5 +134,28 @@ public partial class CoreConfigSingboxService
                 detour = Global.ProxyTag,
             });
         }
+    }
+
+    /// <summary>
+    /// Converts a rule set declared in the settings (referenced as ruleset:name) to a sing-box rule set.
+    /// </summary>
+    private static Ruleset4Sbox? ToSingboxRuleset(RuleSetItem? item)
+    {
+        if (item?.SingboxSource is not { Length: > 0 } source)
+        {
+            return null;
+        }
+        var format = source.Split('?', '#')[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "source" : "binary";
+        var isRemote = source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+        return new Ruleset4Sbox
+        {
+            tag = item.Name,
+            type = isRemote ? "remote" : "local",
+            format = format,
+            url = isRemote ? source : null,
+            path = isRemote ? null : source,
+            update_interval = isRemote ? $"{Math.Max(1, item.UpdateInterval / 60)}m" : null,
+        };
     }
 }

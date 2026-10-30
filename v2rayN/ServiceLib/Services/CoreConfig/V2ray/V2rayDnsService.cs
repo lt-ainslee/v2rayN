@@ -87,6 +87,13 @@ public partial class CoreConfigV2rayService
                 dnsItem.queryStrategy = "UseIPv4";
             }
 
+            var xrayExt = context.AppConfig.CoreExtensionItem?.Xray;
+            if (xrayExt?.DnsQueryStrategy.IsNullOrEmpty() == false)
+            {
+                dnsItem.queryStrategy = xrayExt.DnsQueryStrategy;
+            }
+            dnsItem.disableCache = xrayExt?.DnsDisableCache == true ? true : null;
+
             // DNS routing
             var directDnsTags = dnsItem.servers
                 .Select(server =>
@@ -230,7 +237,8 @@ public partial class CoreConfigV2rayService
 
             foreach (var domain in item.Domain)
             {
-                if (domain.StartsWith('#'))
+                // Rule sets are not supported by Xray (see CoreCapabilities).
+                if (domain.StartsWith('#') || domain.StartsWith(UnifiedRuleParser.RuleSetPrefix))
                 {
                     continue;
                 }
@@ -278,6 +286,28 @@ public partial class CoreConfigV2rayService
         if (context.ProtectDomainList.Count > 0)
         {
             AddDnsServers(directDNSAddress, context.ProtectDomainList, true);
+        }
+
+        // Explicit DNS policies take priority over the ones derived from routing rules.
+        foreach (var policy in UnifiedPlanFactory.ExplicitDnsPolicies(simpleDNSItem))
+        {
+            var policyDomains = policy.Domains
+                .Where(d => d.Kind != EDomainMatchKind.RuleSet)
+                .Select(d => d.Raw.Replace(Global.RoutingRuleComma, ","))
+                .ToHashSet();
+            if (policy.Servers != null)
+            {
+                // Custom servers are queried directly, e.g. a LAN or corporate resolver.
+                AddDnsServers(ParseDnsAddresses(string.Join(",", policy.Servers), Global.DomainDirectDNSAddress.First()), policyDomains, true);
+            }
+            else if (policy.Target == EDnsPolicyTarget.Direct)
+            {
+                AddDnsServers(directDNSAddress, policyDomains, true);
+            }
+            else if (policy.Target == EDnsPolicyTarget.Remote)
+            {
+                AddDnsServers(remoteDNSAddress, policyDomains);
+            }
         }
 
         if (simpleDNSItem.FakeIP == true)

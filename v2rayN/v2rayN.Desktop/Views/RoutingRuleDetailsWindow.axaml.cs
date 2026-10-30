@@ -31,6 +31,11 @@ public partial class RoutingRuleDetailsWindow : WindowBase<RoutingRuleDetailsVie
             this.Bind(ViewModel, vm => vm.OutboundTag, v => v.cmbOutboundTag.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Port, v => v.txtPort.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Network, v => v.cmbNetwork.SelectedValue).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SourceIp, v => v.txtSourceIp.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SourcePort, v => v.txtSourcePort.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.XrayJson, v => v.txtXrayJson.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SingboxJson, v => v.txtSingboxJson.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.MihomoRules, v => v.txtMihomoRules.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Enabled, v => v.togEnabled.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Domain, v => v.txtDomain.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.IP, v => v.txtIP.Text).DisposeWith(disposables);

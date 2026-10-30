@@ -16,6 +16,15 @@ public static class UnifiedPlanFactory
     }
 
     /// <summary>
+    /// The explicit DNS policies from the DNS settings, in priority order.
+    /// </summary>
+    public static List<DnsPolicy> ExplicitDnsPolicies(SimpleDNSItem? simpleDns)
+    {
+        var lines = UnifiedRuleParser.SplitLines(simpleDns?.DnsPolicy);
+        return lines.Select(UnifiedRuleParser.ParseDnsPolicyLine).OfType<DnsPolicy>().ToList();
+    }
+
+    /// <summary>
     /// Rebuilds a RulesItem for generators that emit the native v2ray syntax, keeping only the validated values.
     /// </summary>
     public static RulesItem ToRulesItem(this UnifiedRule rule)
