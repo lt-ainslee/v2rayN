@@ -1,0 +1,336 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "dns": {
+    "hosts": {
+      "dns.google": [
+        "8.8.8.8",
+        "8.8.4.4",
+        "2001:4860:4860::8888",
+        "2001:4860:4860::8844"
+      ],
+      "dns.alidns.com": [
+        "223.5.5.5",
+        "223.6.6.6",
+        "2400:3200::1",
+        "2400:3200:baba::1"
+      ],
+      "one.one.one.one": [
+        "1.1.1.1",
+        "1.0.0.1",
+        "2606:4700:4700::1111",
+        "2606:4700:4700::1001"
+      ],
+      "1dot1dot1dot1.cloudflare-dns.com": [
+        "1.1.1.1",
+        "1.0.0.1",
+        "2606:4700:4700::1111",
+        "2606:4700:4700::1001"
+      ],
+      "cloudflare-dns.com": [
+        "104.16.249.249",
+        "104.16.248.249",
+        "2606:4700::6810:f8f9",
+        "2606:4700::6810:f9f9"
+      ],
+      "dns.cloudflare.com": [
+        "162.159.61.8",
+        "172.64.41.8",
+        "2a06:98c1:52::8",
+        "2803:f800:53::8"
+      ],
+      "dot.pub": [
+        "1.12.12.12",
+        "120.53.53.53"
+      ],
+      "doh.pub": [
+        "1.12.12.12",
+        "120.53.53.53"
+      ],
+      "dns.quad9.net": [
+        "9.9.9.9",
+        "149.112.112.112",
+        "2620:fe::fe",
+        "2620:fe::9"
+      ],
+      "dns.yandex.net": [
+        "77.88.8.8",
+        "77.88.8.1",
+        "2a02:6b8::feed:0ff",
+        "2a02:6b8:0:1::feed:0ff"
+      ],
+      "dns.sb": [
+        "45.11.45.11",
+        "185.222.222.222",
+        "2a09::",
+        "2a11::"
+      ],
+      "dns.umbrella.com": [
+        "208.67.220.220",
+        "208.67.222.222",
+        "2620:119:35::35",
+        "2620:119:53::53"
+      ],
+      "dns.sse.cisco.com": [
+        "208.67.220.220",
+        "208.67.222.222",
+        "2620:119:35::35",
+        "2620:119:53::53"
+      ],
+      "engage.cloudflareclient.com": [
+        "162.159.192.1",
+        "2606:4700:d0::a29f:c001"
+      ],
+      "hosts.example.com": [
+        "10.0.0.1"
+      ],
+      "full:hosts.example.com": [
+        "10.0.0.1"
+      ],
+      "domain:alias.example.com": [
+        "target.example.com"
+      ]
+    },
+    "servers": [
+      {
+        "address": "119.29.29.29",
+        "domains": [
+          "full:dns.alidns.com"
+        ],
+        "skipFallback": true
+      },
+      {
+        "address": "fakedns",
+        "domains": [
+          "domain:youtube.com",
+          "keyword:gstatic",
+          "regexp:^api\\d+\\.example\\.org$",
+          "twitter",
+          "dotless:intranet",
+          "geosite:google",
+          "domain:dns-only.example.com",
+          "geosite:cn"
+        ],
+        "skipFallback": true
+      },
+      {
+        "address": "https://1.1.1.1/dns-query",
+        "domains": [
+          "domain:youtube.com",
+          "keyword:gstatic",
+          "regexp:^api\\d+\\.example\\.org$",
+          "twitter",
+          "dotless:intranet"
+        ],
+        "skipFallback": true
+      },
+      {
+        "address": "223.5.5.5",
+        "domains": [
+          "domain:dns-only.example.com"
+        ],
+        "skipFallback": true,
+        "tag": "direct-dns-1"
+      },
+      {
+        "address": "https://dns.alidns.com/dns-query",
+        "domains": [
+          "domain:dns-only.example.com"
+        ],
+        "skipFallback": true,
+        "tag": "direct-dns-2"
+      },
+      {
+        "address": "https://1.1.1.1/dns-query",
+        "domains": [
+          "geosite:google"
+        ],
+        "skipFallback": true
+      },
+      {
+        "address": "223.5.5.5",
+        "domains": [
+          "geosite:cn"
+        ],
+        "skipFallback": true,
+        "expectedIPs": [
+          "geoip:cn"
+        ],
+        "tag": "direct-dns-3"
+      },
+      {
+        "address": "https://dns.alidns.com/dns-query",
+        "domains": [
+          "geosite:cn"
+        ],
+        "skipFallback": true,
+        "expectedIPs": [
+          "geoip:cn"
+        ],
+        "tag": "direct-dns-4"
+      },
+      "https://1.1.1.1/dns-query"
+    ],
+    "tag": "dns-module"
+  },
+  "fakedns": {
+    "ipPool": "198.18.0.0/15",
+    "poolSize": 131071
+  },
+  "inbounds": [
+    {
+      "tag": "socks",
+      "port": 10808,
+      "listen": "127.0.0.1",
+      "protocol": "mixed",
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "fakedns"
+        ],
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "socks",
+      "settings": {
+        "address": "127.0.0.1",
+        "port": 1080,
+        "user": "user",
+        "pass": "pass",
+        "level": 1,
+        "email": "t@t.tt"
+      },
+      "streamSettings": {
+        "network": "raw"
+      },
+      "mux": {
+        "enabled": false,
+        "concurrency": -1
+      }
+    },
+    {
+      "tag": "direct",
+      "protocol": "freedom"
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "domain": [
+          "geosite:category-ads-all",
+          "ext:custom.dat:ads"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "full:localhost"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:private"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "123,5000-6000",
+        "network": "udp",
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "process": [
+          "curl",
+          "/usr/bin/wget",
+          "self/"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "443",
+        "inboundTag": [
+          "socks"
+        ],
+        "outboundTag": "proxy",
+        "domain": [
+          "domain:inbound.example.com"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "proxy",
+        "ip": [
+          "!geoip:cn",
+          "1.1.1.1/32"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "0-65535",
+        "outboundTag": "proxy"
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "direct-dns-1",
+          "direct-dns-2",
+          "direct-dns-3",
+          "direct-dns-4"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "dns-module"
+        ],
+        "outboundTag": "proxy"
+      }
+    ]
+  }
+}
