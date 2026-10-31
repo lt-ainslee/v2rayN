@@ -75,6 +75,11 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
             .Subscribe(_ => this.RaisePropertyChanged(nameof(IsMihomoUnifiedEnabled)));
     }
 
+    /// <summary>Rule sets edited elsewhere (the rule center's rows); used instead of the text field.</summary>
+    private List<RuleSetItem>? _ruleSetsOverride;
+
+    public void SetRuleSets(List<RuleSetItem> ruleSets) => _ruleSetsOverride = ruleSets;
+
     /// <summary>
     /// Validates the text fields; returns the parsed rule sets, or null after notifying the user.
     /// </summary>
@@ -84,7 +89,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
         ClashSyntax.ParseProxyGroups(MihomoExtraProxyGroups, invalidGroups);
         var invalidRules = UnifiedRuleParser.SplitLines(MihomoExtraRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
         var invalidRuleSets = new List<string>();
-        var ruleSets = RuleSetTextFormat.Parse(RuleSets, invalidRuleSets);
+        var ruleSets = _ruleSetsOverride ?? RuleSetTextFormat.Parse(RuleSets, invalidRuleSets);
         if (invalidGroups.Count == 0 && invalidRules.Count == 0 && invalidRuleSets.Count == 0)
         {
             return ruleSets;
@@ -137,12 +142,10 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
     /// </summary>
     public async Task<bool> SaveAsync()
     {
-        if (ValidateInput() is not { } ruleSets)
+        if (ApplyTo(_config) is null)
         {
             return false;
         }
-        _config.CoreExtensionItem = BuildExtensionItem();
-        _config.RuleSetItems = ruleSets;
         if (await ConfigHandler.SaveConfig(_config) != 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
@@ -170,7 +173,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
     /// </summary>
     private async Task PreviewAsync()
     {
-        if (ValidateInput() is not { } ruleSets)
+        if (ValidateInput() is null)
         {
             return;
         }
@@ -183,8 +186,7 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
             PreviewText = string.Format(ResUI.MsgUnifiedPreviewFailed, nameof(JsonUtils.DeepCopy));
             return;
         }
-        config.CoreExtensionItem = BuildExtensionItem();
-        config.RuleSetItems = ruleSets;
+        ApplyTo(config);
         var core = CoreCapabilities.UnifiedCores.First(c => CoreCapabilities.CoreDisplayName(c) == PreviewCore);
         PreviewText = await Task.Run(() => UnifiedPreviewService.PreviewAsync(config, core));
     }

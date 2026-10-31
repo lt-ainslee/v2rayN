@@ -23,6 +23,12 @@ public static class RuleInputValidator
         _ => false,
     };
 
+    /// <summary>
+    /// IP entries without a known prefix must be IP addresses or CIDRs, or the core refuses the configuration.
+    /// </summary>
+    public static List<string> InvalidIps(IEnumerable<string>? ips) =>
+        (ips ?? []).Where(t => UnifiedRuleParser.ParseIp(t) is { Kind: EIpMatchKind.Cidr } m && !UnifiedRuleParser.IsValidCidr(m.Value)).ToList();
+
     public static List<string> InvalidMihomoRules(string? rules) =>
         UnifiedRuleParser.SplitLines(rules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
 
@@ -31,6 +37,10 @@ public static class RuleInputValidator
     /// </summary>
     public static string? Validate(RulesItem item)
     {
+        if (InvalidIps(item.Ip) is { Count: > 0 } invalidIps)
+        {
+            return string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRoutingRuleIP, string.Join("; ", invalidIps));
+        }
         if (InvalidSourcePorts(item.SourcePort) is { Count: > 0 } ports)
         {
             return string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourcePort, string.Join("; ", ports));
@@ -64,6 +74,7 @@ public static class RuleInputValidator
         || item.Process?.Count > 0
         || item.Port.IsNotEmpty()
         || item.Network.IsNotEmpty()
+        || item.InboundTag?.Count > 0
         || item.SourceIp?.Count > 0
         || item.SourcePort.IsNotEmpty();
 }

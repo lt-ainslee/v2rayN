@@ -38,6 +38,9 @@ public class RuleCenterTests
     [Arguments(ERuleConditionField.Ip, "!geoip:cn")]
     [Arguments(ERuleConditionField.Ip, "geoip:private")]
     [Arguments(ERuleConditionField.Ip, "ext-ip:my.dat:tag")]
+    [Arguments(ERuleConditionField.Ip, "ext:geoip_custom.dat:cn")]
+    [Arguments(ERuleConditionField.Ip, "!ext:geoip_custom.dat:cn")]
+    [Arguments(ERuleConditionField.Domain, "ext-domain:my.dat:tag")]
     [Arguments(ERuleConditionField.Ip, "ruleset:streaming-ip")]
     [Arguments(ERuleConditionField.Process, "chrome.exe")]
     [Arguments(ERuleConditionField.Process, "/usr/bin/curl")]
@@ -60,6 +63,8 @@ public class RuleCenterTests
     [Arguments("!geoip:cn", ERuleConditionKind.GeoIp)]
     [Arguments("chrome.exe", ERuleConditionKind.ProcessName)]
     [Arguments("/usr/bin/wget", ERuleConditionKind.ProcessPath)]
+    [Arguments(@"C:\Program Files\app.exe", ERuleConditionKind.ProcessPath)]
+    [Arguments("10.0.0.0/33", ERuleConditionKind.IpCidr)]
     public async Task Guess_ShouldPickTheConditionType(string text, ERuleConditionKind expected)
     {
         await RuleConditionKinds.Guess(text)!.Value.Kind.Should().BeEqualTo(expected);
@@ -97,7 +102,7 @@ public class RuleCenterTests
         var item = new RuleListItemViewModel(rule);
         item.Refresh(NoRuleSets);
         var changes = 0;
-        var editor = new RuleEditorViewModel(() => changes++);
+        var editor = new RuleEditorViewModel(_ => changes++);
 
         editor.Load(item);
         await editor.Conditions.Count.Should().BeEqualTo(1);
@@ -131,8 +136,68 @@ public class RuleCenterTests
         var item = new RuleListItemViewModel(rule);
         item.Refresh(NoRuleSets);
 
-        new RuleEditorViewModel(() => { }).Load(item);
+        new RuleEditorViewModel(_ => { }).Load(item);
 
         await JsonUtils.Serialize(rule).Should().BeEqualTo(json);
+    }
+
+    private static (RulesItem Rule, RuleEditorViewModel Editor, RuleListItemViewModel Item) Open(RulesItem rule)
+    {
+        var item = new RuleListItemViewModel(rule);
+        item.Refresh(NoRuleSets);
+        var editor = new RuleEditorViewModel(_ => { });
+        editor.Load(item);
+        return (rule, editor, item);
+    }
+
+    [Test]
+    public async Task Editor_ShouldKeepCommentsAndUnknownOptionsWhenEditing()
+    {
+        var (rule, editor, _) = Open(new RulesItem
+        {
+            Id = "r", OutboundTag = Global.DirectTag,
+            Domain = ["# streaming", "geosite:netflix"], InboundTag = ["api"], Protocol = ["dns"],
+        });
+
+        editor.Remarks = "changed";
+
+        await string.Join(",", rule.Domain!).Should().BeEqualTo("# streaming,geosite:netflix");
+        await rule.InboundTag!.Single().Should().BeEqualTo("api");
+        await rule.Protocol!.Single().Should().BeEqualTo("dns");
+    }
+
+    [Test]
+    public async Task ListCheckBox_ShouldNotBeUndoneByTheNextEditorChange()
+    {
+        var rule = new RulesItem { Id = "r", OutboundTag = Global.DirectTag, Enabled = true, Domain = ["domain:a.com"] };
+        var editor = new RuleEditorViewModel(_ => { });
+        var item = new RuleListItemViewModel(rule, changed => editor.SyncEnabled(changed.Rule));
+        item.Refresh(NoRuleSets);
+        editor.Load(item);
+
+        item.Enabled = false;
+        editor.Remarks = "after";
+
+        await rule.Enabled.Should().BeFalse();
+        await editor.Enabled.Should().BeFalse();
+    }
+
+    [Test]
+    public async Task Paste_ShouldKeepCommasInsideRegexes()
+    {
+        var (rule, editor, _) = Open(new RulesItem { Id = "r", OutboundTag = Global.DirectTag });
+
+        editor.BulkText = "regexp:^a{1,3}$\nfoo.com, bar.com";
+        editor.AddBulkCmd.Execute().Subscribe(_ => { });
+
+        await string.Join("|", rule.Domain!).Should().BeEqualTo($"regexp:^a{{1{Global.RoutingRuleComma}3}}$|domain:foo.com|domain:bar.com");
+    }
+
+    [Test]
+    public async Task InputValidator_ShouldRejectInvalidIpEntriesAndAcceptInboundOnlyRules()
+    {
+        await RuleInputValidator.Validate(new RulesItem { Ip = ["10.0.0.0/33"] })!.Should().Contain("10.0.0.0/33");
+        await RuleInputValidator.Validate(new RulesItem { Ip = ["geoip:cn", "ext:a.dat:x", "10.0.0.0/8"] }).Should().BeNull();
+        await RuleInputValidator.Validate(new RulesItem { InboundTag = ["tun"] }).Should().BeNull();
     }
 }

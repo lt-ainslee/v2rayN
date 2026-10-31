@@ -79,15 +79,19 @@ public static class RuleConditionKinds
             ERuleConditionKind.DomainRegex => $"regexp:{value.Replace(",", Global.RoutingRuleComma)}",
             ERuleConditionKind.GeoSite => $"{Global.GeoSitePrefix}{value}",
             ERuleConditionKind.Dotless => $"dotless:{value}",
-            ERuleConditionKind.DomainExternal => $"ext:{value}",
+            // External files keep the prefix they were stored with (ext: / ext-domain: / ext-ip:).
+            ERuleConditionKind.DomainExternal => IsExternalRaw(value) ? value : $"ext:{value}",
             ERuleConditionKind.DomainRuleSet or ERuleConditionKind.IpRuleSet => $"{UnifiedRuleParser.RuleSetPrefix}{value}",
             ERuleConditionKind.GeoIp => $"{Global.GeoIPPrefix}{value}",
             ERuleConditionKind.IpPrivate => $"{Global.GeoIPPrefix}private",
-            ERuleConditionKind.IpExternal => $"ext-ip:{value}",
+            ERuleConditionKind.IpExternal => IsExternalRaw(value) ? value : $"ext-ip:{value}",
             _ => value,
         };
         return negated && FieldOf(kind) == ERuleConditionField.Ip ? $"!{raw}" : raw;
     }
+
+    private static bool IsExternalRaw(string value) =>
+        value.StartsWith("ext:") || value.StartsWith("ext-domain:") || value.StartsWith("ext-ip:");
 
     /// <summary>
     /// Reads a stored entry of the given list; null for comments and empty entries.
@@ -109,7 +113,8 @@ public static class RuleConditionKinds
                     EDomainMatchKind.RuleSet => ERuleConditionKind.DomainRuleSet,
                     _ => ERuleConditionKind.DomainPlain,
                 };
-                return (kind, d.Value, false);
+                // External files are shown with their prefix so it is written back unchanged.
+                return (kind, kind == ERuleConditionKind.DomainExternal ? d.Raw : d.Value, false);
 
             case ERuleConditionField.Ip when UnifiedRuleParser.ParseIp(raw) is { } ip:
                 var ipKind = ip.Kind switch
@@ -120,7 +125,13 @@ public static class RuleConditionKinds
                     EIpMatchKind.RuleSet => ERuleConditionKind.IpRuleSet,
                     _ => ERuleConditionKind.IpCidr,
                 };
-                return (ipKind, ipKind == ERuleConditionKind.IpPrivate ? string.Empty : ip.Value, ip.Negated);
+                var ipValue = ipKind switch
+                {
+                    ERuleConditionKind.IpPrivate => string.Empty,
+                    ERuleConditionKind.IpExternal => raw.TrimStart('!').Trim(),
+                    _ => ip.Value,
+                };
+                return (ipKind, ipValue, ip.Negated);
 
             case ERuleConditionField.Process when UnifiedRuleParser.ParseProcess(raw) is { } p:
                 return (p.Kind == EProcessMatchKind.Path ? ERuleConditionKind.ProcessPath : ERuleConditionKind.ProcessName, p.Value, false);
@@ -151,9 +162,15 @@ public static class RuleConditionKinds
         {
             return FromRaw(ERuleConditionField.Domain, text);
         }
-        if (text.Contains('/') || text.Contains('\\'))
+        // Only absolute paths count as process paths; anything else that looks like an address is an IP entry,
+        // so a typo such as 10.0.0.0/33 is reported instead of silently becoming a process.
+        if (text.StartsWith('/') || text.Contains('\\') || (text.Length > 2 && text[1] == ':' && char.IsLetter(text[0])))
         {
             return (ERuleConditionKind.ProcessPath, text, false);
+        }
+        if (text.Contains('/') && (char.IsAsciiDigit(body.FirstOrDefault()) || body.Contains(':')))
+        {
+            return (ERuleConditionKind.IpCidr, body, text.StartsWith('!'));
         }
         if (text.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {

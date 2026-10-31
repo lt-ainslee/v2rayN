@@ -9,9 +9,12 @@ public partial class RuleEditorViewModel : ReactiveObject
     public static IReadOnlyList<string> RuleTypes { get; } = [nameof(ERuleType.ALL), nameof(ERuleType.Routing), nameof(ERuleType.DNS)];
     public static IReadOnlyList<string> Networks { get; } = Global.RuleNetworks;
 
-    private readonly Action _changed;
+    private readonly Action<RulesItem> _changed;
     private RuleListItemViewModel? _current;
     private bool _loading;
+
+    /// <summary>Stored entries the condition rows do not show (e.g. #comments); written back unchanged.</summary>
+    private readonly Dictionary<ERuleConditionField, List<string>> _preserved = [];
 
     [Reactive] public partial bool HasRule { get; set; }
     [Reactive] public partial string Remarks { get; set; }
@@ -36,7 +39,7 @@ public partial class RuleEditorViewModel : ReactiveObject
     public ReactiveCommand<RxVoid, RxVoid> AddConditionCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> AddBulkCmd { get; }
 
-    public RuleEditorViewModel(Action changed)
+    public RuleEditorViewModel(Action<RulesItem> changed)
     {
         _changed = changed;
         Remarks = RuleType = OutboundTag = Port = Network = SourceIp = SourcePort = string.Empty;
@@ -73,28 +76,35 @@ public partial class RuleEditorViewModel : ReactiveObject
             BulkText = string.Empty;
 
             Conditions.Clear();
+            _preserved.Clear();
             foreach (var (field, values) in new[]
                      {
                          (ERuleConditionField.Domain, rule.Domain), (ERuleConditionField.Ip, rule.Ip),
                          (ERuleConditionField.Process, rule.Process),
                      })
             {
+                _preserved[field] = [];
                 foreach (var raw in values ?? [])
                 {
                     if (RuleConditionKinds.FromRaw(field, raw) is { } c)
                     {
                         AddCondition(c.Kind, c.Value, c.Negated);
                     }
+                    else if (raw.IsNotEmpty())
+                    {
+                        _preserved[field].Add(raw);
+                    }
                 }
             }
 
+            // Values outside the built-in options (e.g. other inbound tags) are offered too, so they are kept.
             Protocols.Clear();
-            foreach (var name in Global.RuleProtocols)
+            foreach (var name in Global.RuleProtocols.Union(rule.Protocol ?? []))
             {
                 Protocols.Add(new RuleCheckOption(name, rule.Protocol?.Contains(name) == true, WriteBack));
             }
             InboundTags.Clear();
-            foreach (var name in Global.InboundTags)
+            foreach (var name in Global.InboundTags.Union(rule.InboundTag ?? []))
             {
                 InboundTags.Add(new RuleCheckOption(name, rule.InboundTag?.Contains(name) == true, WriteBack));
             }
@@ -121,7 +131,13 @@ public partial class RuleEditorViewModel : ReactiveObject
     /// </summary>
     private void AddBulk()
     {
-        foreach (var text in (BulkText ?? string.Empty).Split([',', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        // One entry per line; a line is only split on commas when it is not a regex, whose commas are literal.
+        var entries = (BulkText ?? string.Empty)
+            .Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .SelectMany(line => line.StartsWith("regexp:")
+                ? [line]
+                : line.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        foreach (var text in entries)
         {
             if (RuleConditionKinds.Guess(text) is { } c)
             {
@@ -158,8 +174,11 @@ public partial class RuleEditorViewModel : ReactiveObject
 
         List<string>? Collect(ERuleConditionField field)
         {
-            var values = Conditions.Where(c => RuleConditionKinds.FieldOf(c.Kind) == field)
-                .Select(c => c.ToRaw()).OfType<string>().ToList();
+            List<string> values =
+            [
+                .. _preserved.GetValueOrDefault(field) ?? [],
+                .. Conditions.Where(c => RuleConditionKinds.FieldOf(c.Kind) == field).Select(c => c.ToRaw()).OfType<string>(),
+            ];
             return values.Count > 0 ? values : null;
         }
         rule.Domain = Collect(ERuleConditionField.Domain);
@@ -168,8 +187,19 @@ public partial class RuleEditorViewModel : ReactiveObject
         rule.Protocol = Protocols.Where(p => p.IsChecked).Select(p => p.Name).ToList() is { Count: > 0 } protocols ? protocols : null;
         rule.InboundTag = InboundTags.Where(p => p.IsChecked).Select(p => p.Name).ToList() is { Count: > 0 } tags ? tags : null;
 
-        _changed();
+        _changed(rule);
         UpdateCompatibilityText();
+    }
+
+    /// <summary>
+    /// Follows a change made outside the editor (the check box in the rule list).
+    /// </summary>
+    public void SyncEnabled(RulesItem rule)
+    {
+        if (_current?.Rule == rule && Enabled != rule.Enabled)
+        {
+            Enabled = rule.Enabled;
+        }
     }
 
     public void UpdateCompatibilityText()
@@ -203,7 +233,13 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
     public event EventHandler? RequestClose;
 
     private readonly Dictionary<string, List<RulesItem>> _editedRules = [];
+
+    /// <summary>Rules added or changed in this session; only these are validated on save.</summary>
+    private readonly HashSet<RulesItem> _modifiedRules = [];
     private Dictionary<ECoreType, HashSet<string>> _availableRuleSets = [];
+
+    /// <summary>sing-box rule sets from files (custom rule set file, srss), cached per profile.</summary>
+    private (string ProfileId, HashSet<string> Names)? _singboxFileRuleSets;
     private string _savedActiveProfileId = string.Empty;
 
     public DNSSettingViewModel Dns { get; }
@@ -352,8 +388,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         RefreshAvailableRuleSets();
         foreach (var rule in rules)
         {
-            var item = new RuleListItemViewModel(rule);
-            item.Refresh(_availableRuleSets);
+            var item = CreateListItem(rule);
             Rules.Add(item);
         }
         SelectedRule = Rules.FirstOrDefault();
@@ -369,8 +404,8 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         }
         var index = SelectedRule != null ? Rules.IndexOf(SelectedRule) + 1 : Rules.Count;
         rules.Insert(index, rule);
-        var item = new RuleListItemViewModel(rule);
-        item.Refresh(_availableRuleSets);
+        _modifiedRules.Add(rule);
+        var item = CreateListItem(rule);
         Rules.Insert(index, item);
         SelectedRule = item;
     }
@@ -405,8 +440,20 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         SelectedRule = current;
     }
 
-    private void OnRuleEdited()
+    private RuleListItemViewModel CreateListItem(RulesItem rule)
     {
+        var item = new RuleListItemViewModel(rule, changed =>
+        {
+            _modifiedRules.Add(changed.Rule);
+            Editor.SyncEnabled(changed.Rule);
+        });
+        item.Refresh(_availableRuleSets);
+        return item;
+    }
+
+    private void OnRuleEdited(RulesItem rule)
+    {
+        _modifiedRules.Add(rule);
         SelectedRule?.Refresh(_availableRuleSets);
     }
 
@@ -423,21 +470,30 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
     private void OnRuleSetsChanged()
     {
         RefreshAvailableRuleSets();
-        foreach (var rule in Rules)
+        // Only rules that reference a rule set can change status.
+        foreach (var rule in Rules.Where(r => UsesRuleSet(r.Rule)))
         {
             rule.Refresh(_availableRuleSets);
         }
         Editor.UpdateCompatibilityText();
     }
 
+    private static bool UsesRuleSet(RulesItem rule) =>
+        (rule.Domain ?? []).Concat(rule.Ip ?? []).Any(v => v.TrimStart('!').StartsWith(UnifiedRuleParser.RuleSetPrefix));
+
     private void RefreshAvailableRuleSets()
     {
         var items = RuleSets.Select(r => r.ToItem()).Where(r => r.Name.IsNotEmpty()).ToList();
-        var config = new Config { RuleSetItems = items };
+        var profileId = SelectedProfile?.Id ?? string.Empty;
+        if (_singboxFileRuleSets?.ProfileId != profileId)
+        {
+            // Reads files, so it is done once per profile rather than on every keystroke.
+            _singboxFileRuleSets = (profileId, SingboxRuleSetSources.GetAvailableNames(new Config { RuleSetItems = [] }, SelectedProfile));
+        }
         _availableRuleSets = new Dictionary<ECoreType, HashSet<string>>
         {
             [ECoreType.Xray] = [],
-            [ECoreType.sing_box] = SingboxRuleSetSources.GetAvailableNames(config, SelectedProfile),
+            [ECoreType.sing_box] = [.. _singboxFileRuleSets.Value.Names, .. items.Where(t => t.SingboxSource.IsNotEmpty()).Select(t => t.Name)],
             // Rule providers of a Clash file are unknown here; they are accepted when the file is used.
             [ECoreType.mihomo] = [.. items.Where(t => t.MihomoSource.IsNotEmpty()).Select(t => t.Name)],
         };
@@ -452,7 +508,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         var names = new HashSet<string>();
         foreach (var item in items)
         {
-            if (item.Name.IsNullOrEmpty() || item.Name.Contains('=') || item.Name.Contains(',')
+            if (item.Name.IsNullOrEmpty() || item.Name.StartsWith('#') || item.Name.Contains('=') || item.Name.Contains(',')
                 || !names.Add(item.Name)
                 || (item.SingboxSource.IsNullOrEmpty() && item.MihomoSource.IsNullOrEmpty()))
             {
@@ -520,7 +576,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
             PreviewText = string.Format(ResUI.MsgUnifiedPreviewFailed, nameof(JsonUtils.DeepCopy));
             return;
         }
-        Extensions.RuleSets = RuleSetTextFormat.ToText(ruleSets);
+        Extensions.SetRuleSets(ruleSets);
         if (Extensions.ApplyTo(config) is null)
         {
             return;
@@ -534,17 +590,18 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveAsync()
     {
-        // 1. Validate everything first, so nothing is saved when any part is invalid.
+        // 1. Validate everything first, so nothing is saved when any part is invalid. Only rules changed in
+        //    this session are checked: an existing rule the user did not touch must not block saving.
         foreach (var (profileId, rules) in _editedRules)
         {
-            foreach (var rule in rules)
+            foreach (var rule in rules.Where(_modifiedRules.Contains))
             {
                 if (RuleInputValidator.Validate(rule) is not { } error)
                 {
                     continue;
                 }
                 SelectedProfile = Profiles.FirstOrDefault(p => p.Id == profileId) ?? SelectedProfile;
-                SelectedRule = Rules.FirstOrDefault(r => r.Rule.Id == rule.Id) ?? SelectedRule;
+                SelectedRule = Rules.FirstOrDefault(r => r.Rule == rule) ?? SelectedRule;
                 NoticeManager.Instance.Enqueue(error);
                 return;
             }
@@ -553,14 +610,15 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         {
             return;
         }
-        Extensions.RuleSets = RuleSetTextFormat.ToText(ruleSets);
+        Extensions.SetRuleSets(ruleSets);
         if (JsonUtils.DeepCopy(_config) is not { } probe || Extensions.ApplyTo(probe) is null)
         {
             return;
         }
 
-        // 2. Save; DNS validates its own fields before changing anything.
-        if (!await Dns.SaveAsync() || !await Extensions.SaveAsync())
+        // 2. Apply: DNS validates its own fields before changing anything; the configuration file is
+        //    written once at the end, after the routing profiles.
+        if (!await Dns.SaveAsync(saveConfig: false) || Extensions.ApplyTo(_config) is null)
         {
             return;
         }
@@ -578,6 +636,11 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
             && Profiles.FirstOrDefault(p => p.Id == ActiveProfileId) is { } active)
         {
             await ConfigHandler.SetDefaultRouting(_config, active);
+        }
+        if (await ConfigHandler.SaveConfig(_config) != 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            return;
         }
         NoticeManager.Instance.Enqueue(ResUI.OperationSuccess);
         RequestClose?.Invoke(this, EventArgs.Empty);

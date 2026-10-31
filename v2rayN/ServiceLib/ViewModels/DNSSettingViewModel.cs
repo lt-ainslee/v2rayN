@@ -117,7 +117,8 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
     /// Validates every field first and only then saves, so nothing is half-applied when saving is refused.
     /// Returns false (after notifying the user) when the input is invalid.
     /// </summary>
-    public async Task<bool> SaveAsync()
+    /// <param name="saveConfig">False when the caller writes the configuration file itself.</param>
+    public async Task<bool> SaveAsync(bool saveConfig = true)
     {
         var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
             .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
@@ -198,7 +199,11 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         await ConfigHandler.SaveDNSItems(_config, item2);
 
         ApplyTo(_config.SimpleDNSItem);
-        await ConfigHandler.SaveConfig(_config);
+        if (saveConfig && await ConfigHandler.SaveConfig(_config) != 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            return false;
+        }
         return true;
     }
 

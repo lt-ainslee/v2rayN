@@ -111,11 +111,20 @@ public partial class RuleListItemViewModel : ReactiveObject
 
     public IReadOnlyList<RuleCoreStatus> Statuses { get; private set; } = [];
 
-    public RuleListItemViewModel(RulesItem rule)
+    public RuleListItemViewModel(RulesItem rule, Action<RuleListItemViewModel>? enabledChanged = null)
     {
         Rule = rule;
         Title = Summary = Target = XrayMark = SingboxMark = MihomoMark = string.Empty;
-        this.WhenAnyValue(x => x.Enabled).Skip(1).Subscribe(enabled => Rule.Enabled = enabled);
+        Enabled = rule.Enabled;
+        this.WhenAnyValue(x => x.Enabled).Skip(1).Subscribe(enabled =>
+        {
+            if (Rule.Enabled == enabled)
+            {
+                return;
+            }
+            Rule.Enabled = enabled;
+            enabledChanged?.Invoke(this);
+        });
     }
 
     public void Refresh(IReadOnlyDictionary<ECoreType, HashSet<string>> availableRuleSets)

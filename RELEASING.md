@@ -55,6 +55,8 @@ tag 必须与 `v2rayN/Directory.Build.props` 中的 `<Version>` 一致（测试�
 
    全部通过后，把它改为正式发布并标记为 Latest。只有在有意发布不完整版本时，才修改 `required_assets`。
 
+   注意：promote 使用 `GITHUB_TOKEN` 修改 Release，GitHub 不会因此触发其他工作流（例如基于 `release: released` 的 WinGet 提交）。需要触发这类工作流时，请在 Releases 页面手动发布，或手动运行对应工作流。
+
 ## 重新构建某个平台
 
 在 Actions 中打开对应的平台工作流（例如 `release Linux`），选择该 tag 作为 ref，`release_tag` 填同一个 tag 后运行。上传会覆盖同名产物。`promote release` 只看每个工作流的最新一次运行。
