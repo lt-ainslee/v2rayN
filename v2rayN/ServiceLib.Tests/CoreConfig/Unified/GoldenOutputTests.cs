@@ -136,6 +136,13 @@ public partial class GoldenOutputTests
     private static async Task AssertSnapshot(string name, string actual, [CallerFilePath] string sourceFile = "")
     {
         actual = FinalGuidRegex().Replace(actual.ReplaceLineEndings("\n"), "final-GUID");
+        // Paths under the app folder (e.g. sing-box cache_file) depend on where the tests run
+        var startupPath = JsonUtils.Serialize(Utils.StartupPath()).Trim('"');
+        actual = actual.Replace(startupPath, "{StartupPath}");
+        if (Utils.IsWindows())
+        {
+            actual = NormalizeWindowsOutput(actual);
+        }
         var path = Path.Combine(Path.GetDirectoryName(sourceFile)!, "Snapshots", $"{name}.json");
         if (Environment.GetEnvironmentVariable("UPDATE_SNAPSHOTS") == "1" || !File.Exists(path))
         {
@@ -149,6 +156,40 @@ public partial class GoldenOutputTests
         }
         await actual.Should().BeEqualTo(expected).Because($"snapshot {name} changed; rerun with UPDATE_SNAPSHOTS=1 if intended");
     }
+
+    /// <summary>
+    ///     On Windows the generators deliberately append ".exe" to process names and use
+    ///     backslashes in process paths. Map those back so one snapshot set serves every
+    ///     platform; other backslashes (regex escapes) are left alone.
+    /// </summary>
+    private static string NormalizeWindowsOutput(string actual)
+    {
+        var lines = actual.Split('\n');
+        var inProcessPath = false;
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            if (line.Contains("\"process_path\": ["))
+            {
+                inProcessPath = true;
+                continue;
+            }
+            if (inProcessPath && line.TrimStart().StartsWith(']'))
+            {
+                inProcessPath = false;
+                continue;
+            }
+            if (inProcessPath || line.Contains("{StartupPath}"))
+            {
+                line = line.Replace("\\\\", "/");
+            }
+            lines[i] = ExeSuffixRegex().Replace(line, "\"$1\"");
+        }
+        return string.Join('\n', lines);
+    }
+
+    [GeneratedRegex("\"([^\"]+)\\.exe\"")]
+    private static partial Regex ExeSuffixRegex();
 
     [GeneratedRegex("final-[0-9a-fA-F]{32}")]
     private static partial Regex FinalGuidRegex();
