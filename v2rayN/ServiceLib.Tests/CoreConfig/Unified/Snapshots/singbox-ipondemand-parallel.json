@@ -483,7 +483,7 @@
   "experimental": {
     "cache_file": {
       "enabled": true,
-      "path": "/home/user/v2rayN/v2rayN/ServiceLib.Tests/bin/Debug/net10.0/bin/cache.db",
+      "path": "{StartupPath}bin/cache.db",
       "store_fakeip": false
     },
     "clash_api": {

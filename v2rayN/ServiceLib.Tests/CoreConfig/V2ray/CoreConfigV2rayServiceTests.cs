@@ -733,4 +733,31 @@ public class CoreConfigV2rayServiceTests
         await proxyOutbound.Should().NotBeNull();
         await proxyOutbound!.protocol.Should().BeEqualTo("shadowsocks");
     }
+
+    [Test]
+    public async Task GenerateClientConfigContent_TunEnabled_ShouldNotForceRouteOnlyOnMixedInbound()
+    {
+        // Regression test for #10459: the TUN inbound used to share the mixed inbound's
+        // sniffing object, so forcing routeOnly for TUN also flipped it on the mixed inbound.
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.TunModeItem.EnableTun = true;
+        config.Inbound[0].RouteOnly = false;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray) with
+        {
+            IsTunEnabled = true,
+        };
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        await result.Success.Should().BeTrue().Because($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(result.Data!.ToString())!;
+
+        var mixed = cfg.inbounds.First(i => i.protocol == nameof(EInboundProtocol.mixed));
+        var tun = cfg.inbounds.First(i => i.protocol == "tun");
+        await mixed.sniffing.routeOnly.Should().BeFalse();
+        await tun.sniffing.routeOnly.Should().BeTrue();
+    }
 }

@@ -142,7 +142,8 @@ public class MihomoTranslatorTests
             "NOT,((GEOIP,CN,no-resolve)),DIRECT",
             "AND,((DOMAIN,git.example.com),(OR,((DST-PORT,22),(DST-PORT,2222))),(NETWORK,TCP)),DIRECT",
             "DOMAIN-REGEX,^[^.]*intra[^.]*$,JP-01",
-            "PROCESS-NAME,curl,Proxy",
+            // mihomo needs the .exe suffix on Windows
+            $"PROCESS-NAME,{Utils.GetExeName("curl")},Proxy",
             "PROCESS-PATH,/usr/bin/wget,Proxy",
             "AND,((SRC-IP-CIDR,192.168.1.0/24),(SRC-PORT,5000)),DIRECT",
             "DOMAIN-SUFFIX,original.example.com,Proxy",

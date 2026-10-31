@@ -84,9 +84,13 @@ public partial class CoreConfigV2rayService
                 {
                     tunInbound.settings.autoOutboundsInterface = bindInterface;
                 }
-                tunInbound.sniffing = inbound.sniffing;
-                // tunInbound.sniffing.routeOnly = inbound.sniffing.routeOnly;
-                tunInbound.sniffing.routeOnly = true;
+                // Own copy so forcing routeOnly here does not leak into the mixed inbound
+                tunInbound.sniffing = new Sniffing4Ray
+                {
+                    enabled = inbound.sniffing.enabled,
+                    destOverride = inbound.sniffing.destOverride?.ToList(),
+                    routeOnly = true,
+                };
 
                 if (context.IsWindows && _config.TunModeItem.StrictRoute == true)
                 {

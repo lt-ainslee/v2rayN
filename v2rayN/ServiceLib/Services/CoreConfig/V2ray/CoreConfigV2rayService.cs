@@ -182,7 +182,8 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
                 if (proxyOutbounds.Count(n => n.tag.StartsWith(tag)) > 1)
                 {
                     isBalancer = true;
-                    var multipleLoad = _node.GetProtocolExtra().MultipleLoad ?? EMultipleLoad.LeastPing;
+                    // Strategy belongs to the group under test, not the placeholder node
+                    var multipleLoad = item.GetProtocolExtra().MultipleLoad ?? EMultipleLoad.LeastPing;
                     GenObservatory(multipleLoad, tag);
                     GenBalancer(multipleLoad, tag);
                 }
