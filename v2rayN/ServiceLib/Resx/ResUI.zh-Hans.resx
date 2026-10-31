@@ -2065,4 +2065,52 @@
   <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
     <value>规则「{0}」匹配所有流量，其后的规则（包括 Clash 配置原有的规则）不会生效</value>
   </data>
+  <data name="TbCondDomainSuffix" xml:space="preserve">
+    <value>域名后缀</value>
+  </data>
+  <data name="TbCondDomainFull" xml:space="preserve">
+    <value>完整域名</value>
+  </data>
+  <data name="TbCondDomainKeyword" xml:space="preserve">
+    <value>关键字</value>
+  </data>
+  <data name="TbCondDomainRegex" xml:space="preserve">
+    <value>正则</value>
+  </data>
+  <data name="TbCondDotless" xml:space="preserve">
+    <value>无点域名</value>
+  </data>
+  <data name="TbCondDomainPlain" xml:space="preserve">
+    <value>域名包含（无前缀）</value>
+  </data>
+  <data name="TbCondExternal" xml:space="preserve">
+    <value>外部文件</value>
+  </data>
+  <data name="TbCondRuleSet" xml:space="preserve">
+    <value>规则集</value>
+  </data>
+  <data name="TbCondIpPrivate" xml:space="preserve">
+    <value>私有地址</value>
+  </data>
+  <data name="TbCondIpExternal" xml:space="preserve">
+    <value>IP 外部文件</value>
+  </data>
+  <data name="TbCondIpRuleSet" xml:space="preserve">
+    <value>IP 规则集</value>
+  </data>
+  <data name="TbCondProcessName" xml:space="preserve">
+    <value>进程名</value>
+  </data>
+  <data name="TbCondProcessPath" xml:space="preserve">
+    <value>进程路径</value>
+  </data>
+  <data name="TbRuleCenterNewRule" xml:space="preserve">
+    <value>新规则</value>
+  </data>
+  <data name="TbRuleCenterProxyChain" xml:space="preserve">
+    <value>链式代理</value>
+  </data>
+  <data name="TbRuleCenterPolicyGroup" xml:space="preserve">
+    <value>策略组</value>
+  </data>
 </root>

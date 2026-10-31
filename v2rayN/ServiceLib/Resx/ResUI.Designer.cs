@@ -5921,5 +5921,149 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("MsgUnifiedCatchAllRule", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 Domain suffix 的本地化字符串。
+        /// </summary>
+        public static string TbCondDomainSuffix {
+            get {
+                return ResourceManager.GetString("TbCondDomainSuffix", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Full domain 的本地化字符串。
+        /// </summary>
+        public static string TbCondDomainFull {
+            get {
+                return ResourceManager.GetString("TbCondDomainFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Keyword 的本地化字符串。
+        /// </summary>
+        public static string TbCondDomainKeyword {
+            get {
+                return ResourceManager.GetString("TbCondDomainKeyword", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Regex 的本地化字符串。
+        /// </summary>
+        public static string TbCondDomainRegex {
+            get {
+                return ResourceManager.GetString("TbCondDomainRegex", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Dotless domain 的本地化字符串。
+        /// </summary>
+        public static string TbCondDotless {
+            get {
+                return ResourceManager.GetString("TbCondDotless", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Domain contains (no prefix) 的本地化字符串。
+        /// </summary>
+        public static string TbCondDomainPlain {
+            get {
+                return ResourceManager.GetString("TbCondDomainPlain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 External file 的本地化字符串。
+        /// </summary>
+        public static string TbCondExternal {
+            get {
+                return ResourceManager.GetString("TbCondExternal", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Rule set 的本地化字符串。
+        /// </summary>
+        public static string TbCondRuleSet {
+            get {
+                return ResourceManager.GetString("TbCondRuleSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Private address 的本地化字符串。
+        /// </summary>
+        public static string TbCondIpPrivate {
+            get {
+                return ResourceManager.GetString("TbCondIpPrivate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 IP external file 的本地化字符串。
+        /// </summary>
+        public static string TbCondIpExternal {
+            get {
+                return ResourceManager.GetString("TbCondIpExternal", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 IP rule set 的本地化字符串。
+        /// </summary>
+        public static string TbCondIpRuleSet {
+            get {
+                return ResourceManager.GetString("TbCondIpRuleSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Process name 的本地化字符串。
+        /// </summary>
+        public static string TbCondProcessName {
+            get {
+                return ResourceManager.GetString("TbCondProcessName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Process path 的本地化字符串。
+        /// </summary>
+        public static string TbCondProcessPath {
+            get {
+                return ResourceManager.GetString("TbCondProcessPath", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 New rule 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterNewRule {
+            get {
+                return ResourceManager.GetString("TbRuleCenterNewRule", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Proxy chain 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterProxyChain {
+            get {
+                return ResourceManager.GetString("TbRuleCenterProxyChain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Policy group 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterPolicyGroup {
+            get {
+                return ResourceManager.GetString("TbRuleCenterPolicyGroup", resourceCulture);
+            }
+        }
     }
 }

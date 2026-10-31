@@ -2073,4 +2073,52 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
     <value>Rule "{0}" matches all traffic; the rules after it, including the Clash configuration's own rules, are not reached</value>
   </data>
+  <data name="TbCondDomainSuffix" xml:space="preserve">
+    <value>Domain suffix</value>
+  </data>
+  <data name="TbCondDomainFull" xml:space="preserve">
+    <value>Full domain</value>
+  </data>
+  <data name="TbCondDomainKeyword" xml:space="preserve">
+    <value>Keyword</value>
+  </data>
+  <data name="TbCondDomainRegex" xml:space="preserve">
+    <value>Regex</value>
+  </data>
+  <data name="TbCondDotless" xml:space="preserve">
+    <value>Dotless domain</value>
+  </data>
+  <data name="TbCondDomainPlain" xml:space="preserve">
+    <value>Domain contains (no prefix)</value>
+  </data>
+  <data name="TbCondExternal" xml:space="preserve">
+    <value>External file</value>
+  </data>
+  <data name="TbCondRuleSet" xml:space="preserve">
+    <value>Rule set</value>
+  </data>
+  <data name="TbCondIpPrivate" xml:space="preserve">
+    <value>Private address</value>
+  </data>
+  <data name="TbCondIpExternal" xml:space="preserve">
+    <value>IP external file</value>
+  </data>
+  <data name="TbCondIpRuleSet" xml:space="preserve">
+    <value>IP rule set</value>
+  </data>
+  <data name="TbCondProcessName" xml:space="preserve">
+    <value>Process name</value>
+  </data>
+  <data name="TbCondProcessPath" xml:space="preserve">
+    <value>Process path</value>
+  </data>
+  <data name="TbRuleCenterNewRule" xml:space="preserve">
+    <value>New rule</value>
+  </data>
+  <data name="TbRuleCenterProxyChain" xml:space="preserve">
+    <value>Proxy chain</value>
+  </data>
+  <data name="TbRuleCenterPolicyGroup" xml:space="preserve">
+    <value>Policy group</value>
+  </data>
 </root>

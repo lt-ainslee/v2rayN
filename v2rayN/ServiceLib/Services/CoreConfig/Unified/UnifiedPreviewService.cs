@@ -8,7 +8,8 @@ public static class UnifiedPreviewService
 {
     private const string PreviewNodeId = "unified-preview";
 
-    public static async Task<string> PreviewAsync(Config config, ECoreType core)
+    /// <param name="routing">An unsaved routing profile to preview; null uses the active one.</param>
+    public static async Task<string> PreviewAsync(Config config, ECoreType core, RoutingItem? routing = null)
     {
         try
         {
@@ -18,7 +19,7 @@ public static class UnifiedPreviewService
                 return ResUI.MsgUnifiedPreviewMihomoOff;
             }
             // Read-only lookup: GetDefaultRouting would save the config when no profile is active.
-            var routing = await SQLiteHelper.Instance.TableAsync<RoutingItem>().FirstOrDefaultAsync(it => it.IsActive)
+            routing ??= await SQLiteHelper.Instance.TableAsync<RoutingItem>().FirstOrDefaultAsync(it => it.IsActive)
                 ?? new RoutingItem { RuleSet = "[]" };
             var diagnostics = new UnifiedDiagnostics();
             var body = core == ECoreType.mihomo

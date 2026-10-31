@@ -107,33 +107,26 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveSettingAsync()
     {
-        // Validate before changing the config: nothing may be half-applied when saving is refused.
+        if (await SaveAsync())
+        {
+            RequestClose?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Validates every field first and only then saves, so nothing is half-applied when saving is refused.
+    /// Returns false (after notifying the user) when the input is invalid.
+    /// </summary>
+    public async Task<bool> SaveAsync()
+    {
         var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
             .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
             .ToList();
         if (invalidPolicies.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbDnsPolicy, string.Join("; ", invalidPolicies)));
-            return;
+            return false;
         }
-        _config.SimpleDNSItem.UseSystemHosts = UseSystemHosts;
-        _config.SimpleDNSItem.AddCommonHosts = AddCommonHosts;
-        _config.SimpleDNSItem.FakeIP = FakeIP;
-        _config.SimpleDNSItem.FakeIPRange = FakeIPRange;
-        _config.SimpleDNSItem.BlockBindingQuery = BlockBindingQuery;
-        _config.SimpleDNSItem.BlockAAAAQuery = BlockAAAAQuery;
-        _config.SimpleDNSItem.DirectDNS = DirectDNS;
-        _config.SimpleDNSItem.RemoteDNS = RemoteDNS;
-        _config.SimpleDNSItem.BootstrapDNS = BootstrapDNS;
-        _config.SimpleDNSItem.Strategy4Freedom = Strategy4Freedom;
-        _config.SimpleDNSItem.Strategy4Proxy = Strategy4Proxy;
-        _config.SimpleDNSItem.Strategy4ProxyDial = Strategy4ProxyDial;
-        _config.SimpleDNSItem.Hosts = Hosts;
-        _config.SimpleDNSItem.DirectExpectedIPs = DirectExpectedIPs;
-        _config.SimpleDNSItem.ParallelQuery = ParallelQuery;
-        _config.SimpleDNSItem.ServeStale = ServeStale;
-        _config.SimpleDNSItem.EnableHappyEyeballs = EnableHappyEyeballs;
-        _config.SimpleDNSItem.DnsPolicy = DnsPolicy.NullIfEmpty();
         if (NormalDNSCompatible.IsNotEmpty())
         {
             var obj = JsonUtils.ParseJson(NormalDNSCompatible);
@@ -145,7 +138,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
                 if (NormalDNSCompatible.Contains('{') || NormalDNSCompatible.Contains('}'))
                 {
                     NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
-                    return;
+                    return false;
                 }
             }
         }
@@ -160,7 +153,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
                 if (TunDNSCompatible.Contains('{') || TunDNSCompatible.Contains('}'))
                 {
                     NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
-                    return;
+                    return false;
                 }
             }
         }
@@ -172,7 +165,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
                 || obj2.servers.Any(s => s.type.IsNullOrEmpty()))
             {
                 NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
-                return;
+                return false;
             }
         }
         if (TunDNS2Compatible.IsNotEmpty())
@@ -183,7 +176,7 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
                 || obj2.servers.Any(s => s.type.IsNullOrEmpty()))
             {
                 NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
-                return;
+                return false;
             }
         }
 
@@ -204,7 +197,33 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         item2.TunDNS = JsonUtils.Serialize(JsonUtils.Deserialize<Dns4Sbox>(TunDNS2Compatible));
         await ConfigHandler.SaveDNSItems(_config, item2);
 
+        ApplyTo(_config.SimpleDNSItem);
         await ConfigHandler.SaveConfig(_config);
-        RequestClose?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    /// <summary>
+    /// Writes the simple DNS fields into the given item (used for saving and for previews of unsaved values).
+    /// </summary>
+    public void ApplyTo(SimpleDNSItem target)
+    {
+        target.UseSystemHosts = UseSystemHosts;
+        target.AddCommonHosts = AddCommonHosts;
+        target.FakeIP = FakeIP;
+        target.FakeIPRange = FakeIPRange;
+        target.BlockBindingQuery = BlockBindingQuery;
+        target.BlockAAAAQuery = BlockAAAAQuery;
+        target.DirectDNS = DirectDNS;
+        target.RemoteDNS = RemoteDNS;
+        target.BootstrapDNS = BootstrapDNS;
+        target.Strategy4Freedom = Strategy4Freedom;
+        target.Strategy4Proxy = Strategy4Proxy;
+        target.Strategy4ProxyDial = Strategy4ProxyDial;
+        target.Hosts = Hosts;
+        target.DirectExpectedIPs = DirectExpectedIPs;
+        target.ParallelQuery = ParallelQuery;
+        target.ServeStale = ServeStale;
+        target.EnableHappyEyeballs = EnableHappyEyeballs;
+        target.DnsPolicy = DnsPolicy.NullIfEmpty();
     }
 }

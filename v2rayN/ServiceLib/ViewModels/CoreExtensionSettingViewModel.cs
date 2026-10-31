@@ -125,22 +125,44 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
 
     private async Task SaveSettingAsync()
     {
-        if (ValidateInput() is not { } ruleSets)
-        {
-            return;
-        }
-        _config.CoreExtensionItem = BuildExtensionItem();
-        _config.RuleSetItems = ruleSets;
-
-        if (await ConfigHandler.SaveConfig(_config) == 0)
+        if (await SaveAsync())
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationSuccess);
             RequestClose?.Invoke(this, EventArgs.Empty);
         }
-        else
+    }
+
+    /// <summary>
+    /// Validates and saves; returns false (after notifying the user) when the input is invalid or saving failed.
+    /// </summary>
+    public async Task<bool> SaveAsync()
+    {
+        if (ValidateInput() is not { } ruleSets)
+        {
+            return false;
+        }
+        _config.CoreExtensionItem = BuildExtensionItem();
+        _config.RuleSetItems = ruleSets;
+        if (await ConfigHandler.SaveConfig(_config) != 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            return false;
         }
+        return true;
+    }
+
+    /// <summary>
+    /// Writes the entered values into a configuration copy, e.g. for a preview; null when the input is invalid.
+    /// </summary>
+    public Config? ApplyTo(Config config)
+    {
+        if (ValidateInput() is not { } ruleSets)
+        {
+            return null;
+        }
+        config.CoreExtensionItem = BuildExtensionItem();
+        config.RuleSetItems = ruleSets;
+        return config;
     }
 
     /// <summary>

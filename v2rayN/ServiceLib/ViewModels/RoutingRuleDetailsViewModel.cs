@@ -111,20 +111,19 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         var protocols = ProtocolItems?.ToList();
         var sourceIps = Utils.String2List(Utils.Convert2Comma(SourceIp)) ?? [];
 
-        var invalidSourcePorts = (Utils.String2List(SourcePort) ?? []).Where(p => UnifiedRuleParser.ParsePorts(p).Count == 0).ToList();
+        var invalidSourcePorts = RuleInputValidator.InvalidSourcePorts(SourcePort);
         if (invalidSourcePorts.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourcePort, string.Join("; ", invalidSourcePorts)));
             return;
         }
-        // Source conditions are matched against the client address: only CIDRs and geoip:private are meaningful.
-        var invalidSourceIps = sourceIps.Where(t => !IsValidSourceIp(t)).ToList();
+        var invalidSourceIps = RuleInputValidator.InvalidSourceIps(sourceIps);
         if (invalidSourceIps.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourceIp, string.Join("; ", invalidSourceIps)));
             return;
         }
-        var invalidMihomoRules = UnifiedRuleParser.SplitLines(MihomoRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
+        var invalidMihomoRules = RuleInputValidator.InvalidMihomoRules(MihomoRules);
         if (invalidMihomoRules.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, "mihomo", string.Join("; ", invalidMihomoRules)));
@@ -181,14 +180,6 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
         RequestClose?.Invoke(this, EventArgs.Empty);
         await Task.CompletedTask;
     }
-
-    private static bool IsValidSourceIp(string value) => UnifiedRuleParser.ParseIp(value) switch
-    {
-        { Negated: true } => false,
-        { Kind: EIpMatchKind.Private } => true,
-        { Kind: EIpMatchKind.Cidr } match => UnifiedRuleParser.IsValidCidr(match.Value),
-        _ => false,
-    };
 
     private async Task SelectProfileAsync()
     {
