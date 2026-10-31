@@ -200,4 +200,61 @@ public class RuleCenterTests
         await RuleInputValidator.Validate(new RulesItem { Ip = ["geoip:cn", "ext:a.dat:x", "10.0.0.0/8"] }).Should().BeNull();
         await RuleInputValidator.Validate(new RulesItem { InboundTag = ["tun"] }).Should().BeNull();
     }
+
+    [Test]
+    public async Task Editor_ShouldKeepOrderAndTextOfUntouchedEntries()
+    {
+        var (rule, editor, _) = Open(new RulesItem
+        {
+            Id = "r", OutboundTag = Global.DirectTag,
+            Domain = ["geosite:cn", "#disabled: domain:foo.com", " domain:bar.com"], Ip = ["! geoip:cn"],
+        });
+
+        editor.Remarks = "only the remarks changed";
+        await string.Join("|", rule.Domain!).Should().BeEqualTo("geosite:cn|#disabled: domain:foo.com| domain:bar.com");
+        await rule.Ip!.Single().Should().BeEqualTo("! geoip:cn");
+
+        // Editing one row rewrites only that entry, in its place.
+        editor.Conditions[0].Value = "google";
+        await string.Join("|", rule.Domain!).Should().BeEqualTo("geosite:google|#disabled: domain:foo.com| domain:bar.com");
+    }
+
+    [Test]
+    public async Task Editor_RefreshingOutboundOptions_ShouldKeepTheRuleOutbound()
+    {
+        var (rule, editor, _) = Open(new RulesItem { Id = "r", OutboundTag = "my-group", Domain = ["domain:a.com"] });
+
+        editor.SetOutboundOptions(["proxy", "direct", "block"]);
+
+        await editor.OutboundTag.Should().BeEqualTo("my-group");
+        await rule.OutboundTag.Should().BeEqualTo("my-group");
+    }
+
+    [Test]
+    public async Task Paste_LargeList_ShouldWriteBackOnce()
+    {
+        var changes = 0;
+        var rule = new RulesItem { Id = "r", OutboundTag = Global.DirectTag };
+        var item = new RuleListItemViewModel(rule);
+        item.Refresh(NoRuleSets);
+        var editor = new RuleEditorViewModel(_ => changes++);
+        editor.Load(item);
+
+        editor.BulkText = string.Join("\n", Enumerable.Range(0, 2000).Select(i => $"site{i}.example.com"));
+        editor.AddBulkCmd.Execute().Subscribe(_ => { });
+
+        await rule.Domain!.Count.Should().BeEqualTo(2000);
+        await changes.Should().BeEqualTo(1);
+    }
+
+    [Test]
+    public async Task Compatibility_ShouldNotModifyTheRule()
+    {
+        var rule = new RulesItem { OutboundTag = Global.DirectTag, Enabled = false, RuleType = ERuleType.DNS, Domain = ["domain:a.com"] };
+        var json = JsonUtils.Serialize(rule);
+
+        RuleCompatibility.Evaluate(rule, NoRuleSets);
+
+        await JsonUtils.Serialize(rule).Should().BeEqualTo(json);
+    }
 }

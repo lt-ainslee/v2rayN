@@ -101,80 +101,59 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveRulesAsync()
     {
-        // The rule object is edited in place, so everything is validated before it is changed.
+        // The rule object is edited in place, so a candidate is built and validated first; the checks are
+        // shared with the unified rule settings, so both editors accept the same rules.
         var domain = Utils.Convert2Comma(Domain);
         var ip = Utils.Convert2Comma(IP);
         var process = Utils.ParseProcess(Process);
-        var domains = AutoSort ? Utils.String2ListSorted(domain) : Utils.String2List(domain);
-        var ips = AutoSort ? Utils.String2ListSorted(ip) : Utils.String2List(ip);
-        var processes = AutoSort ? Utils.String2ListSorted(process) : Utils.String2List(process);
-        var protocols = ProtocolItems?.ToList();
         var sourceIps = Utils.String2List(Utils.Convert2Comma(SourceIp)) ?? [];
-
-        var invalidSourcePorts = RuleInputValidator.InvalidSourcePorts(SourcePort);
-        if (invalidSourcePorts.Count > 0)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourcePort, string.Join("; ", invalidSourcePorts)));
-            return;
-        }
-        var invalidSourceIps = RuleInputValidator.InvalidSourceIps(sourceIps);
-        if (invalidSourceIps.Count > 0)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourceIp, string.Join("; ", invalidSourceIps)));
-            return;
-        }
-        var invalidMihomoRules = RuleInputValidator.InvalidMihomoRules(MihomoRules);
-        if (invalidMihomoRules.Count > 0)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, "mihomo", string.Join("; ", invalidMihomoRules)));
-            return;
-        }
-        foreach (var (name, json) in new[] { ("Xray", XrayJson), ("sing-box", SingboxJson) })
-        {
-            if (!UnifiedJsonMerge.IsValidObject(json))
-            {
-                NoticeManager.Instance.Enqueue(string.Format(ResUI.TbRuleCoreExtInvalidJson, name));
-                return;
-            }
-        }
-
-        var hasRule = domains?.Count > 0
-          || ips?.Count > 0
-          || protocols?.Count > 0
-          || processes?.Count > 0
-          || Port.IsNotEmpty()
-          || Network.IsNotEmpty()
-          || sourceIps.Count > 0
-          || SourcePort.IsNotEmpty();
-        if (!hasRule)
-        {
-            NoticeManager.Instance.Enqueue(string.Format(ResUI.RoutingRuleDetailRequiredTips, "Network/Port/Protocol/Domain/IP/Process"));
-            return;
-        }
-
-        Domain = domain;
-        IP = ip;
-        Process = process;
-        SelectedSource.Domain = domains;
-        SelectedSource.Ip = ips;
-        SelectedSource.Process = processes;
-        SelectedSource.Protocol = protocols;
-        SelectedSource.InboundTag = InboundTagItems?.ToList();
-        SelectedSource.RuleType = RuleType.IsNullOrEmpty() ? null : Enum.Parse<ERuleType>(RuleType);
-        SelectedSource.OutboundTag = OutboundTag;
-        SelectedSource.Remarks = Remarks;
-        SelectedSource.Port = Port;
-        SelectedSource.Network = Network;
-        SelectedSource.Enabled = Enabled;
-        SelectedSource.SourceIp = sourceIps.Count > 0 ? sourceIps : null;
-        SelectedSource.SourcePort = SourcePort.NullIfEmpty();
         var coreExt = new RuleCoreExtension
         {
             XrayJson = XrayJson.NullIfEmpty(),
             SingboxJson = SingboxJson.NullIfEmpty(),
             MihomoRules = MihomoRules.NullIfEmpty(),
         };
-        SelectedSource.CoreExt = coreExt.IsEmpty() ? null : coreExt;
+        var candidate = new RulesItem
+        {
+            Id = SelectedSource.Id,
+            Domain = AutoSort ? Utils.String2ListSorted(domain) : Utils.String2List(domain),
+            Ip = AutoSort ? Utils.String2ListSorted(ip) : Utils.String2List(ip),
+            Process = AutoSort ? Utils.String2ListSorted(process) : Utils.String2List(process),
+            Protocol = ProtocolItems?.ToList(),
+            InboundTag = InboundTagItems?.ToList(),
+            RuleType = RuleType.IsNullOrEmpty() ? null : Enum.Parse<ERuleType>(RuleType),
+            OutboundTag = OutboundTag,
+            Remarks = Remarks,
+            Port = Port,
+            Network = Network,
+            Enabled = Enabled,
+            SourceIp = sourceIps.Count > 0 ? sourceIps : null,
+            SourcePort = SourcePort.NullIfEmpty(),
+            CoreExt = coreExt.IsEmpty() ? null : coreExt,
+        };
+        if (RuleInputValidator.Validate(candidate) is { } error)
+        {
+            NoticeManager.Instance.Enqueue(error);
+            return;
+        }
+
+        Domain = domain;
+        IP = ip;
+        Process = process;
+        SelectedSource.Domain = candidate.Domain;
+        SelectedSource.Ip = candidate.Ip;
+        SelectedSource.Process = candidate.Process;
+        SelectedSource.Protocol = candidate.Protocol;
+        SelectedSource.InboundTag = candidate.InboundTag;
+        SelectedSource.RuleType = candidate.RuleType;
+        SelectedSource.OutboundTag = candidate.OutboundTag;
+        SelectedSource.Remarks = candidate.Remarks;
+        SelectedSource.Port = candidate.Port;
+        SelectedSource.Network = candidate.Network;
+        SelectedSource.Enabled = candidate.Enabled;
+        SelectedSource.SourceIp = candidate.SourceIp;
+        SelectedSource.SourcePort = candidate.SourcePort;
+        SelectedSource.CoreExt = candidate.CoreExt;
 
         //NoticeHandler.Instance.Enqueue(ResUI.OperationSuccess);
         RequestClose?.Invoke(this, EventArgs.Empty);

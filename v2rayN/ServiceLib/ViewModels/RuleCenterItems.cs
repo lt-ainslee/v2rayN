@@ -23,9 +23,13 @@ public partial class RuleConditionRowViewModel : ReactiveObject
 
     public ERuleConditionKind Kind => RuleConditionKinds.All[Math.Max(0, KindNames.ToList().IndexOf(KindName))];
 
+    /// <summary>The stored entry this row was read from; written back unchanged until the row is edited.</summary>
+    private string? _originalRaw;
+
     public RuleConditionRowViewModel(ERuleConditionKind kind, string value, bool negated,
-        Action<RuleConditionRowViewModel> remove, Action changed)
+        Action<RuleConditionRowViewModel> remove, Action changed, string? originalRaw = null)
     {
+        _originalRaw = originalRaw;
         KindName = RuleConditionKinds.DisplayName(kind);
         Value = value;
         Negated = negated;
@@ -36,6 +40,7 @@ public partial class RuleConditionRowViewModel : ReactiveObject
             .Skip(1)
             .Subscribe(_ =>
             {
+                _originalRaw = null;
                 Update();
                 changed();
             });
@@ -68,6 +73,10 @@ public partial class RuleConditionRowViewModel : ReactiveObject
     /// <summary>The stored entry, or null when the row has no value yet.</summary>
     public string? ToRaw()
     {
+        if (_originalRaw != null)
+        {
+            return _originalRaw;
+        }
         var kind = Kind;
         if (RuleConditionKinds.HasValue(kind) && Value.IsNullOrEmpty())
         {

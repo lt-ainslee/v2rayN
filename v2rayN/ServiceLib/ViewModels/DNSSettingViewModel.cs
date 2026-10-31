@@ -117,8 +117,10 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
     /// Validates every field first and only then saves, so nothing is half-applied when saving is refused.
     /// Returns false (after notifying the user) when the input is invalid.
     /// </summary>
-    /// <param name="saveConfig">False when the caller writes the configuration file itself.</param>
-    public async Task<bool> SaveAsync(bool saveConfig = true)
+    /// <summary>
+    /// Checks every field without changing anything; notifies the user and returns false when one is invalid.
+    /// </summary>
+    public bool Validate()
     {
         var invalidPolicies = UnifiedRuleParser.SplitLines(DnsPolicy)
             .Where((line, i) => UnifiedRuleParser.ParseDnsPolicyLine(line, i) == null)
@@ -181,6 +183,16 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
             }
         }
 
+        return true;
+    }
+
+    /// <param name="saveConfig">False when the caller writes the configuration file itself.</param>
+    public async Task<bool> SaveAsync(bool saveConfig = true)
+    {
+        if (!Validate())
+        {
+            return false;
+        }
         var item1 = await AppManager.Instance.GetDNSItem(ECoreType.Xray);
         item1.Enabled = RayCustomDNSEnableCompatible;
         item1.DomainStrategy4Freedom = DomainStrategy4FreedomCompatible;
@@ -188,7 +200,11 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         item1.UseSystemHosts = UseSystemHostsCompatible;
         item1.NormalDNS = NormalDNSCompatible;
         item1.TunDNS = TunDNSCompatible;
-        await ConfigHandler.SaveDNSItems(_config, item1);
+        if (await ConfigHandler.SaveDNSItems(_config, item1) != 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            return false;
+        }
 
         var item2 = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
         item2.Enabled = SBCustomDNSEnableCompatible;
@@ -196,7 +212,11 @@ public partial class DNSSettingViewModel : MyReactiveObject, ICloseable
         item2.DomainDNSAddress = DomainDNSAddress2Compatible;
         item2.NormalDNS = JsonUtils.Serialize(JsonUtils.Deserialize<Dns4Sbox>(NormalDNS2Compatible));
         item2.TunDNS = JsonUtils.Serialize(JsonUtils.Deserialize<Dns4Sbox>(TunDNS2Compatible));
-        await ConfigHandler.SaveDNSItems(_config, item2);
+        if (await ConfigHandler.SaveDNSItems(_config, item2) != 0)
+        {
+            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            return false;
+        }
 
         ApplyTo(_config.SimpleDNSItem);
         if (saveConfig && await ConfigHandler.SaveConfig(_config) != 0)

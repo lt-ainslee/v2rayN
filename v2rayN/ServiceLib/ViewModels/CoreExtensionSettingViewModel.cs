@@ -81,6 +81,11 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
     public void SetRuleSets(List<RuleSetItem> ruleSets) => _ruleSetsOverride = ruleSets;
 
     /// <summary>
+    /// Checks the input without changing anything; notifies the user and returns false when it is invalid.
+    /// </summary>
+    public bool Validate() => ValidateInput() != null;
+
+    /// <summary>
     /// Validates the text fields; returns the parsed rule sets, or null after notifying the user.
     /// </summary>
     private List<RuleSetItem>? ValidateInput()
@@ -173,10 +178,6 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
     /// </summary>
     private async Task PreviewAsync()
     {
-        if (ValidateInput() is null)
-        {
-            return;
-        }
         // Make sure a routing profile is active using the live configuration (as at startup), so nothing
         // below has to fix it up and save the preview copy.
         await ConfigHandler.GetDefaultRouting(_config);
@@ -186,7 +187,10 @@ public partial class CoreExtensionSettingViewModel : MyReactiveObject, ICloseabl
             PreviewText = string.Format(ResUI.MsgUnifiedPreviewFailed, nameof(JsonUtils.DeepCopy));
             return;
         }
-        ApplyTo(config);
+        if (ApplyTo(config) is null)
+        {
+            return;
+        }
         var core = CoreCapabilities.UnifiedCores.First(c => CoreCapabilities.CoreDisplayName(c) == PreviewCore);
         PreviewText = await Task.Run(() => UnifiedPreviewService.PreviewAsync(config, core));
     }

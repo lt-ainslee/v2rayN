@@ -64,10 +64,12 @@ public partial class DnsSettingsPanel : ReactiveUserControl<DNSSettingViewModel>
 
             this.WhenAnyValue(x => x.ViewModel.IsSimpleDNSEnabled)
                 .Select(b => !b)
-                .BindTo(txtBasicDNSSettingsInvalid, t => t.IsVisible);
+                .BindTo(txtBasicDNSSettingsInvalid, t => t.IsVisible)
+                .DisposeWith(disposables);
             this.WhenAnyValue(x => x.ViewModel.IsSimpleDNSEnabled)
                 .Select(b => !b)
-                .BindTo(txtAdvancedDNSSettingsInvalid, t => t.IsVisible);
+                .BindTo(txtAdvancedDNSSettingsInvalid, t => t.IsVisible)
+                .DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.IsSimpleDNSEnabled, v => v.gridBasicDNSSettings.IsEnabled).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.IsSimpleDNSEnabled, v => v.gridAdvancedDNSSettings.IsEnabled).DisposeWith(disposables);
         });

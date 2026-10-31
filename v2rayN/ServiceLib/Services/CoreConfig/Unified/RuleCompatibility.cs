@@ -17,11 +17,9 @@ public static class RuleCompatibility
     /// <param name="availableRuleSets">Rule set names each core can resolve.</param>
     public static List<RuleCoreStatus> Evaluate(RulesItem rule, IReadOnlyDictionary<ECoreType, HashSet<string>> availableRuleSets)
     {
-        var item = JsonUtils.DeepCopy(rule) ?? rule;
-        item.Enabled = true;
-        // Only the routing side is judged here; DNS policies are reported in the preview.
-        item.RuleType = ERuleType.Routing;
-        var plan = UnifiedPlanBuilder.Build(null, new RoutingItem { RuleSet = JsonUtils.Serialize(new List<RulesItem> { item }) }, Global.AsIs);
+        // Only the routing side is judged here (DNS policies are reported in the preview), and the rule is
+        // read only: it is the user's working copy.
+        var plan = new UnifiedPlan { Rules = [UnifiedRuleParser.ParseRule(rule)] };
 
         var result = new List<RuleCoreStatus>();
         foreach (var core in CoreCapabilities.UnifiedCores)
@@ -34,7 +32,7 @@ public static class RuleCompatibility
                 // Some limits only show while translating (e.g. a comma inside a regex).
                 var translated = new MihomoTranslator(validated, new MihomoExtension(), false, diagnostics)
                     .TranslateRule(validated.Rules[0], "PROXY");
-                skipped = translated.Count == 0 && RuleInputValidator.HasCondition(item);
+                skipped = translated.Count == 0 && RuleInputValidator.HasCondition(rule);
             }
             var mark = skipped
                 ? Skipped

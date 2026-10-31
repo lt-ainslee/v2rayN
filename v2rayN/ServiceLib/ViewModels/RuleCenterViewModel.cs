@@ -13,8 +13,14 @@ public partial class RuleEditorViewModel : ReactiveObject
     private RuleListItemViewModel? _current;
     private bool _loading;
 
-    /// <summary>Stored entries the condition rows do not show (e.g. #comments); written back unchanged.</summary>
-    private readonly Dictionary<ERuleConditionField, List<string>> _preserved = [];
+    /// <summary>
+    /// The domain / IP / process entries in their stored order: a condition row, or an entry the rows do not
+    /// show (e.g. a #comment) kept with its field. Writing back follows this order, so untouched entries
+    /// keep their place and text.
+    /// </summary>
+    private readonly List<object> _layout = [];
+    private readonly Dictionary<string, ERuleConditionField> _preservedField = [];
+    private bool _suppressWriteBack;
 
     [Reactive] public partial bool HasRule { get; set; }
     [Reactive] public partial string Remarks { get; set; }
@@ -76,23 +82,26 @@ public partial class RuleEditorViewModel : ReactiveObject
             BulkText = string.Empty;
 
             Conditions.Clear();
-            _preserved.Clear();
+            _layout.Clear();
+            _preservedField.Clear();
             foreach (var (field, values) in new[]
                      {
                          (ERuleConditionField.Domain, rule.Domain), (ERuleConditionField.Ip, rule.Ip),
                          (ERuleConditionField.Process, rule.Process),
                      })
             {
-                _preserved[field] = [];
                 foreach (var raw in values ?? [])
                 {
                     if (RuleConditionKinds.FromRaw(field, raw) is { } c)
                     {
-                        AddCondition(c.Kind, c.Value, c.Negated);
+                        AddCondition(c.Kind, c.Value, c.Negated, raw);
                     }
-                    else if (raw.IsNotEmpty())
+                    else
                     {
-                        _preserved[field].Add(raw);
+                        // A unique key per occurrence, so equal entries keep their own place.
+                        var key = $"{_layout.Count}\u0000{raw}";
+                        _preservedField[key] = field;
+                        _layout.Add(key);
                     }
                 }
             }
@@ -116,14 +125,38 @@ public partial class RuleEditorViewModel : ReactiveObject
         UpdateCompatibilityText();
     }
 
-    private void AddCondition(ERuleConditionKind kind, string value, bool negated)
+    private void AddCondition(ERuleConditionKind kind, string value, bool negated, string? originalRaw = null)
     {
-        Conditions.Add(new RuleConditionRowViewModel(kind, value, negated, row =>
+        var row = new RuleConditionRowViewModel(kind, value, negated, removed =>
         {
-            Conditions.Remove(row);
+            Conditions.Remove(removed);
+            _layout.Remove(removed);
             WriteBack();
-        }, WriteBack));
+        }, WriteBack, originalRaw);
+        Conditions.Add(row);
+        _layout.Add(row);
         WriteBack();
+    }
+
+    /// <summary>
+    /// Replaces the outbound choices without touching the value being edited (clearing the list of an
+    /// editable combo box would otherwise clear its text and rewrite the rule).
+    /// </summary>
+    public void SetOutboundOptions(IEnumerable<string> options)
+    {
+        var loading = _loading;
+        var current = OutboundTag;
+        _loading = true;
+        try
+        {
+            OutboundOptions.Clear();
+            OutboundOptions.AddRange(options);
+            OutboundTag = current;
+        }
+        finally
+        {
+            _loading = loading;
+        }
     }
 
     /// <summary>
@@ -137,19 +170,29 @@ public partial class RuleEditorViewModel : ReactiveObject
             .SelectMany(line => line.StartsWith("regexp:")
                 ? [line]
                 : line.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-        foreach (var text in entries)
+        // Write back once for the whole paste instead of once per entry.
+        _suppressWriteBack = true;
+        try
         {
-            if (RuleConditionKinds.Guess(text) is { } c)
+            foreach (var text in entries)
             {
-                AddCondition(c.Kind, c.Value, c.Negated);
+                if (RuleConditionKinds.Guess(text) is { } c)
+                {
+                    AddCondition(c.Kind, c.Value, c.Negated);
+                }
             }
         }
+        finally
+        {
+            _suppressWriteBack = false;
+        }
         BulkText = string.Empty;
+        WriteBack();
     }
 
     private void WriteBack()
     {
-        if (_loading || _current == null)
+        if (_loading || _suppressWriteBack || _current == null)
         {
             return;
         }
@@ -174,11 +217,12 @@ public partial class RuleEditorViewModel : ReactiveObject
 
         List<string>? Collect(ERuleConditionField field)
         {
-            List<string> values =
-            [
-                .. _preserved.GetValueOrDefault(field) ?? [],
-                .. Conditions.Where(c => RuleConditionKinds.FieldOf(c.Kind) == field).Select(c => c.ToRaw()).OfType<string>(),
-            ];
+            var values = _layout.Select(entry => entry switch
+            {
+                RuleConditionRowViewModel row when RuleConditionKinds.FieldOf(row.Kind) == field => row.ToRaw(),
+                string key when _preservedField[key] == field => key[(key.IndexOf('\u0000') + 1)..],
+                _ => null,
+            }).OfType<string>().ToList();
             return values.Count > 0 ? values : null;
         }
         rule.Domain = Collect(ERuleConditionField.Domain);
@@ -236,6 +280,9 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
 
     /// <summary>Rules added or changed in this session; only these are validated on save.</summary>
     private readonly HashSet<RulesItem> _modifiedRules = [];
+
+    /// <summary>Profiles whose rule list changed; only these are written on save.</summary>
+    private readonly HashSet<string> _modifiedProfiles = [];
     private Dictionary<ECoreType, HashSet<string>> _availableRuleSets = [];
 
     /// <summary>sing-box rule sets from files (custom rule set file, srss), cached per profile.</summary>
@@ -379,10 +426,6 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         if (!_editedRules.TryGetValue(profile.Id, out var rules))
         {
             rules = JsonUtils.Deserialize<List<RulesItem>>(profile.RuleSet) ?? [];
-            foreach (var rule in rules.Where(r => r.Id.IsNullOrEmpty()))
-            {
-                rule.Id = Utils.GetGuid(false);
-            }
             _editedRules[profile.Id] = rules;
         }
         RefreshAvailableRuleSets();
@@ -405,6 +448,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         var index = SelectedRule != null ? Rules.IndexOf(SelectedRule) + 1 : Rules.Count;
         rules.Insert(index, rule);
         _modifiedRules.Add(rule);
+        MarkProfileModified();
         var item = CreateListItem(rule);
         Rules.Insert(index, item);
         SelectedRule = item;
@@ -419,6 +463,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         var index = Rules.IndexOf(current);
         rules.Remove(current.Rule);
         Rules.Remove(current);
+        MarkProfileModified();
         SelectedRule = Rules.Count == 0 ? null : Rules[Math.Min(index, Rules.Count - 1)];
     }
 
@@ -437,6 +482,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         Rules.Move(index, target);
         rules.RemoveAt(index);
         rules.Insert(target, current.Rule);
+        MarkProfileModified();
         SelectedRule = current;
     }
 
@@ -445,6 +491,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         var item = new RuleListItemViewModel(rule, changed =>
         {
             _modifiedRules.Add(changed.Rule);
+            MarkProfileModified();
             Editor.SyncEnabled(changed.Rule);
         });
         item.Refresh(_availableRuleSets);
@@ -454,7 +501,16 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
     private void OnRuleEdited(RulesItem rule)
     {
         _modifiedRules.Add(rule);
+        MarkProfileModified();
         SelectedRule?.Refresh(_availableRuleSets);
+    }
+
+    private void MarkProfileModified()
+    {
+        if (SelectedProfile != null)
+        {
+            _modifiedProfiles.Add(SelectedProfile.Id);
+        }
     }
 
     #endregion Rules
@@ -539,8 +595,7 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         PolicyGroups.Clear();
         PolicyGroups.AddRange(groups);
 
-        Editor.OutboundOptions.Clear();
-        Editor.OutboundOptions.AddRange([.. Global.OutboundTags, .. groups.Select(g => g.Remarks).Where(r => r.IsNotEmpty()).Distinct()]);
+        Editor.SetOutboundOptions([.. Global.OutboundTags, .. groups.Select(g => g.Remarks).Where(r => r.IsNotEmpty()).Distinct()]);
     }
 
     private async Task EditPolicyGroupAsync(ProfileItem profile)
@@ -590,8 +645,8 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
 
     private async Task SaveAsync()
     {
-        // 1. Validate everything first, so nothing is saved when any part is invalid. Only rules changed in
-        //    this session are checked: an existing rule the user did not touch must not block saving.
+        // 1. Validate everything without changing anything. Only rules changed in this session are checked:
+        //    an existing rule the user did not touch must not block saving.
         foreach (var (profileId, rules) in _editedRules)
         {
             foreach (var rule in rules.Where(_modifiedRules.Contains))
@@ -611,29 +666,39 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
             return;
         }
         Extensions.SetRuleSets(ruleSets);
-        if (JsonUtils.DeepCopy(_config) is not { } probe || Extensions.ApplyTo(probe) is null)
+        if (!Extensions.Validate() || !Dns.Validate())
         {
             return;
         }
 
-        // 2. Apply: DNS validates its own fields before changing anything; the configuration file is
-        //    written once at the end, after the routing profiles.
-        if (!await Dns.SaveAsync(saveConfig: false) || Extensions.ApplyTo(_config) is null)
+        // 2. Routing profiles first, so a failure there leaves DNS and the configuration untouched.
+        //    Only changed profiles are written, re-read from the database so that nothing else in them
+        //    (order, active flag, settings changed elsewhere) is overwritten.
+        var storedProfiles = await AppManager.Instance.RoutingItems() ?? [];
+        foreach (var profileId in _modifiedProfiles)
         {
-            return;
-        }
-        foreach (var profile in Profiles.Where(p => _editedRules.ContainsKey(p.Id)))
-        {
-            profile.RuleSet = SerializeRules(profile);
-            profile.RuleNum = _editedRules[profile.Id].Count;
-            if (await ConfigHandler.SaveRoutingItem(_config, profile) != 0)
+            if (storedProfiles.FirstOrDefault(p => p.Id == profileId) is not { } stored
+                || _editedRules.GetValueOrDefault(profileId) is not { } rules)
+            {
+                continue;
+            }
+            stored.RuleSet = JsonUtils.Serialize(rules, false);
+            stored.RuleNum = rules.Count;
+            if (await ConfigHandler.SaveRoutingItem(_config, stored) != 0)
             {
                 NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
                 return;
             }
         }
+
+        // 3. DNS (its own database rows and fields), core extensions, the active profile, then one write
+        //    of the configuration file.
+        if (!await Dns.SaveAsync(saveConfig: false) || Extensions.ApplyTo(_config) is null)
+        {
+            return;
+        }
         if (ActiveProfileId.IsNotEmpty() && ActiveProfileId != _savedActiveProfileId
-            && Profiles.FirstOrDefault(p => p.Id == ActiveProfileId) is { } active)
+            && storedProfiles.FirstOrDefault(p => p.Id == ActiveProfileId) is { } active)
         {
             await ConfigHandler.SetDefaultRouting(_config, active);
         }
