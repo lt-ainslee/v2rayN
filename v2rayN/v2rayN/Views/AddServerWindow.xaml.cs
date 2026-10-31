@@ -207,6 +207,12 @@ public partial class AddServerWindow
     private void InitializeData(ProfileItem profileItem)
     {
         Title = $"{profileItem.ConfigType}";
+        // Imported links can carry any ALPN combination (e.g. "h2,http/1.1,h3"); without its own
+        // entry the combo box cannot select it and shows the field as empty
+        if (profileItem.Alpn.IsNotEmpty() && !Global.Alpns.Contains(profileItem.Alpn))
+        {
+            cmbAlpn.ItemsSource = Global.Alpns.Prepend(profileItem.Alpn).ToList();
+        }
         var lstStreamSecurity = new List<string> { string.Empty, Global.StreamSecurity };
         switch (profileItem.ConfigType)
         {

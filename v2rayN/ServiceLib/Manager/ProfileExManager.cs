@@ -6,6 +6,7 @@ public class ProfileExManager
     private ConcurrentBag<ProfileExItem> _lstProfileEx = [];
     private readonly ConcurrentQueue<string> _queIndexIds = new();
     private readonly Lock _profileExLock = new();
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
     public static ProfileExManager Instance => _instance.Value;
     private static readonly string _tag = "ProfileExHandler";
 
@@ -39,15 +40,31 @@ public class ProfileExManager
     {
         if (indexId.IsNotEmpty())
         {
-            //Speed tests touch this from many threads; duplicates are harmless here since
-            //the save loop just writes the same row more than once
+            //Speed tests touch this from many threads; the save loop drops duplicates
             _queIndexIds.Enqueue(indexId);
         }
     }
 
     private async Task SaveQueueIndexIds()
     {
-        var lstIds = new List<string>();
+        //Flushes can overlap (test end, timer, exit); run them one at a time so an id
+        //is never classified as a new row by two flushes
+        await _saveLock.WaitAsync();
+        try
+        {
+            await SaveQueueIndexIdsCore();
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
+    }
+
+    private async Task SaveQueueIndexIdsCore()
+    {
+        //The same id is often queued several times (delay + ip info, retests, sort);
+        //inserting it twice fails the UNIQUE constraint and rolls back the whole batch
+        var lstIds = new HashSet<string>();
         while (_queIndexIds.TryDequeue(out var id))
         {
             lstIds.Add(id);
@@ -55,20 +72,21 @@ public class ProfileExManager
 
         if (lstIds.Count > 0)
         {
-            var lstExists = await SQLiteHelper.Instance.TableAsync<ProfileExItem>().ToListAsync();
+            var lstExists = (await SQLiteHelper.Instance.TableAsync<ProfileExItem>().ToListAsync())
+                .Select(t => t.IndexId)
+                .ToHashSet();
             List<ProfileExItem> lstInserts = [];
             List<ProfileExItem> lstUpdates = [];
 
             foreach (var id in lstIds)
             {
-                var item = lstExists.FirstOrDefault(t => t.IndexId == id);
                 var itemNew = _lstProfileEx?.FirstOrDefault(t => t.IndexId == id);
                 if (itemNew is null)
                 {
                     continue;
                 }
 
-                if (item is not null)
+                if (lstExists.Contains(id))
                 {
                     lstUpdates.Add(itemNew);
                 }

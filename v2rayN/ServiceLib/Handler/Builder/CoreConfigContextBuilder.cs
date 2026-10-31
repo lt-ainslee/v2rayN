@@ -364,6 +364,8 @@ public class CoreConfigContextBuilder
         {
             GroupType = chainNode.ConfigType.ToString(),
             ChildItems = string.Join(",", childItems.Where(x => !x.IsNullOrEmpty())),
+            // A policy group wrapped in the chain still needs its own balancer strategy
+            MultipleLoad = node.GetProtocolExtra().MultipleLoad,
         };
         chainNode.SetProtocolExtra(chainExtraItem);
         return (chainNode, result);

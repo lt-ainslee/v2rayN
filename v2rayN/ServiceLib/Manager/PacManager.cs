@@ -65,11 +65,37 @@ public class PacManager
         {
             while (!token.IsCancellationRequested)
             {
-                using var client = await listener.AcceptTcpClientAsync(token).ConfigureAwait(false);
-                await using var stream = client.GetStream();
-                _ = await stream.ReadAsync(buffer, token).ConfigureAwait(false);
-                await stream.WriteAsync(_writeContent, token).ConfigureAwait(false);
-                await stream.FlushAsync(token).ConfigureAwait(false);
+                TcpClient client;
+                try
+                {
+                    client = await listener.AcceptTcpClientAsync(token).ConfigureAwait(false);
+                }
+                catch (SocketException ex)
+                {
+                    // Accept can fail for a single aborted connection; keep listening
+                    Logging.SaveLog(Tag, ex);
+                    continue;
+                }
+
+                // One misbehaving client (reset, timeout, probe) must not stop the service
+                try
+                {
+                    using (client)
+                    {
+                        await using var stream = client.GetStream();
+                        _ = await stream.ReadAsync(buffer, token).ConfigureAwait(false);
+                        await stream.WriteAsync(_writeContent, token).ConfigureAwait(false);
+                        await stream.FlushAsync(token).ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex) when (ex is IOException or SocketException)
+                {
+                    Logging.SaveLog(Tag, ex);
+                }
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -82,6 +108,12 @@ public class PacManager
         finally
         {
             listener.Stop();
+            // Let the next StartAsync bring the listener back instead of returning early
+            if (ReferenceEquals(_tcpListener, listener))
+            {
+                _tcpListener = null;
+                _pacPort = 0;
+            }
         }
     }
 
