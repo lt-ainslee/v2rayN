@@ -7,8 +7,10 @@ namespace ServiceLib.Services.CoreConfig;
 /// Core configuration file processing class.
 /// The TUN state is taken as a snapshot so the generated config always agrees
 /// with the launch elevation decision (see CoreManager.ShouldRunAsSudo).
+/// When a context is given, the shared DNS / routing settings are applied according to
+/// the mihomo extension's unified mode.
 /// </summary>
-public class CoreConfigClashService(Config config, bool isTunEnabled)
+public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfigContext? context = null)
 {
     private static readonly string _tag = "CoreConfigClashService";
 
@@ -52,19 +54,7 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 return ret;
             }
 
-            var tagYamlStr1 = "!<str>";
-            var tagYamlStr2 = "__strn__";
-            var tagYamlStr3 = "!!str";
-            var txtFile = await File.ReadAllTextAsync(addressFileName);
-            txtFile = txtFile.Replace(tagYamlStr1, tagYamlStr2);
-
-            //YAML anchors
-            if (txtFile.Contains("<<:") && txtFile.Contains('*') && txtFile.Contains('&'))
-            {
-                txtFile = YamlUtils.PreprocessYaml(txtFile);
-            }
-
-            var fileContent = YamlUtils.FromYaml<Dictionary<string, object>>(txtFile);
+            var fileContent = ParseClashContent(await File.ReadAllTextAsync(addressFileName));
             if (fileContent == null)
             {
                 ret.Msg = ResUI.FailedConversionConfiguration;
@@ -110,6 +100,16 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 }
             }
 
+            //Shared DNS / routing settings
+            try
+            {
+                await ApplyUnifiedSettings(fileContent);
+            }
+            catch (Exception ex)
+            {
+                Logging.SaveLog($"{_tag}-Unified", ex);
+            }
+
             //Mixin
             try
             {
@@ -128,7 +128,7 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 {
                     if (proxy.GetValueOrDefault("reality-opts") is Dictionary<object, object> realityOptions
                         && realityOptions.GetValueOrDefault("short-id") is string shortId
-                        && !shortId.StartsWith(tagYamlStr2, StringComparison.Ordinal))
+                        && !shortId.StartsWith(StrTagPlaceholder, StringComparison.Ordinal))
                     {
                         originalRealityShortIds.Add((realityOptions, shortId));
                         realityOptions["short-id"] = new YamlScalarNode(shortId) { Style = ScalarStyle.DoubleQuoted };
@@ -136,7 +136,7 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
                 }
             }
 
-            var txtFileNew = YamlUtils.ToYaml(fileContent).Replace(tagYamlStr2, tagYamlStr3);
+            var txtFileNew = RestoreStrTags(YamlUtils.ToYaml(fileContent));
             foreach (var (realityOptions, shortId) in originalRealityShortIds)
             {
                 realityOptions["short-id"] = shortId;
@@ -158,6 +158,81 @@ public class CoreConfigClashService(Config config, bool isTunEnabled)
             Logging.SaveLog(_tag, ex);
             ret.Msg = ResUI.FailedGenDefaultConfiguration;
             return ret;
+        }
+    }
+
+    /// <summary>
+    /// Stands in for the "!&lt;str&gt;" tag, which YamlDotNet does not round-trip, until the YAML is written back.
+    /// </summary>
+    public const string StrTagPlaceholder = "__strn__";
+
+    /// <summary>
+    /// Parses a Clash configuration the way it is loaded at runtime (explicit string tags, merge keys).
+    /// </summary>
+    public static Dictionary<string, object>? ParseClashContent(string text)
+    {
+        text = text.Replace("!<str>", StrTagPlaceholder);
+        if (text.Contains("<<:") && text.Contains('*') && text.Contains('&'))
+        {
+            text = YamlUtils.PreprocessYaml(text) ?? text;
+        }
+        return YamlUtils.FromYaml<Dictionary<string, object>>(text);
+    }
+
+    public static string RestoreStrTags(string yaml) => yaml.Replace(StrTagPlaceholder, "!!str");
+
+    /// <summary>
+    /// Loads the Clash configuration of a custom mihomo profile; null when it is not one or the file is missing.
+    /// </summary>
+    public static async Task<Dictionary<string, object>?> LoadProfileContentAsync(ProfileItem? node)
+    {
+        if (node is not { ConfigType: EConfigType.Custom, CoreType: ECoreType.mihomo } || node.Address.IsNullOrEmpty())
+        {
+            return null;
+        }
+        var path = File.Exists(node.Address) ? node.Address : Path.Combine(Utils.GetConfigPath(), node.Address);
+        return File.Exists(path) ? ParseClashContent(await File.ReadAllTextAsync(path)) : null;
+    }
+
+    /// <summary>
+    /// Rule sets mihomo can resolve: declared ones with a mihomo source and the file's own rule-providers.
+    /// </summary>
+    public static HashSet<string> GetAvailableRuleSetNames(Config config, Dictionary<string, object>? fileContent)
+    {
+        var names = new HashSet<string>((config.RuleSetItems ?? []).Where(t => t.MihomoSource.IsNotEmpty()).Select(t => t.Name));
+        if (fileContent?.GetValueOrDefault("rule-providers") is Dictionary<object, object> providers)
+        {
+            names.UnionWith(providers.Keys.Select(k => k.ToString()).OfType<string>());
+        }
+        return names;
+    }
+
+    private async Task ApplyUnifiedSettings(Dictionary<string, object> fileContent)
+    {
+        var ext = config.CoreExtensionItem?.Mihomo;
+        if (ext == null || ext.UnifiedMode == EMihomoUnifiedMode.Off || context == null)
+        {
+            return;
+        }
+
+        var groupProfiles = context.AllProxiesMap
+            .Where(kvp => kvp.Key.StartsWith("remark:"))
+            .Select(kvp => kvp.Value);
+        var plan = UnifiedPlanBuilder.Build(
+            context.SimpleDnsItem,
+            context.RoutingItem,
+            config.RoutingBasicItem?.DomainStrategy,
+            config.RuleSetItems,
+            await UnifiedPlanBuilder.BuildGroupsAsync(groupProfiles));
+
+        // Validation diagnostics are reported when the context is built; only translation results are reported here.
+        var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, new UnifiedDiagnostics(),
+            GetAvailableRuleSetNames(config, fileContent));
+        var diagnostics = new UnifiedDiagnostics();
+        new MihomoTranslator(validated, ext, config.ClashUIItem.EnableIPv6, diagnostics).Apply(fileContent);
+        foreach (var item in diagnostics.Items)
+        {
+            NoticeManager.Instance.SendMessage(item.Message);
         }
     }
 

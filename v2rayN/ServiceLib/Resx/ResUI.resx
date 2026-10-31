@@ -1905,4 +1905,172 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="menuAddMasqueServer" xml:space="preserve">
     <value>Add [MASQUE]</value>
   </data>
+  <data name="TbClashFakeIPFilter" xml:space="preserve">
+    <value>Fake-IP filter</value>
+  </data>
+  <data name="TbClashRespectRules" xml:space="preserve">
+    <value>Respect rules</value>
+  </data>
+  <data name="TbClashRespectRulesTips" xml:space="preserve">
+    <value>DNS queries for proxied domains follow the routing rules and go through the proxy. Not used when unmatched queries use the direct DNS.</value>
+  </data>
+  <data name="TbClashProxyGroups" xml:space="preserve">
+    <value>Proxy groups</value>
+  </data>
+  <data name="TbClashProxyGroupsTips" xml:space="preserve">
+    <value>One group per line: name = type, member1, member2, key=value. Types: select / url-test / fallback / load-balance / relay. Options: url, interval, tolerance, timeout, lazy, strategy, filter, exclude-filter, include-all, include-all-proxies, use=provider1|provider2, hidden, icon. Wrap values containing commas in double quotes. A group with an existing name replaces the original group; unknown members are removed.</value>
+  </data>
+  <data name="TbClashRules" xml:space="preserve">
+    <value>Custom rules</value>
+  </data>
+  <data name="TbClashRulesTips" xml:space="preserve">
+    <value>Clash rule format, e.g. DOMAIN-SUFFIX,google.com,Proxy or RULE-SET,my-set,Proxy. Rules whose policy does not exist are skipped.</value>
+  </data>
+  <data name="TbClashOverrideInvalidLines" xml:space="preserve">
+    <value>{0}: invalid line(s): {1}</value>
+  </data>
+  <data name="MsgUnifiedValueIgnored" xml:space="preserve">
+    <value>Rule "{0}": {1} is not supported by {2}; this value was ignored</value>
+  </data>
+  <data name="MsgUnifiedRuleSkipped" xml:space="preserve">
+    <value>Rule "{0}": {1} is not supported by {2}; the whole rule was skipped</value>
+  </data>
+  <data name="MsgUnifiedNoSupportedCondition" xml:space="preserve">
+    <value>no supported domain / IP / process condition left</value>
+  </data>
+  <data name="MsgUnifiedApproximated" xml:space="preserve">
+    <value>{0}: {1} is approximated in {2}</value>
+  </data>
+  <data name="MsgUnifiedRuleSetMissing" xml:space="preserve">
+    <value>Rule "{0}": rule set {1} has no source for {2}; this value was ignored</value>
+  </data>
+  <data name="MsgUnifiedDnsIgnored" xml:space="preserve">
+    <value>DNS: {0} is not supported by {1} and was ignored</value>
+  </data>
+  <data name="MsgUnifiedPolicyFallback" xml:space="preserve">
+    <value>Rule "{0}": policy "{1}" does not exist in the {2} configuration; using "{3}" instead</value>
+  </data>
+  <data name="TbCoreExtensionTips" xml:space="preserve">
+    <value>DNS settings and routing rules are shared by all cores. The options here only add features specific to one core; anything a core cannot express is reported when the core starts.</value>
+  </data>
+  <data name="TbMihomoUnifiedMode" xml:space="preserve">
+    <value>Apply shared settings to Clash configs</value>
+  </data>
+  <data name="TbMihomoUnifiedModeOff" xml:space="preserve">
+    <value>Off (keep the configuration file)</value>
+  </data>
+  <data name="TbMihomoUnifiedModeDnsOnly" xml:space="preserve">
+    <value>DNS only</value>
+  </data>
+  <data name="TbMihomoUnifiedModeDnsAndRules" xml:space="preserve">
+    <value>DNS + rules (before the original rules)</value>
+  </data>
+  <data name="TbMihomoUnifiedModeReplaceRules" xml:space="preserve">
+    <value>DNS + rules (replace the original rules)</value>
+  </data>
+  <data name="TbMihomoUnifiedModeTips" xml:space="preserve">
+    <value>Clash configs bring their own proxies and groups. Rules targeting "proxy" use the proxy group below; rules targeting a node or policy group use the item of the same name.</value>
+  </data>
+  <data name="TbMihomoProxyGroupName" xml:space="preserve">
+    <value>Policy for "proxy"</value>
+  </data>
+  <data name="TbMihomoProxyGroupNameTips" xml:space="preserve">
+    <value>Empty: the first select group of the configuration</value>
+  </data>
+  <data name="TbMihomoPreferH3" xml:space="preserve">
+    <value>Prefer HTTP/3 for DoH</value>
+  </data>
+  <data name="TbMihomoFakeIpFilterTips" xml:space="preserve">
+    <value>One pattern per line. Empty: the built-in filter list</value>
+  </data>
+  <data name="TbMihomoExtraProxyGroups" xml:space="preserve">
+    <value>Extra proxy groups</value>
+  </data>
+  <data name="TbMihomoExtraRules" xml:space="preserve">
+    <value>Extra rules (before the shared rules)</value>
+  </data>
+  <data name="TbSingboxDnsClientSubnet" xml:space="preserve">
+    <value>DNS client subnet (ECS)</value>
+  </data>
+  <data name="TbSingboxDnsIndependentCache" xml:space="preserve">
+    <value>Independent DNS cache per server</value>
+  </data>
+  <data name="TbXrayDnsQueryStrategy" xml:space="preserve">
+    <value>DNS query strategy</value>
+  </data>
+  <data name="TbXrayDnsDisableCache" xml:space="preserve">
+    <value>Disable DNS cache</value>
+  </data>
+  <data name="TbRuleSets" xml:space="preserve">
+    <value>Rule sets</value>
+  </data>
+  <data name="TbRuleSetsTips" xml:space="preserve">
+    <value>One per line: name = behavior, singbox=URL or path (.srs/.json), mihomo=URL or path (.mrs/.yaml/.txt), interval=86400. Behaviors: domain / ipcidr / classical. Reference a set in rules as ruleset:name in the domain or IP list; a core without a source for the set ignores that value.</value>
+  </data>
+  <data name="ThCapabilityMatrix" xml:space="preserve">
+    <value>Capability matrix</value>
+  </data>
+  <data name="TbCapabilityMatrixTips" xml:space="preserve">
+    <value>✓ native   ≈ approximate   ✗ unsupported (removed; a rule is never made broader)</value>
+  </data>
+  <data name="TbDnsPolicy" xml:space="preserve">
+    <value>DNS policy</value>
+  </data>
+  <data name="TbDnsPolicyTips" xml:space="preserve">
+    <value>One per line: domain-match[, domain-match] = direct | remote | block | dns1, dns2 (custom servers are queried directly). Takes priority over policies derived from routing rules and applies to all cores.</value>
+  </data>
+  <data name="TbRuleSourceIp" xml:space="preserve">
+    <value>Source IP</value>
+  </data>
+  <data name="TbRuleSourcePort" xml:space="preserve">
+    <value>Source port</value>
+  </data>
+  <data name="TbRuleCoreExt" xml:space="preserve">
+    <value>Core extensions (optional)</value>
+  </data>
+  <data name="TbRuleXrayJson" xml:space="preserve">
+    <value>Xray: JSON object merged into the generated rule</value>
+  </data>
+  <data name="TbRuleSingboxJson" xml:space="preserve">
+    <value>sing-box: JSON object merged into the generated rule</value>
+  </data>
+  <data name="TbRuleMihomoRules" xml:space="preserve">
+    <value>mihomo: Clash rules that replace the translation ({target} = policy)</value>
+  </data>
+  <data name="TbRuleCoreExtInvalidJson" xml:space="preserve">
+    <value>Core extension: {0} is not a valid JSON object</value>
+  </data>
+  <data name="MsgUnifiedPolicyMissing" xml:space="preserve">
+    <value>Rule "{0}": policy "{1}" does not exist; the rule was skipped</value>
+  </data>
+  <data name="menuCoreExtensionSetting" xml:space="preserve">
+    <value>Core Extensions &amp; Rule Sets</value>
+  </data>
+  <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
+    <value>Policy "{0}" chosen for "proxy" does not exist in the Clash configuration; using the first select group instead</value>
+  </data>
+  <data name="ThUnifiedPreview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="TbPreviewCore" xml:space="preserve">
+    <value>Core</value>
+  </data>
+  <data name="TbPreviewGenerate" xml:space="preserve">
+    <value>Generate preview</value>
+  </data>
+  <data name="TbPreviewTips" xml:space="preserve">
+    <value>Shows what the selected core receives from the values entered here (even before saving) and the active routing profile: compatibility notes first (! dropped, ~ approximated), then the generated DNS and routing sections. For mihomo, the selected server's Clash configuration is used when it is one.</value>
+  </data>
+  <data name="MsgUnifiedPreviewNoIssues" xml:space="preserve">
+    <value>No compatibility issues.</value>
+  </data>
+  <data name="MsgUnifiedPreviewFailed" xml:space="preserve">
+    <value>Preview failed: {0}</value>
+  </data>
+  <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
+    <value>The shared settings are not applied to Clash configurations (mihomo tab: Off), so the configuration file is used as is.</value>
+  </data>
+  <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
+    <value>Rule "{0}" matches all traffic; the rules after it, including the Clash configuration's own rules, are not reached</value>
+  </data>
 </root>

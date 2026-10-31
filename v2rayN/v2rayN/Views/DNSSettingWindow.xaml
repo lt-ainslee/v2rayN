@@ -54,6 +54,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -263,6 +264,34 @@
                             VerticalAlignment="Center"
                             Style="{StaticResource ToolbarTextBlock}"
                             Text="{x:Static resx:ResUI.TbEnableHappyEyeballsTip}"
+                            TextWrapping="Wrap" />
+
+                        <TextBlock
+                            Grid.Row="11"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin8}"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource ToolbarTextBlock}"
+                            Text="{x:Static resx:ResUI.TbDnsPolicy}" />
+                        <TextBox
+                            x:Name="txtDnsPolicy"
+                            Grid.Row="11"
+                            Grid.Column="1"
+                            Width="300"
+                            Height="90"
+                            Margin="{StaticResource Margin8}"
+                            AcceptsReturn="True"
+                            BorderThickness="1"
+                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            TextWrapping="NoWrap"
+                            VerticalScrollBarVisibility="Auto" />
+                        <TextBlock
+                            Grid.Row="11"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin8}"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource ToolbarTextBlock}"
+                            Text="{x:Static resx:ResUI.TbDnsPolicyTips}"
                             TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>

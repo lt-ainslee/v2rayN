@@ -87,6 +87,13 @@ public partial class CoreConfigV2rayService
                 dnsItem.queryStrategy = "UseIPv4";
             }
 
+            var xrayExt = context.AppConfig.CoreExtensionItem?.Xray;
+            if (xrayExt?.DnsQueryStrategy.IsNullOrEmpty() == false)
+            {
+                dnsItem.queryStrategy = xrayExt.DnsQueryStrategy;
+            }
+            dnsItem.disableCache = xrayExt?.DnsDisableCache == true ? true : null;
+
             // DNS routing
             var directDnsTags = dnsItem.servers
                 .Select(server =>
@@ -182,7 +189,9 @@ public partial class CoreConfigV2rayService
                 dnsServerDomains.Add($"full:{domain}");
             }
         }
-        foreach (var dns in remoteDNSAddress)
+        var explicitPolicies = UnifiedPlanFactory.ExplicitDnsPolicies(simpleDNSItem);
+        // Custom policy servers given by hostname are resolved by the bootstrap DNS, like the others.
+        foreach (var dns in explicitPolicies.SelectMany(p => p.Servers ?? []).Concat(remoteDNSAddress))
         {
             var (domain, _, _, _) = Utils.ParseUrl(dns);
             if (domain == "localhost")
@@ -230,7 +239,8 @@ public partial class CoreConfigV2rayService
 
             foreach (var domain in item.Domain)
             {
-                if (domain.StartsWith('#'))
+                // Rule sets are not supported by Xray (see CoreCapabilities).
+                if (domain.StartsWith('#') || domain.StartsWith(UnifiedRuleParser.RuleSetPrefix))
                 {
                     continue;
                 }
@@ -280,6 +290,28 @@ public partial class CoreConfigV2rayService
             AddDnsServers(directDNSAddress, context.ProtectDomainList, true);
         }
 
+        // Explicit DNS policies take priority over the ones derived from routing rules.
+        foreach (var policy in explicitPolicies)
+        {
+            var policyDomains = policy.Domains
+                .Where(d => d.Kind != EDomainMatchKind.RuleSet)
+                .Select(d => d.Raw.Replace(Global.RoutingRuleComma, ","))
+                .ToHashSet();
+            if (policy.Servers != null)
+            {
+                // Custom servers are queried directly, e.g. a LAN or corporate resolver.
+                AddDnsServers(ParseDnsAddresses(string.Join(",", policy.Servers), Global.DomainDirectDNSAddress.First()), policyDomains, true);
+            }
+            else if (policy.Target == EDnsPolicyTarget.Direct)
+            {
+                AddDnsServers(directDNSAddress, policyDomains, true);
+            }
+            else if (policy.Target == EDnsPolicyTarget.Remote)
+            {
+                AddDnsServers(remoteDNSAddress, policyDomains);
+            }
+        }
+
         if (simpleDNSItem.FakeIP == true)
         {
             var fakeIPMatchDomain = new HashSet<string>(proxyDomainList);
@@ -303,17 +335,7 @@ public partial class CoreConfigV2rayService
         AddDnsServers(directDNSAddress, directGeositeList, true);
         AddDnsServers(directDNSAddress, expectedDomainList, true, expectedIPs);
 
-        var useDirectDns = false;
-
-        if (rules?.LastOrDefault() is { OutboundTag: Global.DirectTag } lastRule)
-        {
-            var noDomain = lastRule.Domain == null || lastRule.Domain.Count == 0;
-            var noProcess = lastRule.Process == null || lastRule.Process.Count == 0;
-            var isAnyIp = lastRule.Ip == null || lastRule.Ip.Count == 0 || lastRule.Ip.Contains("0.0.0.0/0");
-            var isAnyPort = string.IsNullOrEmpty(lastRule.Port) || lastRule.Port == "0-65535";
-            var isAnyNetwork = string.IsNullOrEmpty(lastRule.Network) || lastRule.Network == "tcp,udp";
-            useDirectDns = noDomain && noProcess && isAnyIp && isAnyPort && isAnyNetwork;
-        }
+        var useDirectDns = UnifiedPlanBuilder.IsFinalDirect(rules);
 
         if (!useDirectDns)
         {

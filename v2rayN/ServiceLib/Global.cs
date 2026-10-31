@@ -758,6 +758,32 @@ public class Global
         "11.0.0.0/8",
     ];
 
+    public static readonly List<string> ClashProxyGroupTypes =
+    [
+        "select",
+        "url-test",
+        "fallback",
+        "load-balance",
+        "relay",
+    ];
+
+    public static readonly List<string> ClashRuleProviderBehaviors =
+    [
+        "domain",
+        "ipcidr",
+        "classical",
+    ];
+
+    public static readonly List<string> ClashBuiltinPolicies =
+    [
+        "DIRECT",
+        "REJECT",
+        "REJECT-DROP",
+        "PASS",
+        "COMPATIBLE",
+        "GLOBAL",
+    ];
+
     public static readonly List<string> RootCertProviders =
     [
         "system",

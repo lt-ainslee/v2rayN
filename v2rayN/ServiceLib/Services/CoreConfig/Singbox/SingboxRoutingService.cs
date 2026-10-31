@@ -251,36 +251,26 @@ public partial class CoreConfigSingboxService
                 _coreConfig.route.rules.Add(resolveRule);
             }
 
-            var ipRules = new List<RulesItem>();
+            var ipRules = new List<UnifiedRule>();
             if (routing != null)
             {
-                var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet);
-                foreach (var item1 in rules ?? [])
+                var plan = UnifiedPlanFactory.ForContext(context, ECoreType.sing_box, availableRuleSets: AvailableRuleSets);
+                foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
                 {
-                    if (!item1.Enabled)
-                    {
-                        continue;
-                    }
+                    GenRoutingUserRule(rule);
 
-                    if (item1.RuleType == ERuleType.DNS)
+                    if (rule.Ips.Count > 0)
                     {
-                        continue;
-                    }
-
-                    GenRoutingUserRule(item1);
-
-                    if (item1.Ip?.Count > 0)
-                    {
-                        ipRules.Add(item1);
+                        ipRules.Add(rule);
                     }
                 }
             }
             if (_config.RoutingBasicItem.DomainStrategy == Global.IPIfNonMatch)
             {
                 _coreConfig.route.rules.Add(resolveRule);
-                foreach (var item2 in ipRules)
+                foreach (var rule in ipRules)
                 {
-                    GenRoutingUserRule(item2);
+                    GenRoutingUserRule(rule);
                 }
             }
         }
@@ -330,6 +320,13 @@ public partial class CoreConfigSingboxService
         }
 
         return directExeSet.ToList();
+    }
+
+    private void GenRoutingUserRule(UnifiedRule unified)
+    {
+        var start = _coreConfig.route.rules.Count;
+        GenRoutingUserRule(unified.ToRulesItem());
+        SingboxRuleTranslator.ApplyToGenerated(unified, _coreConfig.route.rules, start);
     }
 
     private void GenRoutingUserRule(RulesItem? item)
@@ -499,7 +496,8 @@ public partial class CoreConfigSingboxService
             }
 
             if (!hasDomainIp
-                && (rule.port != null || rule.port_range != null || rule.protocol != null || rule.inbound != null || rule.network != null))
+                && (rule.port != null || rule.port_range != null || rule.protocol != null || rule.inbound != null || rule.network != null
+                    || item.SourceIp?.Count > 0 || item.SourcePort.IsNotEmpty()))
             {
                 rules.Add(rule);
             }
@@ -510,71 +508,36 @@ public partial class CoreConfigSingboxService
         }
     }
 
-    private static bool ParseV2Domain(string domain, Rule4Sbox rule)
+    private bool ParseV2Domain(string domain, Rule4Sbox rule)
     {
-        if (domain.StartsWith('#') || domain.StartsWith("ext:") || domain.StartsWith("ext-domain:"))
-        {
-            return false;
-        }
-        else if (domain.StartsWith(Global.GeoSitePrefix))
-        {
-            rule.geosite ??= [];
-            rule.geosite?.Add(domain[Global.GeoSitePrefix.Length..]);
-        }
-        else if (domain.StartsWith("regexp:"))
-        {
-            rule.domain_regex ??= [];
-            rule.domain_regex?.Add(domain.Replace(Global.RoutingRuleComma, ",").Substring(7));
-        }
-        else if (domain.StartsWith("domain:"))
-        {
-            rule.domain_suffix ??= [];
-            rule.domain_suffix?.Add(domain.Substring(7));
-        }
-        else if (domain.StartsWith("full:"))
-        {
-            rule.domain ??= [];
-            rule.domain?.Add(domain.Substring(5));
-        }
-        else if (domain.StartsWith("keyword:"))
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain.Substring(8));
-        }
-        else if (domain.StartsWith("dotless:"))
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain.Substring(8));
-        }
-        else
-        {
-            rule.domain_keyword ??= [];
-            rule.domain_keyword?.Add(domain);
-        }
-        return true;
+        return UnifiedRuleParser.ParseDomain(domain) is { } match && ApplyDomain(match, rule);
     }
 
-    private static bool ParseV2Address(string address, Rule4Sbox rule)
+    private bool ApplyDomain(DomainMatch match, Rule4Sbox rule)
     {
-        if (address.StartsWith("ext:") || address.StartsWith("ext-ip:"))
+        // An undeclared rule set would otherwise be resolved as a geosite/geoip download that does not exist.
+        if (match.Kind == EDomainMatchKind.RuleSet && !AvailableRuleSets.Contains(match.Value))
         {
             return false;
         }
-        else if (address.Equals($"{Global.GeoIPPrefix}private"))
+        return SingboxRuleTranslator.ApplyDomain(match, rule);
+    }
+
+    private HashSet<string>? _availableRuleSets;
+
+    private HashSet<string> AvailableRuleSets => _availableRuleSets ??= SingboxRuleSetSources.GetAvailableNames(_config, context.RoutingItem);
+
+    private bool ParseV2Address(string address, Rule4Sbox rule)
+    {
+        if (UnifiedRuleParser.ParseIp(address) is not { } match)
         {
-            rule.ip_is_private = true;
+            return false;
         }
-        else if (address.StartsWith(Global.GeoIPPrefix))
+        if (match.Kind == EIpMatchKind.RuleSet && !AvailableRuleSets.Contains(match.Value))
         {
-            rule.geoip ??= [];
-            rule.geoip?.Add(address[Global.GeoIPPrefix.Length..]);
+            return false;
         }
-        else
-        {
-            rule.ip_cidr ??= [];
-            rule.ip_cidr?.Add(address);
-        }
-        return true;
+        return SingboxRuleTranslator.ApplyIp(match, rule);
     }
 
     private string GenRoutingUserRuleOutbound(string outboundTag)

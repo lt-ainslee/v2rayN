@@ -2,6 +2,8 @@ using ServiceLib.Tests.CoreConfig;
 
 namespace ServiceLib.Tests.Handler;
 
+// These tests replace the global AppManager config, so they must not run concurrently.
+[NotInParallel(CoreConfigTestFactory.AppManagerConfigKey)]
 public class ConfigHandlerCustomSubscriptionTests
 {
     private const string FullXrayConfigs = """

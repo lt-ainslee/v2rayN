@@ -32,6 +32,7 @@ public static class DesignData
     public static CheckUpdateViewModel? CheckUpdate { get; } = SafeCreate(() => new CheckUpdateViewModel());
 
     public static DNSSettingViewModel? DNSSetting { get; } = SafeCreate(() => new DNSSettingViewModel());
+    public static CoreExtensionSettingViewModel? CoreExtensionSetting { get; } = SafeCreate(() => new CoreExtensionSettingViewModel());
 
     public static FullConfigTemplateViewModel? FullConfigTemplate { get; } = SafeCreate(() => new FullConfigTemplateViewModel());
 

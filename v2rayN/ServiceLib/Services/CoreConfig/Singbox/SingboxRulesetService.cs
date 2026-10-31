@@ -31,6 +31,12 @@ public partial class CoreConfigSingboxService
             AddRuleSets(ruleSets, rule.rule_set);
         }
 
+        // rule sets referenced directly (ruleset:name), also inside logical rules
+        foreach (var rule in Flatten(_coreConfig.route.rules))
+        {
+            AddRuleSets(ruleSets, rule.rule_set);
+        }
+
         //convert dns geosite & geoip to ruleset
         foreach (var rule in _coreConfig.dns?.rules.Where(t => t.geosite?.Count > 0).ToList() ?? [])
         {
@@ -85,6 +91,17 @@ public partial class CoreConfigSingboxService
             if (item.IsNullOrEmpty())
             { continue; }
             var customRuleset = customRulesets.FirstOrDefault(t => t.tag != null && t.tag.Equals(item));
+            if (customRuleset is null
+                && ToSingboxRuleset(_config.RuleSetItems?.FirstOrDefault(t => t.Name == item && t.SingboxSource.IsNotEmpty())) is { } declared)
+            {
+                // Declared rule sets download like the built-in ones; custom rule set files keep their own settings.
+                if (declared.type == "remote")
+                {
+                    containRemoteRuleset = true;
+                    declared.http_client = Global.SingboxSrsDownloadHttpClientTag;
+                }
+                customRuleset = declared;
+            }
             if (customRuleset is null)
             {
                 var pathSrs = Path.Combine(localSrss, $"{item}.srs");
@@ -128,5 +145,40 @@ public partial class CoreConfigSingboxService
                 detour = Global.ProxyTag,
             });
         }
+    }
+
+    private static IEnumerable<Rule4Sbox> Flatten(IEnumerable<Rule4Sbox>? rules)
+    {
+        foreach (var rule in rules ?? [])
+        {
+            yield return rule;
+            foreach (var inner in Flatten(rule.rules))
+            {
+                yield return inner;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Converts a rule set declared in the settings (referenced as ruleset:name) to a sing-box rule set.
+    /// </summary>
+    private static Ruleset4Sbox? ToSingboxRuleset(RuleSetItem? item)
+    {
+        if (item?.SingboxSource is not { Length: > 0 } source)
+        {
+            return null;
+        }
+        var format = source.Split('?', '#')[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "source" : "binary";
+        var isRemote = source.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || source.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+        return new Ruleset4Sbox
+        {
+            tag = item.Name,
+            type = isRemote ? "remote" : "local",
+            format = format,
+            url = isRemote ? source : null,
+            path = isRemote ? null : source,
+            update_interval = isRemote ? $"{Math.Max(1, item.UpdateInterval / 60)}m" : null,
+        };
     }
 }

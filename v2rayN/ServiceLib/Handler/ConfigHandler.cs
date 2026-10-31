@@ -162,6 +162,11 @@ public static class ConfigHandler
         };
         config.ClashUIItem ??= new();
         config.ClashUIItem.ConnectionsColumnItem ??= [];
+        config.CoreExtensionItem ??= new();
+        config.CoreExtensionItem.Xray ??= new();
+        config.CoreExtensionItem.Singbox ??= new();
+        config.CoreExtensionItem.Mihomo ??= new();
+        config.RuleSetItems ??= [];
         config.SystemProxyItem ??= new();
         config.WebDavItem ??= new();
         config.CheckUpdateItem ??= new();

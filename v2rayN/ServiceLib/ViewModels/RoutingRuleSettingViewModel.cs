@@ -112,7 +112,7 @@ public partial class RoutingRuleSettingViewModel : MyReactiveObject, ICloseable
                 Network = item.Network,
                 Protocols = Utils.List2String(item.Protocol),
                 InboundTags = Utils.List2String(item.InboundTag),
-                Domains = Utils.List2String((item.Domain ?? []).Concat(item.Ip ?? []).ToList().Concat(item.Process ?? []).ToList()),
+                Domains = Utils.List2String([.. item.Domain ?? [], .. item.Ip ?? [], .. item.Process ?? [], .. item.SourceIp ?? []]),
                 Enabled = item.Enabled,
                 Remarks = item.Remarks,
             };

@@ -1,0 +1,640 @@
+{
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "type": "udp",
+        "tag": "local-local",
+        "server": "119.29.29.29"
+      },
+      {
+        "domain_resolver": "local-local",
+        "path": "/dns-query",
+        "type": "https",
+        "tag": "remote-dns-1",
+        "server": "1.1.1.1",
+        "detour": "proxy"
+      },
+      {
+        "domain_resolver": "local-local",
+        "type": "udp",
+        "tag": "direct-dns-1",
+        "server": "223.5.5.5"
+      },
+      {
+        "domain_resolver": "hosts-dns",
+        "path": "/dns-query",
+        "type": "https",
+        "tag": "direct-dns-2",
+        "server": "dns.alidns.com"
+      },
+      {
+        "predefined": {
+          "dns.google": [
+            "8.8.8.8",
+            "8.8.4.4",
+            "2001:4860:4860::8888",
+            "2001:4860:4860::8844"
+          ],
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6",
+            "2400:3200::1",
+            "2400:3200:baba::1"
+          ],
+          "one.one.one.one": [
+            "1.1.1.1",
+            "1.0.0.1",
+            "2606:4700:4700::1111",
+            "2606:4700:4700::1001"
+          ],
+          "1dot1dot1dot1.cloudflare-dns.com": [
+            "1.1.1.1",
+            "1.0.0.1",
+            "2606:4700:4700::1111",
+            "2606:4700:4700::1001"
+          ],
+          "cloudflare-dns.com": [
+            "104.16.249.249",
+            "104.16.248.249",
+            "2606:4700::6810:f8f9",
+            "2606:4700::6810:f9f9"
+          ],
+          "dns.cloudflare.com": [
+            "162.159.61.8",
+            "172.64.41.8",
+            "2a06:98c1:52::8",
+            "2803:f800:53::8"
+          ],
+          "dot.pub": [
+            "1.12.12.12",
+            "120.53.53.53"
+          ],
+          "doh.pub": [
+            "1.12.12.12",
+            "120.53.53.53"
+          ],
+          "dns.quad9.net": [
+            "9.9.9.9",
+            "149.112.112.112",
+            "2620:fe::fe",
+            "2620:fe::9"
+          ],
+          "dns.yandex.net": [
+            "77.88.8.8",
+            "77.88.8.1",
+            "2a02:6b8::feed:0ff",
+            "2a02:6b8:0:1::feed:0ff"
+          ],
+          "dns.sb": [
+            "45.11.45.11",
+            "185.222.222.222",
+            "2a09::",
+            "2a11::"
+          ],
+          "dns.umbrella.com": [
+            "208.67.220.220",
+            "208.67.222.222",
+            "2620:119:35::35",
+            "2620:119:53::53"
+          ],
+          "dns.sse.cisco.com": [
+            "208.67.220.220",
+            "208.67.222.222",
+            "2620:119:35::35",
+            "2620:119:53::53"
+          ],
+          "engage.cloudflareclient.com": [
+            "162.159.192.1",
+            "2606:4700:d0::a29f:c001"
+          ],
+          "hosts.example.com": [
+            "10.0.0.1"
+          ]
+        },
+        "type": "hosts",
+        "tag": "hosts-dns"
+      },
+      {
+        "inet4_range": "198.18.0.0/15",
+        "type": "fakeip",
+        "tag": "fake-dns"
+      }
+    ],
+    "rules": [
+      {
+        "server": "hosts-dns",
+        "preferred_by": "hosts-dns"
+      },
+      {
+        "server": "remote-dns-1",
+        "clash_mode": "Global"
+      },
+      {
+        "server": "direct-dns-1",
+        "clash_mode": "Direct"
+      },
+      {
+        "domain_suffix": [
+          "alias.example.com"
+        ],
+        "action": "predefined",
+        "rcode": "NOERROR",
+        "query_type": [
+          1,
+          5,
+          28
+        ],
+        "answer": [
+          "*. IN CNAME target.example.com."
+        ]
+      },
+      {
+        "action": "predefined",
+        "rcode": "NOERROR",
+        "query_type": [
+          64,
+          65
+        ]
+      },
+      {
+        "server": "fake-dns",
+        "type": "logical",
+        "mode": "and",
+        "rewrite_ttl": 1,
+        "rules": [
+          {
+            "query_type": [
+              1,
+              28
+            ]
+          },
+          {
+            "invert": true,
+            "domain": [
+              "amobile.music.tc.qq.com",
+              "api-jooxtt.sanook.com",
+              "api.joox.com",
+              "aqqmusic.tc.qq.com",
+              "dl.stream.qqmusic.qq.com",
+              "ff.dorado.sdo.com",
+              "heartbeat.belkin.com",
+              "isure.stream.qqmusic.qq.com",
+              "joox.com",
+              "lens.l.google.com",
+              "localhost.ptlogin2.qq.com",
+              "localhost.sec.qq.com",
+              "mesu.apple.com",
+              "mobileoc.music.tc.qq.com",
+              "music.taihe.com",
+              "musicapi.taihe.com",
+              "na.b.g-tun.com",
+              "proxy.golang.org",
+              "ps.res.netease.com",
+              "shark007.net",
+              "songsearch.kugou.com",
+              "static.adtidy.org",
+              "streamoc.music.tc.qq.com",
+              "swcdn.apple.com",
+              "swdist.apple.com",
+              "swdownload.apple.com",
+              "swquery.apple.com",
+              "swscan.apple.com",
+              "turn.cloudflare.com",
+              "trackercdn.kugou.com",
+              "xnotify.xboxlive.com"
+            ],
+            "domain_suffix": [
+              "126.net",
+              "3gppnetwork.org",
+              "battle.net",
+              "battlenet.com.cn",
+              "cdn.nintendo.net",
+              "cmbchina.com",
+              "cmbimg.com",
+              "ff14.sdo.com",
+              "ffxiv.com",
+              "finalfantasyxiv.com",
+              "gcloudcs.com",
+              "home.arpa",
+              "invalid",
+              "kuwo.cn",
+              "lan",
+              "linksys.com",
+              "linksyssmartwifi.com",
+              "local",
+              "localdomain",
+              "localhost",
+              "market.xiaomi.com",
+              "mcdn.bilivideo.cn",
+              "media.dssott.com",
+              "msftconnecttest.com",
+              "msftncsi.com",
+              "music.163.com",
+              "music.migu.cn",
+              "n0808.com",
+              "nflxvideo.net",
+              "oray.com",
+              "orayimg.com",
+              "router.asus.com",
+              "sandai.net",
+              "square-enix.com",
+              "srv.nintendo.net",
+              "steamcontent.com",
+              "uu.163.com",
+              "wargaming.net",
+              "wggames.cn",
+              "wotgame.cn",
+              "wowsgame.cn",
+              "xiami.com",
+              "y.qq.com"
+            ],
+            "domain_keyword": [
+              "ntp",
+              "stun",
+              "time"
+            ],
+            "domain_regex": [
+              "^[^.]+$",
+              "^[^.]+\\.[^.]+\\.xboxlive\\.com$",
+              "^localhost\\.[^.]+\\.weixin\\.qq\\.com$",
+              "^mijia\\scloud$",
+              "^xbox\\.[^.]+\\.microsoft\\.com$",
+              "^xbox\\.[^.]+\\.[^.]+\\.microsoft\\.com$"
+            ]
+          }
+        ]
+      },
+      {
+        "rule_set": [
+          "geosite-category-ads-all"
+        ],
+        "action": "predefined",
+        "rcode": "NXDOMAIN"
+      },
+      {
+        "server": "remote-dns-1",
+        "domain_suffix": [
+          "youtube.com"
+        ],
+        "domain_keyword": [
+          "gstatic",
+          "twitter",
+          "intranet"
+        ],
+        "domain_regex": [
+          "^api\\d+\\.example\\.org$"
+        ],
+        "rule_set": [
+          "geosite-google"
+        ]
+      },
+      {
+        "server": "direct-dns-1",
+        "domain_suffix": [
+          "dns-only.example.com"
+        ],
+        "action": "evaluate",
+        "tag": "direct-dns-1-rule-dns-only"
+      },
+      {
+        "action": "respond",
+        "match_response": "direct-dns-1-rule-dns-only"
+      },
+      {
+        "server": "direct-dns-2",
+        "domain_suffix": [
+          "dns-only.example.com"
+        ],
+        "action": "evaluate",
+        "tag": "direct-dns-2-rule-dns-only"
+      },
+      {
+        "action": "respond",
+        "match_response": "direct-dns-2-rule-dns-only"
+      },
+      {
+        "server": "direct-dns-1",
+        "rule_set": [
+          "geosite-cn"
+        ],
+        "action": "evaluate",
+        "tag": "direct-dns-1-rule-cn"
+      },
+      {
+        "rule_set": [
+          "geoip-cn"
+        ],
+        "action": "respond",
+        "match_response": "direct-dns-1-rule-cn"
+      },
+      {
+        "server": "direct-dns-2",
+        "rule_set": [
+          "geosite-cn"
+        ],
+        "action": "evaluate",
+        "tag": "direct-dns-2-rule-cn"
+      },
+      {
+        "rule_set": [
+          "geoip-cn"
+        ],
+        "action": "respond",
+        "match_response": "direct-dns-2-rule-cn"
+      },
+      {
+        "server": "remote-dns-1",
+        "rule_set": [
+          "geosite-cn"
+        ],
+        "action": "evaluate",
+        "tag": "remote-dns-1-rule-cn"
+      },
+      {
+        "action": "respond",
+        "match_response": "remote-dns-1-rule-cn"
+      },
+      {
+        "server": "remote-dns-1"
+      }
+    ],
+    "final": "remote-dns-1"
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "socks",
+      "listen": "127.0.0.1",
+      "listen_port": 10808
+    }
+  ],
+  "outbounds": [
+    {
+      "username": "user",
+      "password": "pass",
+      "version": "5",
+      "type": "socks",
+      "tag": "proxy",
+      "server": "127.0.0.1",
+      "server_port": 1080
+    },
+    {
+      "type": "direct",
+      "tag": "direct",
+      "domain_resolver": {
+        "server": "direct-dns-1"
+      }
+    }
+  ],
+  "endpoints": [],
+  "route": {
+    "default_domain_resolver": {
+      "server": "direct-dns-1"
+    },
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "port": [
+              53
+            ]
+          },
+          {
+            "protocol": [
+              "dns"
+            ]
+          }
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "domain": [
+          "hosts.example.com"
+        ],
+        "domain_suffix": [
+          "alias.example.com"
+        ],
+        "action": "resolve"
+      },
+      {
+        "outbound": "direct",
+        "clash_mode": "Direct"
+      },
+      {
+        "outbound": "proxy",
+        "clash_mode": "Global"
+      },
+      {
+        "rule_set": [
+          "geosite-category-ads-all"
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "direct",
+        "domain": [
+          "localhost"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "ip_is_private": true
+      },
+      {
+        "outbound": "proxy",
+        "domain_suffix": [
+          "youtube.com"
+        ],
+        "domain_keyword": [
+          "gstatic",
+          "twitter",
+          "intranet"
+        ],
+        "domain_regex": [
+          "^api\\d+\\.example\\.org$"
+        ],
+        "rule_set": [
+          "geosite-google"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "network": [
+          "udp"
+        ],
+        "port": [
+          123
+        ],
+        "port_range": [
+          "5000:6000"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "process_name": [
+          "curl",
+          "sing-box"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "process_path": [
+          "/usr/bin/wget"
+        ]
+      },
+      {
+        "protocol": [
+          "bittorrent"
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "proxy",
+        "inbound": [
+          "socks"
+        ],
+        "port": [
+          443
+        ],
+        "domain_suffix": [
+          "inbound.example.com"
+        ]
+      },
+      {
+        "outbound": "proxy",
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "ip_cidr": [
+              "1.1.1.1/32"
+            ]
+          },
+          {
+            "invert": true,
+            "geoip": [
+              "cn"
+            ]
+          }
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-cn"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geoip-cn"
+        ]
+      },
+      {
+        "outbound": "proxy",
+        "port_range": [
+          "0:65535"
+        ]
+      },
+      {
+        "action": "resolve"
+      },
+      {
+        "outbound": "direct",
+        "domain": [
+          "localhost"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "ip_is_private": true
+      },
+      {
+        "outbound": "proxy",
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "ip_cidr": [
+              "1.1.1.1/32"
+            ]
+          },
+          {
+            "invert": true,
+            "geoip": [
+              "cn"
+            ]
+          }
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-cn"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geoip-cn"
+        ]
+      }
+    ],
+    "rule_set": [
+      {
+        "tag": "geosite-category-ads-all",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geosite/geosite-category-ads-all.srs",
+        "http_client": "srs-download-http-client"
+      },
+      {
+        "tag": "geosite-google",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geosite/geosite-google.srs",
+        "http_client": "srs-download-http-client"
+      },
+      {
+        "tag": "geosite-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geosite/geosite-cn.srs",
+        "http_client": "srs-download-http-client"
+      },
+      {
+        "tag": "geoip-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/2dust/sing-box-rules/rule-set-geoip/geoip-cn.srs",
+        "http_client": "srs-download-http-client"
+      }
+    ],
+    "final": "proxy"
+  },
+  "http_clients": [
+    {
+      "tag": "srs-download-http-client",
+      "detour": "proxy"
+    }
+  ],
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "/home/user/v2rayN/v2rayN/ServiceLib.Tests/bin/Debug/net10.0/bin/cache.db",
+      "store_fakeip": true
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:10813"
+    }
+  }
+}

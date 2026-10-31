@@ -1897,4 +1897,172 @@
   <data name="menuAddMasqueServer" xml:space="preserve">
     <value>添加 [MASQUE]</value>
   </data>
+  <data name="TbClashFakeIPFilter" xml:space="preserve">
+    <value>Fake-IP 过滤</value>
+  </data>
+  <data name="TbClashRespectRules" xml:space="preserve">
+    <value>遵循规则 (respect-rules)</value>
+  </data>
+  <data name="TbClashRespectRulesTips" xml:space="preserve">
+    <value>走代理的域名，其 DNS 查询遵循路由规则并经由代理发出。未匹配查询使用直连 DNS 时不生效。</value>
+  </data>
+  <data name="TbClashProxyGroups" xml:space="preserve">
+    <value>策略组 (proxy-groups)</value>
+  </data>
+  <data name="TbClashProxyGroupsTips" xml:space="preserve">
+    <value>每行一个策略组：名称 = 类型, 成员1, 成员2, 参数=值。类型：select / url-test / fallback / load-balance / relay。参数：url、interval、tolerance、timeout、lazy、strategy、filter、exclude-filter、include-all、include-all-proxies、use=提供者1|提供者2、hidden、icon。含逗号的值请用双引号包裹。与原配置同名的策略组将被替换；不存在的成员会被移除。</value>
+  </data>
+  <data name="TbClashRules" xml:space="preserve">
+    <value>自定义规则</value>
+  </data>
+  <data name="TbClashRulesTips" xml:space="preserve">
+    <value>Clash 规则格式，例如 DOMAIN-SUFFIX,google.com,Proxy 或 RULE-SET,my-set,Proxy。策略不存在的规则会被跳过。</value>
+  </data>
+  <data name="TbClashOverrideInvalidLines" xml:space="preserve">
+    <value>{0}：以下行格式无效：{1}</value>
+  </data>
+  <data name="MsgUnifiedValueIgnored" xml:space="preserve">
+    <value>规则「{0}」：{1} 在 {2} 中不受支持，已忽略该值</value>
+  </data>
+  <data name="MsgUnifiedRuleSkipped" xml:space="preserve">
+    <value>规则「{0}」：{1} 在 {2} 中不受支持，已跳过整条规则</value>
+  </data>
+  <data name="MsgUnifiedNoSupportedCondition" xml:space="preserve">
+    <value>没有剩余可用的域名 / IP / 进程条件</value>
+  </data>
+  <data name="MsgUnifiedApproximated" xml:space="preserve">
+    <value>{0}：{1} 在 {2} 中以近似方式实现</value>
+  </data>
+  <data name="MsgUnifiedRuleSetMissing" xml:space="preserve">
+    <value>规则「{0}」：规则集 {1} 未配置 {2} 的来源，已忽略该值</value>
+  </data>
+  <data name="MsgUnifiedDnsIgnored" xml:space="preserve">
+    <value>DNS：{0} 在 {1} 中不受支持，已忽略</value>
+  </data>
+  <data name="MsgUnifiedPolicyFallback" xml:space="preserve">
+    <value>规则「{0}」：策略「{1}」在 {2} 配置中不存在，已改用「{3}」</value>
+  </data>
+  <data name="TbCoreExtensionTips" xml:space="preserve">
+    <value>DNS 设置和路由规则由所有内核共用。这里的选项只为单个内核补充其特有功能；内核无法表达的部分会在启动时提示。</value>
+  </data>
+  <data name="TbMihomoUnifiedMode" xml:space="preserve">
+    <value>将统一配置应用到 Clash 配置</value>
+  </data>
+  <data name="TbMihomoUnifiedModeOff" xml:space="preserve">
+    <value>关闭（保持配置文件原样）</value>
+  </data>
+  <data name="TbMihomoUnifiedModeDnsOnly" xml:space="preserve">
+    <value>仅 DNS</value>
+  </data>
+  <data name="TbMihomoUnifiedModeDnsAndRules" xml:space="preserve">
+    <value>DNS + 规则（插入原规则之前）</value>
+  </data>
+  <data name="TbMihomoUnifiedModeReplaceRules" xml:space="preserve">
+    <value>DNS + 规则（替换原规则）</value>
+  </data>
+  <data name="TbMihomoUnifiedModeTips" xml:space="preserve">
+    <value>Clash 配置自带节点和策略组。出口为「代理」的规则使用下方指定的策略组；出口为节点或策略组的规则使用配置中同名的项。</value>
+  </data>
+  <data name="TbMihomoProxyGroupName" xml:space="preserve">
+    <value>「代理」对应的策略</value>
+  </data>
+  <data name="TbMihomoProxyGroupNameTips" xml:space="preserve">
+    <value>留空：使用配置中第一个 select 类型的策略组</value>
+  </data>
+  <data name="TbMihomoPreferH3" xml:space="preserve">
+    <value>DoH 优先使用 HTTP/3</value>
+  </data>
+  <data name="TbMihomoFakeIpFilterTips" xml:space="preserve">
+    <value>每行一个匹配模式。留空：使用内置过滤列表</value>
+  </data>
+  <data name="TbMihomoExtraProxyGroups" xml:space="preserve">
+    <value>额外策略组</value>
+  </data>
+  <data name="TbMihomoExtraRules" xml:space="preserve">
+    <value>额外规则（位于统一规则之前）</value>
+  </data>
+  <data name="TbSingboxDnsClientSubnet" xml:space="preserve">
+    <value>DNS 客户端子网 (ECS)</value>
+  </data>
+  <data name="TbSingboxDnsIndependentCache" xml:space="preserve">
+    <value>各 DNS 服务器独立缓存</value>
+  </data>
+  <data name="TbXrayDnsQueryStrategy" xml:space="preserve">
+    <value>DNS 查询策略</value>
+  </data>
+  <data name="TbXrayDnsDisableCache" xml:space="preserve">
+    <value>禁用 DNS 缓存</value>
+  </data>
+  <data name="TbRuleSets" xml:space="preserve">
+    <value>规则集</value>
+  </data>
+  <data name="TbRuleSetsTips" xml:space="preserve">
+    <value>每行一个：名称 = 行为, singbox=URL 或路径 (.srs/.json), mihomo=URL 或路径 (.mrs/.yaml/.txt), interval=86400。行为：domain / ipcidr / classical。在规则的域名或 IP 列表中用 ruleset:名称 引用；没有为某内核配置来源时，该内核会忽略这个值。</value>
+  </data>
+  <data name="ThCapabilityMatrix" xml:space="preserve">
+    <value>能力对照表</value>
+  </data>
+  <data name="TbCapabilityMatrixTips" xml:space="preserve">
+    <value>✓ 原生支持   ≈ 近似实现   ✗ 不支持（会被移除，规则不会因此变宽）</value>
+  </data>
+  <data name="TbDnsPolicy" xml:space="preserve">
+    <value>DNS 策略</value>
+  </data>
+  <data name="TbDnsPolicyTips" xml:space="preserve">
+    <value>每行一条：域名匹配[, 域名匹配] = direct | remote | block | DNS1, DNS2（自定义服务器直连查询）。优先于由路由规则派生的策略，对所有内核生效。</value>
+  </data>
+  <data name="TbRuleSourceIp" xml:space="preserve">
+    <value>源 IP</value>
+  </data>
+  <data name="TbRuleSourcePort" xml:space="preserve">
+    <value>源端口</value>
+  </data>
+  <data name="TbRuleCoreExt" xml:space="preserve">
+    <value>内核扩展（可选）</value>
+  </data>
+  <data name="TbRuleXrayJson" xml:space="preserve">
+    <value>Xray：合并到生成规则中的 JSON 对象</value>
+  </data>
+  <data name="TbRuleSingboxJson" xml:space="preserve">
+    <value>sing-box：合并到生成规则中的 JSON 对象</value>
+  </data>
+  <data name="TbRuleMihomoRules" xml:space="preserve">
+    <value>mihomo：替换翻译结果的 Clash 规则（{target} 为策略）</value>
+  </data>
+  <data name="TbRuleCoreExtInvalidJson" xml:space="preserve">
+    <value>内核扩展：{0} 不是有效的 JSON 对象</value>
+  </data>
+  <data name="MsgUnifiedPolicyMissing" xml:space="preserve">
+    <value>规则「{0}」：策略「{1}」不存在，已跳过</value>
+  </data>
+  <data name="menuCoreExtensionSetting" xml:space="preserve">
+    <value>内核扩展与规则集</value>
+  </data>
+  <data name="MsgUnifiedProxyGroupMissing" xml:space="preserve">
+    <value>为「代理」指定的策略「{0}」在 Clash 配置中不存在，已改用第一个 select 策略组</value>
+  </data>
+  <data name="ThUnifiedPreview" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="TbPreviewCore" xml:space="preserve">
+    <value>内核</value>
+  </data>
+  <data name="TbPreviewGenerate" xml:space="preserve">
+    <value>生成预览</value>
+  </data>
+  <data name="TbPreviewTips" xml:space="preserve">
+    <value>显示所选内核会收到的内容，基于此处已填写的值（无需先保存）和当前路由方案：先列出兼容性说明（! 为已移除，~ 为近似实现），再给出生成的 DNS 与路由部分。对 mihomo，若当前选中的服务器是 Clash 配置，则使用该配置。</value>
+  </data>
+  <data name="MsgUnifiedPreviewNoIssues" xml:space="preserve">
+    <value>没有兼容性问题。</value>
+  </data>
+  <data name="MsgUnifiedPreviewFailed" xml:space="preserve">
+    <value>预览失败：{0}</value>
+  </data>
+  <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
+    <value>统一配置未应用到 Clash 配置（mihomo 页为「关闭」），将按配置文件原样运行。</value>
+  </data>
+  <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
+    <value>规则「{0}」匹配所有流量，其后的规则（包括 Clash 配置原有的规则）不会生效</value>
+  </data>
 </root>

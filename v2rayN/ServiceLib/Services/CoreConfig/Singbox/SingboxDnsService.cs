@@ -19,6 +19,16 @@ public partial class CoreConfigSingboxService
             _coreConfig.dns ??= new Dns4Sbox();
             _coreConfig.dns.optimistic = context.SimpleDnsItem.ServeStale == true ? true : null;
 
+            var singboxExt = context.AppConfig.CoreExtensionItem?.Singbox;
+            if (singboxExt?.DnsClientSubnet.IsNullOrEmpty() == false)
+            {
+                _coreConfig.dns.client_subnet = singboxExt.DnsClientSubnet;
+            }
+            if (singboxExt?.DnsIndependentCache == true)
+            {
+                _coreConfig.dns.independent_cache = true;
+            }
+
             // final dns
             var useDirectDns = UseDirectDns();
             _coreConfig.dns.final = useDirectDns ? Global.SingboxDirectDNSTag : Global.SingboxRemoteDNSTag;
@@ -61,7 +71,8 @@ public partial class CoreConfigSingboxService
         };
         if (simpleDnsItem.AddCommonHosts == true)
         {
-            hostsDns.predefined = Global.PredefinedHosts;
+            // Copy: user and system hosts are added below and must not leak into the shared defaults.
+            hostsDns.predefined = Global.PredefinedHosts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToList());
         }
 
         if (simpleDnsItem.UseSystemHosts == true)
@@ -297,6 +308,45 @@ public partial class CoreConfigSingboxService
             .Where(s => s.tag?.StartsWith(Global.SingboxDirectDNSTagPrefix) == true).ToList();
         var remoteDnsList = _coreConfig.dns.servers
             .Where(s => s.tag?.StartsWith(Global.SingboxRemoteDNSTagPrefix) == true).ToList();
+
+        // Explicit DNS policies take priority over the ones derived from routing rules.
+        var policyIndex = 0;
+        foreach (var policy in UnifiedPlanFactory.ExplicitDnsPolicies(simpleDnsItem))
+        {
+            var policyRule = new Rule4Sbox();
+            if (policy.Domains.Count(d => ApplyDomain(d, policyRule)) == 0)
+            {
+                continue;
+            }
+            var policyItem = new RulesItem { Id = policy.SourceId, Enabled = true };
+            if (policy.Servers != null)
+            {
+                // Custom servers are queried directly, e.g. a LAN or corporate resolver.
+                var policyServers = ParseDnsAddresses(string.Join(",", policy.Servers));
+                for (var i = 0; i < policyServers.Count; i++)
+                {
+                    policyServers[i].tag = $"policy-{policyIndex}-{i + 1}";
+                    policyServers[i].domain_resolver = Global.SingboxLocalDNSTag;
+                }
+                policyIndex++;
+                if (policyServers.Count == 0)
+                {
+                    continue;
+                }
+                _coreConfig.dns.servers.AddRange(policyServers);
+                AddRules(policyRule, policyItem, policyServers);
+            }
+            else if (policy.Target == EDnsPolicyTarget.Block)
+            {
+                policyRule.action = "predefined";
+                policyRule.rcode = "NXDOMAIN";
+                _coreConfig.dns.rules.Add(policyRule);
+            }
+            else
+            {
+                AddRules(policyRule, policyItem, policy.Target == EDnsPolicyTarget.Direct ? directDnsList : remoteDnsList);
+            }
+        }
 
         var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet) ?? [];
         var expectedIPCidr = new HashSet<string>();
@@ -689,23 +739,6 @@ public partial class CoreConfigSingboxService
     private bool UseDirectDns()
     {
         var routing = context.RoutingItem;
-        var useDirectDns = false;
-        if (routing == null)
-        {
-            return useDirectDns;
-        }
-        var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet) ?? [];
-
-        if (rules?.LastOrDefault() is not { OutboundTag: Global.DirectTag } lastRule)
-        {
-            return useDirectDns;
-        }
-        var noDomain = lastRule.Domain == null || lastRule.Domain.Count == 0;
-        var noProcess = lastRule.Process == null || lastRule.Process.Count == 0;
-        var isAnyIp = lastRule.Ip == null || lastRule.Ip.Count == 0 || lastRule.Ip.Contains("0.0.0.0/0");
-        var isAnyPort = string.IsNullOrEmpty(lastRule.Port) || lastRule.Port == "0-65535";
-        var isAnyNetwork = string.IsNullOrEmpty(lastRule.Network) || lastRule.Network == "tcp,udp";
-        useDirectDns = noDomain && noProcess && isAnyIp && isAnyPort && isAnyNetwork;
-        return useDirectDns;
+        return routing != null && UnifiedPlanBuilder.IsFinalDirect(JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet));
     }
 }

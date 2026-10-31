@@ -291,6 +291,11 @@ public class SimpleDNSItem
     public string? Hosts { get; set; }
     public string? DirectExpectedIPs { get; set; }
     public bool? EnableHappyEyeballs { get; set; }
+
+    /// <summary>
+    /// Explicit DNS policy, one per line: domain-match[, domain-match] = direct | remote | block | server1, server2
+    /// </summary>
+    public string? DnsPolicy { get; set; }
 }
 
 [Serializable]

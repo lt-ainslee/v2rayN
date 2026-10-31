@@ -27,6 +27,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -220,6 +222,36 @@
                 VerticalAlignment="Center"
                 Style="{StaticResource ToolbarTextBlock}"
                 Text="{x:Static resx:ResUI.TbRoutingTips}" />
+
+            <TextBlock
+                Grid.Row="7"
+                Grid.Column="0"
+                Margin="{StaticResource Margin4}"
+                VerticalAlignment="Center"
+                Style="{StaticResource ToolbarTextBlock}"
+                Text="{x:Static resx:ResUI.TbRuleSourceIp}" />
+            <TextBox
+                x:Name="txtSourceIp"
+                Grid.Row="7"
+                Grid.Column="1"
+                Width="200"
+                Margin="{StaticResource Margin4}"
+                Style="{StaticResource DefTextBox}" />
+
+            <TextBlock
+                Grid.Row="8"
+                Grid.Column="0"
+                Margin="{StaticResource Margin4}"
+                VerticalAlignment="Center"
+                Style="{StaticResource ToolbarTextBlock}"
+                Text="{x:Static resx:ResUI.TbRuleSourcePort}" />
+            <TextBox
+                x:Name="txtSourcePort"
+                Grid.Row="8"
+                Grid.Column="1"
+                Width="200"
+                Margin="{StaticResource Margin4}"
+                Style="{StaticResource DefTextBox}" />
         </Grid>
 
         <StackPanel
@@ -235,6 +267,7 @@
                     <TextBlock Style="{StaticResource ToolbarTextBlock}" Text="{x:Static resx:ResUI.TbAutoSort}" />
                 </CheckBox>
             </StackPanel>
+
             <Button
                 x:Name="btnSave"
                 MinWidth="100"
@@ -249,6 +282,47 @@
                 IsCancel="true"
                 Style="{StaticResource DefButton}" />
         </StackPanel>
+
+        <Expander
+            Margin="{StaticResource Margin8}"
+            DockPanel.Dock="Bottom"
+            Header="{x:Static resx:ResUI.TbRuleCoreExt}">
+            <UniformGrid Columns="3">
+                <TextBox
+                    x:Name="txtXrayJson"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleXrayJson}"
+                    AcceptsReturn="True"
+                    BorderThickness="1"
+                    HorizontalScrollBarVisibility="Auto"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    TextWrapping="NoWrap"
+                    VerticalScrollBarVisibility="Auto" />
+                <TextBox
+                    x:Name="txtSingboxJson"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleSingboxJson}"
+                    AcceptsReturn="True"
+                    BorderThickness="1"
+                    HorizontalScrollBarVisibility="Auto"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    TextWrapping="NoWrap"
+                    VerticalScrollBarVisibility="Auto" />
+                <TextBox
+                    x:Name="txtMihomoRules"
+                    Height="80"
+                    Margin="{StaticResource Margin4}"
+                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleMihomoRules}"
+                    AcceptsReturn="True"
+                    BorderThickness="1"
+                    HorizontalScrollBarVisibility="Auto"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    TextWrapping="NoWrap"
+                    VerticalScrollBarVisibility="Auto" />
+            </UniformGrid>
+        </Expander>
 
         <Grid Margin="{StaticResource Margin8}">
             <Grid.ColumnDefinitions>

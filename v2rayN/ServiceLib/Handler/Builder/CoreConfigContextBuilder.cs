@@ -21,8 +21,8 @@ public record CoreConfigContextBuilderAllResult(
     ///     into a single <see cref="NodeValidatorResult" /> for unified notification.
     /// </summary>
     public NodeValidatorResult CombinedValidatorResult => new(
-        [.. MainResult.ValidatorResult.Errors, .. PreSocksResult?.ValidatorResult.Errors ?? []],
-        [.. MainResult.ValidatorResult.Warnings, .. PreSocksResult?.ValidatorResult.Warnings ?? []]);
+        [.. MainResult.ValidatorResult.Errors.Concat(PreSocksResult?.ValidatorResult.Errors ?? []).Distinct()],
+        [.. MainResult.ValidatorResult.Warnings.Concat(PreSocksResult?.ValidatorResult.Warnings ?? []).Distinct()]);
 }
 
 public class CoreConfigContextBuilder
@@ -76,8 +76,12 @@ public class CoreConfigContextBuilder
                 var ruleOutboundNode = await AppManager.Instance.GetProfileItemViaRemarks(ruleItem.OutboundTag);
                 if (ruleOutboundNode == null)
                 {
-                    validatorResult.Warnings.Add(string.Format(ResUI.MsgRoutingRuleOutboundNodeNotFound,
-                        ruleItem.Remarks, ruleItem.OutboundTag));
+                    // Custom configurations (e.g. Clash) resolve targets against their own proxies and groups.
+                    if (node.ConfigType != EConfigType.Custom)
+                    {
+                        validatorResult.Warnings.Add(string.Format(ResUI.MsgRoutingRuleOutboundNodeNotFound,
+                            ruleItem.Remarks, ruleItem.OutboundTag));
+                    }
                     ruleItem.OutboundTag = Global.ProxyTag;
                     continue;
                 }
@@ -97,6 +101,8 @@ public class CoreConfigContextBuilder
                 context.AllProxiesMap[$"remark:{ruleItem.OutboundTag}"] = actRuleNode;
             }
         }
+
+        await AddUnifiedDiagnostics(context, validatorResult);
 
         if (context.IsTunEnabled && context.AppConfig.TunModeItem.RouteExcludeAddress is { Count: > 0 })
         {
@@ -143,6 +149,54 @@ public class CoreConfigContextBuilder
     ///     the main build succeeds, also builds the optional pre-socks context required for TUN
     ///     protection or pre-socks proxy chaining.
     /// </summary>
+    /// <summary>
+    ///     Validates the shared DNS / routing settings against the core that will run them and reports
+    ///     what had to be degraded. Warnings are shown to the user; approximations are only logged.
+    /// </summary>
+    private static async Task AddUnifiedDiagnostics(CoreConfigContext context, NodeValidatorResult validatorResult)
+    {
+        try
+        {
+            var mihomoMode = context.AppConfig.CoreExtensionItem?.Mihomo.UnifiedMode ?? EMihomoUnifiedMode.Off;
+            ECoreType? core = context.Node.ConfigType switch
+            {
+                EConfigType.Custom when context.Node.CoreType == ECoreType.mihomo && mihomoMode != EMihomoUnifiedMode.Off => ECoreType.mihomo,
+                EConfigType.Custom => null,
+                _ when context.RunCoreType == ECoreType.sing_box => ECoreType.sing_box,
+                _ => ECoreType.Xray,
+            };
+            if (core is not { } coreType)
+            {
+                return;
+            }
+
+            var diagnostics = new UnifiedDiagnostics();
+            var availableRuleSets = coreType == ECoreType.mihomo
+                ? CoreConfigClashService.GetAvailableRuleSetNames(context.AppConfig, await CoreConfigClashService.LoadProfileContentAsync(context.Node))
+                : null;
+            UnifiedPlanFactory.ForContext(context, coreType, diagnostics, availableRuleSets);
+            foreach (var item in diagnostics.Items)
+            {
+                if (coreType == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.DnsOnly && item.Subject != "DNS")
+                {
+                    continue;
+                }
+                if (item.Level == EDiagnosticLevel.Warning)
+                {
+                    validatorResult.Warnings.Add(item.Message);
+                }
+                else
+                {
+                    Logging.SaveLog(item.Message);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(nameof(AddUnifiedDiagnostics), ex);
+        }
+    }
+
     public static async Task<CoreConfigContextBuilderAllResult> BuildAll(Config config, ProfileItem node)
     {
         var mainResult = await Build(config, node);
