@@ -136,6 +136,10 @@ public partial class GoldenOutputTests
     private static async Task AssertSnapshot(string name, string actual, [CallerFilePath] string sourceFile = "")
     {
         actual = FinalGuidRegex().Replace(actual.ReplaceLineEndings("\n"), "final-GUID");
+        // Paths under the app directory (e.g. sing-box cache_file) differ per machine and OS.
+        var appDir = Utils.StartupPath().TrimEnd('/', '\\');
+        actual = actual.Replace(JsonEncodedText.Encode(appDir).ToString(), "{APP}").Replace(appDir, "{APP}");
+        actual = AppPathRegex().Replace(actual, m => m.Value.Replace("\\\\", "/"));
         var path = Path.Combine(Path.GetDirectoryName(sourceFile)!, "Snapshots", $"{name}.json");
         if (Environment.GetEnvironmentVariable("UPDATE_SNAPSHOTS") == "1" || !File.Exists(path))
         {
@@ -152,4 +156,7 @@ public partial class GoldenOutputTests
 
     [GeneratedRegex("final-[0-9a-fA-F]{32}")]
     private static partial Regex FinalGuidRegex();
+
+    [GeneratedRegex("""\{APP\}[^"]*""")]
+    private static partial Regex AppPathRegex();
 }

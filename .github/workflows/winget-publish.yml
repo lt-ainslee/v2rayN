@@ -11,6 +11,8 @@ on:
 jobs:
   winget:
     name: Publish winget package
+    # Submits the upstream 2dust.v2rayN package; forks must not run it.
+    if: github.repository == '2dust/v2rayN'
     runs-on: windows-latest
     steps:
       - name: Submit v2ray package to Windows Package Manager Community Repository

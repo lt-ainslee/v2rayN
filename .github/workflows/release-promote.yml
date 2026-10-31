@@ -1,0 +1,96 @@
+name: promote release
+
+# Publishes a stable release (X.Y.Z) that "release all platforms" built as a pre-release,
+# after checking that every platform finished and uploaded its assets. Test releases
+# (X.Y.Z-beta.N etc.) are never promoted.
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Stable tag to publish, e.g. 7.26.0'
+        required: true
+        type: string
+      required_assets:
+        description: 'Assets that must exist (space separated). Clear it only to publish a partial release on purpose.'
+        required: false
+        type: string
+        default: >-
+          v2rayN-windows-64.zip v2rayN-windows-arm64.zip
+          v2rayN-windows-64-desktop.zip v2rayN-windows-arm64-desktop.zip v2rayN-windows-86.zip
+          v2rayN-linux-64.zip v2rayN-linux-arm64.zip v2rayN-linux-64.deb v2rayN-linux-arm64.deb
+          v2rayN-linux-rhel-64.rpm v2rayN-linux-rhel-arm64.rpm
+          v2rayN-macos-64.zip v2rayN-macos-arm64.zip v2rayN-macos-64.dmg v2rayN-macos-arm64.dmg
+          WebAPI-update.json
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Verify and publish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.release_tag }}
+          REQUIRED: ${{ inputs.required_assets }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Only stable tags (X.Y.Z) are promoted; '$TAG' is a test release and stays a pre-release."
+            exit 1
+          fi
+          if ! gh release view "$TAG" --repo "$REPO" --json isPrerelease,isDraft > release.json 2>/dev/null; then
+            echo "::error::Release $TAG does not exist. Run 'release all platforms' first."
+            exit 1
+          fi
+          if [[ "$(jq -r .isPrerelease release.json)" != true ]]; then
+            echo "Release $TAG is already published."
+          fi
+
+          # Platform runs dispatched for this tag must all have finished successfully.
+          # Only the newest run per workflow counts, so a platform re-dispatched after a failure is not blocked.
+          gh run list --repo "$REPO" --branch "$TAG" --event workflow_dispatch --limit 100 \
+            --json workflowName,status,conclusion,url,createdAt \
+            | jq '[group_by(.workflowName)[] | max_by(.createdAt)]' > runs.json
+          if [[ "$(jq length runs.json)" == 0 ]]; then
+            echo "::error::No platform builds were found for $TAG."; exit 1
+          fi
+          unfinished="$(jq -r '.[] | select(.status != "completed") | "\(.workflowName): \(.status) \(.url)"' runs.json)"
+          failed="$(jq -r '.[] | select(.status == "completed" and .conclusion != "success") | "\(.workflowName): \(.conclusion) \(.url)"' runs.json)"
+          if [[ -n "$unfinished" ]]; then
+            echo "::error::Platform builds for $TAG are still running:"; echo "$unfinished"; exit 1
+          fi
+          if [[ -n "$failed" ]]; then
+            echo "::error::Platform builds for $TAG did not succeed (re-run them first):"; echo "$failed"; exit 1
+          fi
+
+          assets="$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')"
+          missing=()
+          for asset in $REQUIRED; do
+            grep -qxF "$asset" <<< "$assets" || missing+=("$asset")
+          done
+          if (( ${#missing[@]} )); then
+            echo "::error::Release $TAG is missing assets: ${missing[*]}"
+            exit 1
+          fi
+          echo "All $(wc -w <<< "$REQUIRED") required assets are present." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish as latest release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" --repo "$REPO" --prerelease=false --draft=false --latest
+          echo "Published $TAG as the latest release: https://github.com/$REPO/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"

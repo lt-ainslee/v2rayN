@@ -1,0 +1,119 @@
+name: CI
+
+# Runs on every push and pull request, and is reused as the gate before a release is built.
+on:
+  push:
+    branches:
+      - '**'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A newer push to the same branch or pull request supersedes the running checks. When called as a
+  # release gate, github.workflow is the calling workflow, so the gate never cancels ordinary CI runs.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests (ServiceLib + WebAPI)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x'
+          dotnet-quality: 'ga'
+
+      - name: ServiceLib tests
+        run: >-
+          dotnet test --project ./v2rayN/ServiceLib.Tests -c Release
+          --results-directory ./TestResults/ServiceLib -- --report-trx
+
+      - name: WebAPI tests
+        if: success() || failure()
+        env:
+          TUNIT_MAX_PARALLEL_TESTS: '1'
+        run: >-
+          dotnet test --project ./v2rayN/v2rayN.WebAPI/Tests -c Release
+          --results-directory ./TestResults/WebAPI -- --report-trx
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: ./TestResults/**/*.trx
+          if-no-files-found: warn
+
+      - name: Upload changed snapshots
+        # Golden snapshot tests write *.actual next to the snapshot when the generated config changes.
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: snapshot-diffs
+          path: ./v2rayN/ServiceLib.Tests/**/Snapshots/*.actual
+          if-no-files-found: ignore
+
+      - name: Publish test results
+        # Pull requests from forks get a read-only token and cannot publish checks.
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: ./TestResults/**/*.trx
+          comment_mode: failures
+
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Desktop (Avalonia)
+            project: ./v2rayN/v2rayN.Desktop/v2rayN.Desktop.csproj
+            options: ''
+          - name: Windows (WPF)
+            project: ./v2rayN/v2rayN/v2rayN.csproj
+            options: '-r win-x64 -p:EnableWindowsTargeting=true'
+          - name: WebAPI
+            project: ./v2rayN/v2rayN.WebAPI/v2rayN.WebAPI.csproj
+            options: ''
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: 'recursive'
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x'
+          dotnet-quality: 'ga'
+
+      - name: Build
+        run: dotnet build ${{ matrix.project }} -c Release ${{ matrix.options }}

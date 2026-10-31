@@ -1,102 +1,151 @@
 name: release all platforms
 
+# Release channels, decided by the tag (see RELEASING.md):
+#   X.Y.Z-alpha.N / X.Y.Z-beta.N / X.Y.Z-rc.N  test release, stays a pre-release
+#   X.Y.Z                                     stable release, built as a pre-release and published
+#                                             with the "promote release" workflow once verified
+# Start it by pushing a tag, or from the Actions tab with a tag name (the tag is created on the
+# selected branch's head when it does not exist yet).
 on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
   workflow_dispatch:
     inputs:
       release_tag:
-        required: false
+        description: 'Tag to release, e.g. 7.26.0 (stable) or 7.26.0-beta.1 (test release)'
+        required: true
         type: string
 
-permissions: 
+permissions:
   actions: write
   contents: write
 
+concurrency:
+  group: release-${{ inputs.release_tag || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    name: Validate tag and version
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      prerelease: ${{ steps.resolve.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Resolve release tag
+        id: resolve
+        shell: bash
+        env:
+          TAG: ${{ inputs.release_tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(-(alpha|beta|rc)\.[0-9]+)?$ ]]; then
+            echo "::error::Invalid release tag '$TAG'. Use X.Y.Z for a stable release or X.Y.Z-alpha.N / -beta.N / -rc.N for a test release."
+            exit 1
+          fi
+          core="${BASH_REMATCH[1]}"
+          # The app reports the version from Directory.Build.props, so it must match the tag.
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' v2rayN/Directory.Build.props | head -n1)"
+          if [[ "$version" != "$core" ]]; then
+            echo "::error file=v2rayN/Directory.Build.props::<Version> is '$version' but the tag is '$TAG'. Set <Version>$core</Version> and commit it before releasing."
+            exit 1
+          fi
+          prerelease=false
+          [[ "$TAG" == *-* ]] && prerelease=true
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release $TAG"
+            if [[ "$prerelease" == true ]]; then
+              echo "Test release: it stays a pre-release."
+            else
+              echo "Stable release: built as a pre-release; run **promote release** once the assets are verified."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ci:
+    name: Tests and builds
+    needs: prepare
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+  create-release:
+    name: Create GitHub release
+    needs: [prepare, ci]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Create pre-release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$REPO" > /dev/null 2>&1; then
+            echo "Release $TAG already exists; its assets will be refreshed."
+            exit 0
+          fi
+          if [[ "$PRERELEASE" == true ]]; then
+            channel="Test release (pre-release). Not recommended for production use."
+          else
+            channel="Stable release candidate. It is published as the latest release after verification."
+          fi
+          # Every release starts as a pre-release, so it never shows up as "latest" with missing assets.
+          gh release create "$TAG" --repo "$REPO" --target "$SHA" --title "$TAG" \
+            --prerelease --generate-notes --notes "$channel"
+
   public-key:
-    if: inputs.release_tag != ''
+    needs: [prepare, create-release]
     uses: ./.github/workflows/pub-key.yml
     with:
-      release_tag: ${{ inputs.release_tag }}
+      release_tag: ${{ needs.prepare.outputs.tag }}
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
   release-WebAPI:
-    if: inputs.release_tag != ''
+    # Web self-update only accepts official x.y.z versions, so test releases ship no WebAPI packages.
+    if: needs.prepare.outputs.prerelease == 'false'
+    needs: [prepare, create-release]
     uses: ./.github/workflows/release-WebAPI.yml
     with:
-      release_tag: ${{ inputs.release_tag }}
+      release_tag: ${{ needs.prepare.outputs.tag }}
     secrets: inherit
 
-  update:
-    runs-on: ubuntu-latest
+  platforms:
+    name: Start platform builds
+    needs: [prepare, create-release]
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     steps:
-
-      - name: Trigger build windows
-        if: inputs.release_tag != ''
+      - name: Dispatch platform workflows for the tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-windows.yml/dispatches \
-            -d "{
-              \"ref\": \"master\",
-              \"inputs\": {
-                \"release_tag\": \"${{ inputs.release_tag }}\"
-              }
-            }"
-
-      - name: Trigger build linux
-        if: inputs.release_tag != ''
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-linux.yml/dispatches \
-            -d "{
-              \"ref\": \"master\",
-              \"inputs\": {
-                \"release_tag\": \"${{ inputs.release_tag }}\"
-              }
-            }"
-
-      - name: Trigger build osx
-        if: inputs.release_tag != ''
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-osx.yml/dispatches \
-            -d "{
-              \"ref\": \"master\",
-              \"inputs\": {
-                \"release_tag\": \"${{ inputs.release_tag }}\"
-              }
-            }"
-
-      - name: Trigger build windows desktop
-        if: inputs.release_tag != ''
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-windows-desktop.yml/dispatches \
-            -d "{
-              \"ref\": \"master\",
-              \"inputs\": {
-                \"release_tag\": \"${{ inputs.release_tag }}\"
-              }
-            }"
-            
-      - name: Trigger build windows x86
-        if: inputs.release_tag != ''
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/build-windows-x86.yml/dispatches \
-            -d "{
-              \"ref\": \"master\",
-              \"inputs\": {
-                \"release_tag\": \"${{ inputs.release_tag }}\"
-              }
-            }"
+          set -euo pipefail
+          # Each platform builds the tagged commit in its own run and uploads to the release.
+          for workflow in build-windows.yml build-windows-desktop.yml build-windows-x86.yml build-linux.yml build-osx.yml; do
+            gh workflow run "$workflow" --repo "$REPO" --ref "$TAG" -f release_tag="$TAG"
+            echo "- dispatched \`$workflow\` for $TAG" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "Follow the platform runs in the Actions tab; then run **promote release** for a stable tag." >> "$GITHUB_STEP_SUMMARY"
