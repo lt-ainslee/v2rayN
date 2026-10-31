@@ -2121,4 +2121,118 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbRuleCenterPolicyGroup" xml:space="preserve">
     <value>Policy group</value>
   </data>
+  <data name="menuRuleCenter" xml:space="preserve">
+    <value>Unified Rule Settings</value>
+  </data>
+  <data name="TbRuleCenterTips" xml:space="preserve">
+    <value>Everything here is shared by Xray, sing-box and mihomo and translated for each core when it starts. Per core: ✓ supported, ≈ approximated, ! partly dropped, ✗ skipped. Nothing is saved until you confirm.</value>
+  </data>
+  <data name="ThRuleCenterRules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="ThRuleCenterGroups" xml:space="preserve">
+    <value>Policy groups</value>
+  </data>
+  <data name="ThRuleCenterExtensions" xml:space="preserve">
+    <value>Core extensions</value>
+  </data>
+  <data name="TbRuleCenterProfile" xml:space="preserve">
+    <value>Routing profile</value>
+  </data>
+  <data name="TbRuleCenterSetActive" xml:space="preserve">
+    <value>Use this profile</value>
+  </data>
+  <data name="TbRuleCenterActive" xml:space="preserve">
+    <value>In use</value>
+  </data>
+  <data name="TbRuleCenterAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="TbRuleCenterDuplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="TbRuleCenterRemove" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="TbRuleCenterMoveUp" xml:space="preserve">
+    <value>Up</value>
+  </data>
+  <data name="TbRuleCenterMoveDown" xml:space="preserve">
+    <value>Down</value>
+  </data>
+  <data name="TbRuleCenterNoRule" xml:space="preserve">
+    <value>Select a rule on the left or add one.</value>
+  </data>
+  <data name="TbRuleCenterEnabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="TbRuleCenterScope" xml:space="preserve">
+    <value>Applies to</value>
+  </data>
+  <data name="TbRuleCenterTarget" xml:space="preserve">
+    <value>Outbound</value>
+  </data>
+  <data name="TbRuleCenterConditions" xml:space="preserve">
+    <value>Match (any of)</value>
+  </data>
+  <data name="TbRuleCenterAddCondition" xml:space="preserve">
+    <value>Add condition</value>
+  </data>
+  <data name="TbRuleCenterPaste" xml:space="preserve">
+    <value>Paste entries, one per line or comma separated; the type is detected</value>
+  </data>
+  <data name="TbRuleCenterPasteAdd" xml:space="preserve">
+    <value>Add pasted</value>
+  </data>
+  <data name="TbRuleCenterNegate" xml:space="preserve">
+    <value>Not</value>
+  </data>
+  <data name="TbRuleCenterConstraints" xml:space="preserve">
+    <value>Also require (all of)</value>
+  </data>
+  <data name="TbRuleCenterCompatibility" xml:space="preserve">
+    <value>How each core handles this rule</value>
+  </data>
+  <data name="TbRuleCenterAddGroup" xml:space="preserve">
+    <value>Add policy group</value>
+  </data>
+  <data name="TbRuleCenterAddChain" xml:space="preserve">
+    <value>Add proxy chain</value>
+  </data>
+  <data name="TbRuleCenterEditGroup" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="TbRuleCenterGroupsTips" xml:space="preserve">
+    <value>Policy groups also appear in the server list. Rules use them as outbound by name; changes here are saved immediately.</value>
+  </data>
+  <data name="TbRuleCenterRuleSetName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="TbRuleCenterRuleSetBehavior" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
+  <data name="TbRuleCenterRuleSetSingbox" xml:space="preserve">
+    <value>sing-box source (.srs / .json)</value>
+  </data>
+  <data name="TbRuleCenterRuleSetMihomo" xml:space="preserve">
+    <value>mihomo source (.mrs / .yaml / .txt)</value>
+  </data>
+  <data name="TbRuleCenterRuleSetInterval" xml:space="preserve">
+    <value>Update interval (s)</value>
+  </data>
+  <data name="TbRuleCenterAddRuleSet" xml:space="preserve">
+    <value>Add rule set</value>
+  </data>
+  <data name="TbRuleCenterRuleSetsTips" xml:space="preserve">
+    <value>Use a rule set in rules as a "Rule set" condition. Give a URL or a local path per core; a core without a source ignores it.</value>
+  </data>
+  <data name="TbRuleCenterPreviewTips" xml:space="preserve">
+    <value>Shows what the selected core receives for the profile being edited, including all unsaved changes.</value>
+  </data>
+  <data name="TbRuleCenterNoRuleSets" xml:space="preserve">
+    <value>No rule sets yet. Add one, then use it in a rule with the "Rule set" condition.</value>
+  </data>
+  <data name="TbRuleCenterNoGroups" xml:space="preserve">
+    <value>No policy groups yet. A policy group picks among several servers (fastest, fallback or load balancing); a proxy chain connects through servers in turn.</value>
+  </data>
 </root>

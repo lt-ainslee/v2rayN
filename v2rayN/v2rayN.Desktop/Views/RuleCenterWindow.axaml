@@ -1,0 +1,630 @@
+<Window
+    x:Class="v2rayN.Desktop.Views.RuleCenterWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:entities="clr-namespace:ServiceLib.Models.Entities;assembly=ServiceLib"
+    xmlns:local="using:v2rayN.Desktop.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
+    xmlns:services="clr-namespace:ServiceLib.Services.CoreConfig;assembly=ServiceLib"
+    xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
+    Title="{x:Static resx:ResUI.menuRuleCenter}"
+    Width="1200"
+    Height="800"
+    x:DataType="vms:RuleCenterViewModel"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <DockPanel Margin="{StaticResource Margin8}">
+        <StackPanel
+            Margin="{StaticResource Margin4}"
+            HorizontalAlignment="Center"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal">
+            <Button
+                x:Name="btnSave"
+                MinWidth="100"
+                Command="{Binding SaveCmd}"
+                Content="{x:Static resx:ResUI.TbConfirm}"
+                IsDefault="True" />
+            <Button
+                x:Name="btnCancel"
+                MinWidth="100"
+                Margin="{StaticResource MarginLr8}"
+                Content="{x:Static resx:ResUI.TbCancel}"
+                IsCancel="True" />
+        </StackPanel>
+
+        <TextBlock
+            Margin="{StaticResource Margin4}"
+            DockPanel.Dock="Top"
+            Text="{x:Static resx:ResUI.TbRuleCenterTips}"
+            TextWrapping="Wrap" />
+
+        <TabControl x:Name="tabMain" HorizontalContentAlignment="Stretch">
+            <!--  Rules  -->
+            <TabItem Header="{x:Static resx:ResUI.ThRuleCenterRules}">
+                <Grid ColumnDefinitions="420,8,*">
+                    <DockPanel Grid.Column="0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="{StaticResource Margin4}"
+                                VerticalAlignment="Center"
+                                Text="{x:Static resx:ResUI.TbRuleCenterProfile}" />
+                            <ComboBox
+                                Width="170"
+                                Margin="{StaticResource Margin4}"
+                                ItemsSource="{Binding Profiles}"
+                                SelectedItem="{Binding SelectedProfile}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="entities:RoutingItem">
+                                        <TextBlock Text="{Binding Remarks}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding SetActiveProfileCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterSetActive}"
+                                IsVisible="{Binding !IsSelectedProfileActive}" />
+                            <TextBlock
+                                Margin="{StaticResource Margin4}"
+                                VerticalAlignment="Center"
+                                Foreground="SeaGreen"
+                                IsVisible="{Binding IsSelectedProfileActive}"
+                                Text="{x:Static resx:ResUI.TbRuleCenterActive}" />
+                        </StackPanel>
+                        <WrapPanel DockPanel.Dock="Bottom">
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding AddRuleCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterAdd}" />
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding DuplicateRuleCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterDuplicate}" />
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding RemoveRuleCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterRemove}" />
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding MoveUpCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterMoveUp}" />
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding MoveDownCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterMoveDown}" />
+                        </WrapPanel>
+                        <Grid
+                            Margin="{StaticResource Margin4}"
+                            ColumnDefinitions="*,64,64,64"
+                            DockPanel.Dock="Top">
+                            <TextBlock Grid.Column="1" Text="Xray" />
+                            <TextBlock Grid.Column="2" Text="sing-box" />
+                            <TextBlock Grid.Column="3" Text="mihomo" />
+                        </Grid>
+                        <ListBox
+                            x:Name="lstRules"
+                            ItemsSource="{Binding Rules}"
+                            SelectedItem="{Binding SelectedRule}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vms:RuleListItemViewModel">
+                                    <Grid ColumnDefinitions="Auto,*,64,64,64" RowDefinitions="Auto,Auto">
+                                        <CheckBox
+                                            Grid.RowSpan="2"
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding Enabled}" />
+                                        <TextBlock
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Title}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            Opacity="0.7"
+                                            TextTrimming="CharacterEllipsis">
+                                            <Run Text="{Binding Target}" />
+                                            <Run Text="  " />
+                                            <Run Text="{Binding Summary}" />
+                                        </TextBlock>
+                                        <TextBlock
+                                            Grid.RowSpan="2"
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding XrayMark}" />
+                                        <TextBlock
+                                            Grid.RowSpan="2"
+                                            Grid.Column="3"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding SingboxMark}" />
+                                        <TextBlock
+                                            Grid.RowSpan="2"
+                                            Grid.Column="4"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding MihomoMark}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+
+                    <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+
+                    <TextBlock
+                        Grid.Column="2"
+                        Margin="{StaticResource Margin8}"
+                        IsVisible="{Binding !Editor.HasRule}"
+                        Text="{x:Static resx:ResUI.TbRuleCenterNoRule}" />
+                    <ScrollViewer
+                        Grid.Column="2"
+                        IsVisible="{Binding Editor.HasRule}"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="{StaticResource Margin4}">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.LvRemarks}" />
+                                <TextBox
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Margin="{StaticResource Margin4}"
+                                    Text="{Binding Editor.Remarks}" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.TbRuleCenterEnabled}" />
+                                <ToggleSwitch
+                                    Grid.Row="0"
+                                    Grid.Column="3"
+                                    Margin="{StaticResource Margin4}"
+                                    IsChecked="{Binding Editor.Enabled}" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.TbRuleCenterTarget}" />
+                                <ComboBox
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="{StaticResource Margin4}"
+                                    HorizontalAlignment="Stretch"
+                                    IsEditable="True"
+                                    ItemsSource="{Binding Editor.OutboundOptions}"
+                                    Text="{Binding Editor.OutboundTag}" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.TbRuleCenterScope}" />
+                                <ComboBox
+                                    x:Name="cmbRuleType"
+                                    Grid.Row="1"
+                                    Grid.Column="3"
+                                    Width="120"
+                                    Margin="{StaticResource Margin4}"
+                                    SelectedItem="{Binding Editor.RuleType}" />
+                            </Grid>
+
+                            <TextBlock
+                                Margin="{StaticResource Margin4}"
+                                FontWeight="SemiBold"
+                                Text="{x:Static resx:ResUI.TbRuleCenterConditions}" />
+                            <Grid Margin="{StaticResource Margin4}" ColumnDefinitions="280,*,64,64,64,64,80">
+                                <TextBlock Grid.Column="3" Text="Xray" />
+                                <TextBlock Grid.Column="4" Text="sing-box" />
+                                <TextBlock Grid.Column="5" Text="mihomo" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Editor.Conditions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vms:RuleConditionRowViewModel">
+                                        <Grid Margin="0,2" ColumnDefinitions="280,*,64,64,64,64,80">
+                                            <ComboBox
+                                                Grid.Column="0"
+                                                Margin="2,0"
+                                                HorizontalAlignment="Stretch"
+                                                ItemsSource="{Binding KindOptions}"
+                                                SelectedItem="{Binding KindName}" />
+                                            <TextBox
+                                                Grid.Column="1"
+                                                Margin="2,0"
+                                                IsEnabled="{Binding HasValue}"
+                                                Text="{Binding Value}" />
+                                            <CheckBox
+                                                Grid.Column="2"
+                                                Margin="2,0"
+                                                Content="{x:Static resx:ResUI.TbRuleCenterNegate}"
+                                                IsChecked="{Binding Negated}"
+                                                IsVisible="{Binding CanNegate}" />
+                                            <TextBlock
+                                                Grid.Column="3"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding XrayMark}" />
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding SingboxMark}" />
+                                            <TextBlock
+                                                Grid.Column="5"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding MihomoMark}" />
+                                            <Button
+                                                Grid.Column="6"
+                                                Margin="2,0"
+                                                Command="{Binding RemoveCmd}"
+                                                Content="{x:Static resx:ResUI.TbRuleCenterRemove}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button
+                                Margin="{StaticResource Margin4}"
+                                Command="{Binding Editor.AddConditionCmd}"
+                                Content="{x:Static resx:ResUI.TbRuleCenterAddCondition}" />
+                            <Grid Margin="{StaticResource Margin4}" ColumnDefinitions="*,Auto">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Height="60"
+                                    AcceptsReturn="True"
+                                    Classes="TextArea"
+                                    PlaceholderText="{x:Static resx:ResUI.TbRuleCenterPaste}"
+                                    Text="{Binding Editor.BulkText}"
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding Editor.AddBulkCmd}"
+                                    Content="{x:Static resx:ResUI.TbRuleCenterPasteAdd}" />
+                            </Grid>
+
+                            <TextBlock
+                                Margin="{StaticResource Margin4}"
+                                FontWeight="SemiBold"
+                                Text="{x:Static resx:ResUI.TbRuleCenterConstraints}" />
+                            <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="port" />
+                                <TextBox
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Margin="{StaticResource Margin4}"
+                                    Text="{Binding Editor.Port}" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="network" />
+                                <ComboBox
+                                    x:Name="cmbNetwork"
+                                    Grid.Row="0"
+                                    Grid.Column="3"
+                                    Margin="{StaticResource Margin4}"
+                                    HorizontalAlignment="Stretch"
+                                    SelectedItem="{Binding Editor.Network}" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.TbRuleSourceIp}" />
+                                <TextBox
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Margin="{StaticResource Margin4}"
+                                    Text="{Binding Editor.SourceIp}" />
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Static resx:ResUI.TbRuleSourcePort}" />
+                                <TextBox
+                                    Grid.Row="1"
+                                    Grid.Column="3"
+                                    Margin="{StaticResource Margin4}"
+                                    Text="{Binding Editor.SourcePort}" />
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="protocol" />
+                                <ItemsControl
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="3"
+                                    ItemsSource="{Binding Editor.Protocols}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vms:RuleCheckOption">
+                                            <CheckBox
+                                                Margin="4,0,12,0"
+                                                Content="{Binding Name}"
+                                                IsChecked="{Binding IsChecked}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock
+                                    Grid.Row="3"
+                                    Grid.Column="0"
+                                    Margin="{StaticResource Margin4}"
+                                    VerticalAlignment="Center"
+                                    Text="inboundTag" />
+                                <ItemsControl
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Grid.ColumnSpan="3"
+                                    ItemsSource="{Binding Editor.InboundTags}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vms:RuleCheckOption">
+                                            <CheckBox
+                                                Margin="4,0,12,0"
+                                                Content="{Binding Name}"
+                                                IsChecked="{Binding IsChecked}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
+                            <Expander
+                                Margin="{StaticResource Margin4}"
+                                HorizontalAlignment="Stretch"
+                                Header="{x:Static resx:ResUI.TbRuleCoreExt}">
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Height="80"
+                                        Margin="2"
+                                        AcceptsReturn="True"
+                                        Classes="TextArea"
+                                        PlaceholderText="{x:Static resx:ResUI.TbRuleXrayJson}"
+                                        Text="{Binding Editor.XrayJson}" />
+                                    <TextBox
+                                        Grid.Column="1"
+                                        Height="80"
+                                        Margin="2"
+                                        AcceptsReturn="True"
+                                        Classes="TextArea"
+                                        PlaceholderText="{x:Static resx:ResUI.TbRuleSingboxJson}"
+                                        Text="{Binding Editor.SingboxJson}" />
+                                    <TextBox
+                                        Grid.Column="2"
+                                        Height="80"
+                                        Margin="2"
+                                        AcceptsReturn="True"
+                                        Classes="TextArea"
+                                        PlaceholderText="{x:Static resx:ResUI.TbRuleMihomoRules}"
+                                        Text="{Binding Editor.MihomoRules}" />
+                                </Grid>
+                            </Expander>
+
+                            <TextBlock
+                                Margin="{StaticResource Margin4}"
+                                FontWeight="SemiBold"
+                                Text="{x:Static resx:ResUI.TbRuleCenterCompatibility}" />
+                            <SelectableTextBlock
+                                Margin="{StaticResource Margin4}"
+                                Text="{Binding Editor.CompatibilityText}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!--  DNS  -->
+            <TabItem Header="DNS">
+                <local:DnsSettingsPanel x:Name="dnsPanel" />
+            </TabItem>
+
+            <!--  Policy groups  -->
+            <TabItem Header="{x:Static resx:ResUI.ThRuleCenterGroups}">
+                <DockPanel>
+                    <TextBlock
+                        Margin="{StaticResource Margin4}"
+                        DockPanel.Dock="Top"
+                        Text="{x:Static resx:ResUI.TbRuleCenterGroupsTips}"
+                        TextWrapping="Wrap" />
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                        <Button
+                            Margin="{StaticResource Margin4}"
+                            Command="{Binding AddPolicyGroupCmd}"
+                            Content="{x:Static resx:ResUI.TbRuleCenterAddGroup}" />
+                        <Button
+                            Margin="{StaticResource Margin4}"
+                            Command="{Binding AddProxyChainCmd}"
+                            Content="{x:Static resx:ResUI.TbRuleCenterAddChain}" />
+                        <Button
+                            Margin="{StaticResource Margin4}"
+                            Command="{Binding EditPolicyGroupCmd}"
+                            Content="{x:Static resx:ResUI.TbRuleCenterEditGroup}" />
+                    </StackPanel>
+                    <TextBlock
+                        Margin="{StaticResource Margin8}"
+                        DockPanel.Dock="Top"
+                        IsVisible="{Binding !HasPolicyGroups}"
+                        Opacity="0.7"
+                        Text="{x:Static resx:ResUI.TbRuleCenterNoGroups}" />
+                    <ListBox ItemsSource="{Binding PolicyGroups}" SelectedItem="{Binding SelectedPolicyGroup}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vms:PolicyGroupListItem">
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{Binding Remarks}" />
+                                    <TextBlock Opacity="0.7" Text="{Binding TypeName}" />
+                                    <TextBlock
+                                        Opacity="0.7"
+                                        Text="{Binding Members}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </TabItem>
+
+            <!--  Rule sets  -->
+            <TabItem Header="{x:Static resx:ResUI.TbRuleSets}">
+                <DockPanel>
+                    <TextBlock
+                        Margin="{StaticResource Margin4}"
+                        DockPanel.Dock="Top"
+                        Text="{x:Static resx:ResUI.TbRuleCenterRuleSetsTips}"
+                        TextWrapping="Wrap" />
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="140,110,*,*,150,80"
+                        DockPanel.Dock="Top">
+                        <TextBlock Grid.Column="0" Text="{x:Static resx:ResUI.TbRuleCenterRuleSetName}" />
+                        <TextBlock Grid.Column="1" Text="{x:Static resx:ResUI.TbRuleCenterRuleSetBehavior}" />
+                        <TextBlock Grid.Column="2" Text="{x:Static resx:ResUI.TbRuleCenterRuleSetSingbox}" />
+                        <TextBlock Grid.Column="3" Text="{x:Static resx:ResUI.TbRuleCenterRuleSetMihomo}" />
+                        <TextBlock Grid.Column="4" Text="{x:Static resx:ResUI.TbRuleCenterRuleSetInterval}" />
+                    </Grid>
+                    <TextBlock
+                        Margin="{StaticResource Margin8}"
+                        DockPanel.Dock="Top"
+                        IsVisible="{Binding !HasRuleSets}"
+                        Opacity="0.7"
+                        Text="{x:Static resx:ResUI.TbRuleCenterNoRuleSets}" />
+                    <Button
+                        Margin="{StaticResource Margin4}"
+                        HorizontalAlignment="Left"
+                        Command="{Binding AddRuleSetCmd}"
+                        Content="{x:Static resx:ResUI.TbRuleCenterAddRuleSet}"
+                        DockPanel.Dock="Bottom" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RuleSets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vms:RuleSetRowViewModel">
+                                    <Grid Margin="4,2" ColumnDefinitions="140,110,*,*,150,80">
+                                        <TextBox
+                                            Grid.Column="0"
+                                            Margin="2,0"
+                                            Text="{Binding Name}" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            Margin="2,0"
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding BehaviorOptions}"
+                                            SelectedItem="{Binding Behavior}" />
+                                        <TextBox
+                                            Grid.Column="2"
+                                            Margin="2,0"
+                                            Text="{Binding SingboxSource}" />
+                                        <TextBox
+                                            Grid.Column="3"
+                                            Margin="2,0"
+                                            Text="{Binding MihomoSource}" />
+                                        <TextBox
+                                            Grid.Column="4"
+                                            Margin="2,0"
+                                            Text="{Binding Interval}" />
+                                        <Button
+                                            Grid.Column="5"
+                                            Margin="2,0"
+                                            Command="{Binding RemoveCmd}"
+                                            Content="{x:Static resx:ResUI.TbRuleCenterRemove}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+
+            <!--  Core extensions  -->
+            <TabItem Header="{x:Static resx:ResUI.ThRuleCenterExtensions}">
+                <local:CoreExtensionPanel x:Name="extensionPanel" />
+            </TabItem>
+
+            <!--  Preview  -->
+            <TabItem Header="{x:Static resx:ResUI.ThUnifiedPreview}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <TextBlock
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbPreviewCore}" />
+                        <ComboBox
+                            x:Name="cmbPreviewCore"
+                            Width="160"
+                            Margin="{StaticResource Margin4}"
+                            SelectedItem="{Binding PreviewCore}" />
+                        <Button
+                            Margin="{StaticResource Margin4}"
+                            Command="{Binding PreviewCmd}"
+                            Content="{x:Static resx:ResUI.TbPreviewGenerate}" />
+                        <TextBlock
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbRuleCenterPreviewTips}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <TextBox
+                        Margin="{StaticResource Margin4}"
+                        Classes="TextArea"
+                        IsReadOnly="True"
+                        Text="{Binding PreviewText}"
+                        TextWrapping="NoWrap" />
+                </DockPanel>
+            </TabItem>
+
+            <!--  Capability matrix  -->
+            <TabItem Header="{x:Static resx:ResUI.ThCapabilityMatrix}">
+                <DockPanel>
+                    <TextBlock
+                        Margin="{StaticResource Margin4}"
+                        DockPanel.Dock="Top"
+                        Text="{x:Static resx:ResUI.TbCapabilityMatrixTips}" />
+                    <Grid
+                        Margin="{StaticResource Margin4}"
+                        ColumnDefinitions="260,100,100,100"
+                        DockPanel.Dock="Top">
+                        <TextBlock Grid.Column="1" Text="Xray" />
+                        <TextBlock Grid.Column="2" Text="sing-box" />
+                        <TextBlock Grid.Column="3" Text="mihomo" />
+                    </Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl Margin="{StaticResource Margin4}" ItemsSource="{Binding CapabilityRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="services:CoreCapabilityRow">
+                                    <Grid ColumnDefinitions="260,100,100,100">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Xray}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Singbox}" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Mihomo}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

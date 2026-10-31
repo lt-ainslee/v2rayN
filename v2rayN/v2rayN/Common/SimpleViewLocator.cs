@@ -19,6 +19,7 @@ public class SimpleViewLocator : IViewLocator
         Register<CoreExtensionSettingViewModel, CoreExtensionSettingWindow>();
         Register<ClashProxiesViewModel, ClashProxiesView>();
         Register<DNSSettingViewModel, DNSSettingWindow>();
+        Register<RuleCenterViewModel, RuleCenterWindow>();
         Register<FullConfigTemplateViewModel, FullConfigTemplateWindow>();
         Register<GlobalHotkeySettingViewModel, GlobalHotkeySettingWindow>();
         Register<MainWindowViewModel, MainWindow>();

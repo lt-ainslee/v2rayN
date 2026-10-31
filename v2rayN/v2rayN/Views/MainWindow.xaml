@@ -191,6 +191,10 @@
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuOptionSetting}" />
                                 <MenuItem
+                                    x:Name="menuRuleCenter"
+                                    Height="{StaticResource MenuItemHeight}"
+                                    Header="{x:Static resx:ResUI.menuRuleCenter}" />
+                                <MenuItem
                                     x:Name="menuRoutingSetting"
                                     Height="{StaticResource MenuItemHeight}"
                                     Header="{x:Static resx:ResUI.menuRoutingSetting}" />

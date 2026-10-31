@@ -6,7 +6,7 @@ namespace ServiceLib.ViewModels;
 /// </summary>
 public partial class RuleEditorViewModel : ReactiveObject
 {
-    public static IReadOnlyList<string> RuleTypes { get; } = ["", nameof(ERuleType.ALL), nameof(ERuleType.Routing), nameof(ERuleType.DNS)];
+    public static IReadOnlyList<string> RuleTypes { get; } = [nameof(ERuleType.ALL), nameof(ERuleType.Routing), nameof(ERuleType.DNS)];
     public static IReadOnlyList<string> Networks { get; } = Global.RuleNetworks;
 
     private readonly Action _changed;
@@ -60,7 +60,8 @@ public partial class RuleEditorViewModel : ReactiveObject
             var rule = item?.Rule ?? new RulesItem();
             Remarks = rule.Remarks ?? string.Empty;
             Enabled = rule.Enabled;
-            RuleType = rule.RuleType?.ToString() ?? string.Empty;
+            // An unset rule type means ALL (routing and DNS).
+            RuleType = (rule.RuleType ?? ERuleType.ALL).ToString();
             OutboundTag = rule.OutboundTag ?? Global.ProxyTag;
             Port = rule.Port ?? string.Empty;
             Network = rule.Network ?? string.Empty;
@@ -139,7 +140,9 @@ public partial class RuleEditorViewModel : ReactiveObject
         var rule = _current.Rule;
         rule.Remarks = Remarks.NullIfEmpty();
         rule.Enabled = Enabled;
-        rule.RuleType = RuleType.IsNullOrEmpty() ? null : Enum.Parse<ERuleType>(RuleType);
+        // Keep "unset" when nothing changed it, so editing other fields does not rewrite the stored type.
+        var ruleType = Enum.TryParse<ERuleType>(RuleType, out var parsed) ? parsed : ERuleType.ALL;
+        rule.RuleType = rule.RuleType == null && ruleType == ERuleType.ALL ? null : ruleType;
         rule.OutboundTag = OutboundTag.NullIfEmpty() ?? Global.ProxyTag;
         rule.Port = Port.NullIfEmpty();
         rule.Network = Network.NullIfEmpty();
@@ -216,9 +219,11 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
     [Reactive] public partial RuleListItemViewModel? SelectedRule { get; set; }
 
     public ObservableCollection<RuleSetRowViewModel> RuleSets { get; } = [];
+    [Reactive] public partial bool HasRuleSets { get; set; }
 
     public BulkObservableCollection<PolicyGroupListItem> PolicyGroups { get; } = [];
     [Reactive] public partial PolicyGroupListItem? SelectedPolicyGroup { get; set; }
+    [Reactive] public partial bool HasPolicyGroups { get; set; }
 
     public static IReadOnlyList<string> PreviewCores => CoreExtensionSettingViewModel.PreviewCores;
     [Reactive] public partial string PreviewCore { get; set; }
@@ -302,6 +307,9 @@ public partial class RuleCenterViewModel : MyReactiveObject, ICloseable
         this.WhenAnyValue(x => x.SelectedRule).Subscribe(Editor.Load);
         this.WhenAnyValue(x => x.SelectedProfile, x => x.ActiveProfileId)
             .Subscribe(_ => IsSelectedProfileActive = SelectedProfile != null && SelectedProfile.Id == ActiveProfileId);
+
+        RuleSets.CollectionChanged += (_, _) => HasRuleSets = RuleSets.Count > 0;
+        PolicyGroups.CollectionChanged += (_, _) => HasPolicyGroups = PolicyGroups.Count > 0;
 
         _ = InitAsync();
     }

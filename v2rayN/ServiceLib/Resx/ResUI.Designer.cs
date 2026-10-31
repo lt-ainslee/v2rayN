@@ -6065,5 +6065,347 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("TbRuleCenterPolicyGroup", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 Unified Rule Settings 的本地化字符串。
+        /// </summary>
+        public static string menuRuleCenter {
+            get {
+                return ResourceManager.GetString("menuRuleCenter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Everything here is shared by Xray, sing-box and mihomo and t 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterTips {
+            get {
+                return ResourceManager.GetString("TbRuleCenterTips", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Rules 的本地化字符串。
+        /// </summary>
+        public static string ThRuleCenterRules {
+            get {
+                return ResourceManager.GetString("ThRuleCenterRules", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Policy groups 的本地化字符串。
+        /// </summary>
+        public static string ThRuleCenterGroups {
+            get {
+                return ResourceManager.GetString("ThRuleCenterGroups", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Core extensions 的本地化字符串。
+        /// </summary>
+        public static string ThRuleCenterExtensions {
+            get {
+                return ResourceManager.GetString("ThRuleCenterExtensions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Routing profile 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterProfile {
+            get {
+                return ResourceManager.GetString("TbRuleCenterProfile", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Use this profile 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterSetActive {
+            get {
+                return ResourceManager.GetString("TbRuleCenterSetActive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 In use 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterActive {
+            get {
+                return ResourceManager.GetString("TbRuleCenterActive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterAdd {
+            get {
+                return ResourceManager.GetString("TbRuleCenterAdd", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Duplicate 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterDuplicate {
+            get {
+                return ResourceManager.GetString("TbRuleCenterDuplicate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Delete 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRemove {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRemove", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Up 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterMoveUp {
+            get {
+                return ResourceManager.GetString("TbRuleCenterMoveUp", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Down 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterMoveDown {
+            get {
+                return ResourceManager.GetString("TbRuleCenterMoveDown", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Select a rule on the left or add one. 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterNoRule {
+            get {
+                return ResourceManager.GetString("TbRuleCenterNoRule", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Enabled 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterEnabled {
+            get {
+                return ResourceManager.GetString("TbRuleCenterEnabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Applies to 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterScope {
+            get {
+                return ResourceManager.GetString("TbRuleCenterScope", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Outbound 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterTarget {
+            get {
+                return ResourceManager.GetString("TbRuleCenterTarget", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Match (any of) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterConditions {
+            get {
+                return ResourceManager.GetString("TbRuleCenterConditions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add condition 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterAddCondition {
+            get {
+                return ResourceManager.GetString("TbRuleCenterAddCondition", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Paste entries, one per line or comma separated; the type is  的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterPaste {
+            get {
+                return ResourceManager.GetString("TbRuleCenterPaste", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add pasted 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterPasteAdd {
+            get {
+                return ResourceManager.GetString("TbRuleCenterPasteAdd", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Not 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterNegate {
+            get {
+                return ResourceManager.GetString("TbRuleCenterNegate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Also require (all of) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterConstraints {
+            get {
+                return ResourceManager.GetString("TbRuleCenterConstraints", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 How each core handles this rule 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterCompatibility {
+            get {
+                return ResourceManager.GetString("TbRuleCenterCompatibility", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add policy group 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterAddGroup {
+            get {
+                return ResourceManager.GetString("TbRuleCenterAddGroup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add proxy chain 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterAddChain {
+            get {
+                return ResourceManager.GetString("TbRuleCenterAddChain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Edit 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterEditGroup {
+            get {
+                return ResourceManager.GetString("TbRuleCenterEditGroup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Policy groups also appear in the server list. Rules use them 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterGroupsTips {
+            get {
+                return ResourceManager.GetString("TbRuleCenterGroupsTips", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Name 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetName {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Behavior 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetBehavior {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetBehavior", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 sing-box source (.srs / .json) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetSingbox {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetSingbox", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 mihomo source (.mrs / .yaml / .txt) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetMihomo {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetMihomo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Update interval (s) 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetInterval {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetInterval", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Add rule set 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterAddRuleSet {
+            get {
+                return ResourceManager.GetString("TbRuleCenterAddRuleSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Use a rule set in rules as a "Rule set" condition. Give a UR 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterRuleSetsTips {
+            get {
+                return ResourceManager.GetString("TbRuleCenterRuleSetsTips", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Shows what the selected core receives for the profile being  的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterPreviewTips {
+            get {
+                return ResourceManager.GetString("TbRuleCenterPreviewTips", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 No rule sets yet. Add one, then use it in a rule with the "R 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterNoRuleSets {
+            get {
+                return ResourceManager.GetString("TbRuleCenterNoRuleSets", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 No policy groups yet. A policy group picks among several ser 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCenterNoGroups {
+            get {
+                return ResourceManager.GetString("TbRuleCenterNoGroups", resourceCulture);
+            }
+        }
     }
 }

@@ -54,6 +54,7 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     public ReactiveCommand<RxVoid, RxVoid> RoutingSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> DNSSettingCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> RuleCenterCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> CoreExtensionSettingCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> FullConfigTemplateCmd { get; }
     public ReactiveCommand<RxVoid, RxVoid> GlobalHotkeySettingCmd { get; }
@@ -210,6 +211,10 @@ public partial class MainWindowViewModel : MyReactiveObject
         DNSSettingCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await DNSSettingAsync();
+        });
+        RuleCenterCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await RuleCenterAsync();
         });
         CoreExtensionSettingCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -626,6 +631,21 @@ public partial class MainWindowViewModel : MyReactiveObject
         var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(dnsSettingViewModel);
         if (ret == true)
         {
+            await Reload();
+        }
+    }
+
+    private async Task RuleCenterAsync()
+    {
+        var ret = await AppManager.Instance.WindowDialog.ShowDialogAsync(new RuleCenterViewModel());
+        // Policy groups are saved from their own dialog, so the server list may have changed either way.
+        await RefreshServersDispatcherAsync();
+        if (ret == true)
+        {
+            RxSchedulers.MainThreadScheduler.Schedule(async () =>
+            {
+                await StatusBarViewModel.RefreshRoutingsMenu();
+            });
             await Reload();
         }
     }

@@ -2113,4 +2113,118 @@
   <data name="TbRuleCenterPolicyGroup" xml:space="preserve">
     <value>策略组</value>
   </data>
+  <data name="menuRuleCenter" xml:space="preserve">
+    <value>统一规则设置</value>
+  </data>
+  <data name="TbRuleCenterTips" xml:space="preserve">
+    <value>这里的所有设置由 Xray、sing-box、mihomo 共用，在内核启动时分别翻译。每个内核的标记：✓ 支持，≈ 近似实现，! 部分条件被移除，✗ 整条跳过。点击确定之前不会保存任何内容。</value>
+  </data>
+  <data name="ThRuleCenterRules" xml:space="preserve">
+    <value>规则</value>
+  </data>
+  <data name="ThRuleCenterGroups" xml:space="preserve">
+    <value>策略组</value>
+  </data>
+  <data name="ThRuleCenterExtensions" xml:space="preserve">
+    <value>内核扩展</value>
+  </data>
+  <data name="TbRuleCenterProfile" xml:space="preserve">
+    <value>路由方案</value>
+  </data>
+  <data name="TbRuleCenterSetActive" xml:space="preserve">
+    <value>设为使用中</value>
+  </data>
+  <data name="TbRuleCenterActive" xml:space="preserve">
+    <value>使用中</value>
+  </data>
+  <data name="TbRuleCenterAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TbRuleCenterDuplicate" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="TbRuleCenterRemove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TbRuleCenterMoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TbRuleCenterMoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="TbRuleCenterNoRule" xml:space="preserve">
+    <value>在左侧选择一条规则，或添加新规则。</value>
+  </data>
+  <data name="TbRuleCenterEnabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="TbRuleCenterScope" xml:space="preserve">
+    <value>作用于</value>
+  </data>
+  <data name="TbRuleCenterTarget" xml:space="preserve">
+    <value>出口</value>
+  </data>
+  <data name="TbRuleCenterConditions" xml:space="preserve">
+    <value>匹配条件（满足任一）</value>
+  </data>
+  <data name="TbRuleCenterAddCondition" xml:space="preserve">
+    <value>添加条件</value>
+  </data>
+  <data name="TbRuleCenterPaste" xml:space="preserve">
+    <value>粘贴多项，每行一个或用逗号分隔，自动识别类型</value>
+  </data>
+  <data name="TbRuleCenterPasteAdd" xml:space="preserve">
+    <value>识别并添加</value>
+  </data>
+  <data name="TbRuleCenterNegate" xml:space="preserve">
+    <value>取反</value>
+  </data>
+  <data name="TbRuleCenterConstraints" xml:space="preserve">
+    <value>附加条件（同时满足）</value>
+  </data>
+  <data name="TbRuleCenterCompatibility" xml:space="preserve">
+    <value>各内核的处理结果</value>
+  </data>
+  <data name="TbRuleCenterAddGroup" xml:space="preserve">
+    <value>新增策略组</value>
+  </data>
+  <data name="TbRuleCenterAddChain" xml:space="preserve">
+    <value>新增链式代理</value>
+  </data>
+  <data name="TbRuleCenterEditGroup" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="TbRuleCenterGroupsTips" xml:space="preserve">
+    <value>策略组同时显示在服务器列表中。规则按名称把它们用作出口；此处的修改会立即保存。</value>
+  </data>
+  <data name="TbRuleCenterRuleSetName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="TbRuleCenterRuleSetBehavior" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="TbRuleCenterRuleSetSingbox" xml:space="preserve">
+    <value>sing-box 来源 (.srs / .json)</value>
+  </data>
+  <data name="TbRuleCenterRuleSetMihomo" xml:space="preserve">
+    <value>mihomo 来源 (.mrs / .yaml / .txt)</value>
+  </data>
+  <data name="TbRuleCenterRuleSetInterval" xml:space="preserve">
+    <value>更新间隔（秒）</value>
+  </data>
+  <data name="TbRuleCenterAddRuleSet" xml:space="preserve">
+    <value>添加规则集</value>
+  </data>
+  <data name="TbRuleCenterRuleSetsTips" xml:space="preserve">
+    <value>在规则中以「规则集」条件引用。为每个内核填写 URL 或本地路径；没有来源的内核会忽略它。</value>
+  </data>
+  <data name="TbRuleCenterPreviewTips" xml:space="preserve">
+    <value>显示所选内核针对正在编辑的路由方案会收到的内容，包含所有未保存的修改。</value>
+  </data>
+  <data name="TbRuleCenterNoRuleSets" xml:space="preserve">
+    <value>还没有规则集。添加后，即可在规则中用「规则集」条件引用。</value>
+  </data>
+  <data name="TbRuleCenterNoGroups" xml:space="preserve">
+    <value>还没有策略组。策略组在多个服务器之间选择（最快、故障转移或负载均衡）；链式代理依次经过多个服务器。</value>
+  </data>
 </root>
