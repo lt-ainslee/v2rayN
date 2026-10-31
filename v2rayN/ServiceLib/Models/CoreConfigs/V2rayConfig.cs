@@ -205,6 +205,10 @@ public class Dns4Ray
     public bool? enableParallelQuery { get; set; }
     public string? queryStrategy { get; set; }
     public bool? disableCache { get; set; }
+    public bool? disableFallback { get; set; }
+    public bool? disableFallbackIfMatch { get; set; }
+    public string? clientIp { get; set; }
+    public int? serveExpiredTTL { get; set; }
     public string? tag { get; set; }
 }
 

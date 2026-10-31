@@ -28,6 +28,19 @@ public partial class CoreConfigSingboxService
             {
                 _coreConfig.dns.independent_cache = true;
             }
+            // disable_expire conflicts with optimistic (serve stale): sing-box refuses both, serve stale wins.
+            if (singboxExt?.DnsDisableExpire == true && _coreConfig.dns.optimistic != true)
+            {
+                _coreConfig.dns.disable_expire = true;
+            }
+            if (singboxExt?.DnsCacheCapacity is >= 1024)
+            {
+                _coreConfig.dns.cache_capacity = singboxExt.DnsCacheCapacity;
+            }
+            if (singboxExt?.DnsReverseMapping == true)
+            {
+                _coreConfig.dns.reverse_mapping = true;
+            }
 
             // final dns
             var useDirectDns = UseDirectDns();

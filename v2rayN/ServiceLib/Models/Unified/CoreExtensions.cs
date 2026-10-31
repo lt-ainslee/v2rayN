@@ -41,6 +41,18 @@ public class XrayExtension
 
     /// <summary>dns.disableCache</summary>
     public bool? DnsDisableCache { get; set; }
+
+    /// <summary>dns.disableFallback: never query the other servers when the matched one fails.</summary>
+    public bool? DnsDisableFallback { get; set; }
+
+    /// <summary>dns.disableFallbackIfMatch: no fallback when a server's domain list matched.</summary>
+    public bool? DnsDisableFallbackIfMatch { get; set; }
+
+    /// <summary>dns.clientIp: EDNS Client Subnet address, e.g. 1.2.3.4</summary>
+    public string? DnsClientIp { get; set; }
+
+    /// <summary>dns.serveExpiredTTL (seconds); only used with serve stale. 0: never expire.</summary>
+    public int? DnsServeExpiredTtl { get; set; }
 }
 
 [Serializable]
@@ -49,8 +61,26 @@ public class SingboxExtension
     /// <summary>dns.client_subnet, e.g. 1.2.3.0/24</summary>
     public string? DnsClientSubnet { get; set; }
 
-    /// <summary>dns.independent_cache</summary>
+    /// <summary>dns.independent_cache (deprecated in sing-box 1.14)</summary>
     public bool? DnsIndependentCache { get; set; }
+
+    /// <summary>dns.disable_expire; conflicts with optimistic (serve stale), which wins.</summary>
+    public bool? DnsDisableExpire { get; set; }
+
+    /// <summary>dns.cache_capacity; values below 1024 are ignored by sing-box.</summary>
+    public int? DnsCacheCapacity { get; set; }
+
+    /// <summary>dns.reverse_mapping: keep IP -> domain mappings so routing sees domains for IP connections.</summary>
+    public bool? DnsReverseMapping { get; set; }
+
+    /// <summary>route.find_process: look processes up for logs and the connection list.</summary>
+    public bool? RouteFindProcess { get; set; }
+
+    /// <summary>route.default_mark (Linux only).</summary>
+    public int? RouteDefaultMark { get; set; }
+
+    /// <summary>experimental.cache_file.store_rdrc: remember rejected DNS responses; needs the cache file.</summary>
+    public bool? CacheFileStoreRdrc { get; set; }
 }
 
 /// <summary>
@@ -91,6 +121,26 @@ public class MihomoExtension
 
     /// <summary>Extra Clash rules inserted before the translated rules.</summary>
     public string? ExtraRules { get; set; }
+
+    /// <summary>dns.cache-algorithm: lru / arc. Empty: mihomo default (lru).</summary>
+    public string? DnsCacheAlgorithm { get; set; }
+
+    // General options: applied whatever the unified mode; null keeps the configuration file's value.
+
+    /// <summary>unified-delay</summary>
+    public bool? UnifiedDelay { get; set; }
+
+    /// <summary>tcp-concurrent</summary>
+    public bool? TcpConcurrent { get; set; }
+
+    /// <summary>find-process-mode: always / strict / off</summary>
+    public string? FindProcessMode { get; set; }
+
+    /// <summary>keep-alive-interval (seconds)</summary>
+    public int? KeepAliveInterval { get; set; }
+
+    /// <summary>sniffer.enable; when enabling and the file has no sniffer, HTTP / TLS / QUIC are sniffed on common ports.</summary>
+    public bool? SnifferEnabled { get; set; }
 }
 
 /// <summary>

@@ -93,6 +93,11 @@ public partial class CoreConfigV2rayService
                 dnsItem.queryStrategy = xrayExt.DnsQueryStrategy;
             }
             dnsItem.disableCache = xrayExt?.DnsDisableCache == true ? true : null;
+            dnsItem.disableFallback = xrayExt?.DnsDisableFallback == true ? true : null;
+            dnsItem.disableFallbackIfMatch = xrayExt?.DnsDisableFallbackIfMatch == true ? true : null;
+            dnsItem.clientIp = xrayExt?.DnsClientIp.NullIfEmpty();
+            // serveExpiredTTL only means something when expired records are served at all.
+            dnsItem.serveExpiredTTL = dnsItem.serveStale == true && xrayExt?.DnsServeExpiredTtl is >= 0 ? xrayExt.DnsServeExpiredTtl : null;
 
             // DNS routing
             var directDnsTags = dnsItem.servers

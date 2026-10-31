@@ -1924,7 +1924,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>Custom rules</value>
   </data>
   <data name="TbClashRulesTips" xml:space="preserve">
-    <value>Clash rule format, e.g. DOMAIN-SUFFIX,google.com,Proxy or RULE-SET,my-set,Proxy. Rules whose policy does not exist are skipped.</value>
+    <value>One Clash rule per line, e.g. DOMAIN-SUFFIX,google.com,Proxy, RULE-SET,my-set,Proxy or AND,((NETWORK,UDP),(DST-PORT,443)),REJECT. Placed before the translated rules. Invalid lines are rejected when saving; lines whose policy or rule set does not exist are skipped at startup.</value>
   </data>
   <data name="TbClashOverrideInvalidLines" xml:space="preserve">
     <value>{0}: invalid line(s): {1}</value>
@@ -2035,7 +2035,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>sing-box: JSON object merged into the generated rule</value>
   </data>
   <data name="TbRuleMihomoRules" xml:space="preserve">
-    <value>mihomo: Clash rules that replace the translation ({target} = policy)</value>
+    <value>mihomo: Clash rules replacing the translation, one per line with a policy ({target} = this rule's outbound)</value>
   </data>
   <data name="TbRuleCoreExtInvalidJson" xml:space="preserve">
     <value>Core extension: {0} is not a valid JSON object</value>
@@ -2068,9 +2068,150 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>Preview failed: {0}</value>
   </data>
   <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
-    <value>The shared settings are not applied to Clash configurations (mihomo tab: Off), so the configuration file is used as is.</value>
+    <value>The shared settings are not applied to Clash configurations (mihomo tab: Off): the configuration file is used as is, apart from the general options below.</value>
   </data>
   <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
     <value>Rule "{0}" matches all traffic; the rules after it, including the Clash configuration's own rules, are not reached</value>
+  </data>
+  <data name="MsgUnifiedRuleLineInvalid" xml:space="preserve">
+    <value>{0}: "{1}" is not a valid Clash rule and was skipped</value>
+  </data>
+  <data name="MsgUnifiedRuleLineRuleSetMissing" xml:space="preserve">
+    <value>{0}: "{1}" references rule set {2}, which is neither declared with a mihomo source nor a rule-provider of the configuration; the line was skipped</value>
+  </data>
+  <data name="TbCoreExtensionInvalidInput" xml:space="preserve">
+    <value>Invalid input: {0}</value>
+  </data>
+  <data name="TbTriStateKeep" xml:space="preserve">
+    <value>Keep the configuration file value</value>
+  </data>
+  <data name="TbTriStateOn" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="TbTriStateOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="TbCoreExtensionPriorityTips" xml:space="preserve">
+    <value>Precedence, low to high: shared DNS / routing settings &lt; options on this page &lt; the per-rule core extension (rule details window) &lt; whole-document overrides (full config template, custom DNS JSON, Clash Mixin.yaml). A higher level overrides the same field of a lower one; unset options leave the generated value alone. Use the Preview tab to check the result before saving.</value>
+  </data>
+  <data name="TbMihomoSectionGeneral" xml:space="preserve">
+    <value>General options: written to every Clash configuration, whatever the mode above</value>
+  </data>
+  <data name="TbMihomoSectionUnified" xml:space="preserve">
+    <value>Shared settings: only used when the mode above is not Off</value>
+  </data>
+  <data name="TbMihomoPreferH3Tips" xml:space="preserve">
+    <value>dns.prefer-h3: DoH servers try HTTP/3 first. Not recommended together with respect-rules.</value>
+  </data>
+  <data name="TbMihomoDnsCacheAlgorithm" xml:space="preserve">
+    <value>DNS cache algorithm</value>
+  </data>
+  <data name="TbMihomoDnsCacheAlgorithmTips" xml:space="preserve">
+    <value>dns.cache-algorithm: lru (default) or arc. Empty: mihomo default.</value>
+  </data>
+  <data name="TbMihomoUnifiedDelay" xml:space="preserve">
+    <value>Unified delay</value>
+  </data>
+  <data name="TbMihomoUnifiedDelayTips" xml:space="preserve">
+    <value>unified-delay: measures latency without the handshake, so nodes of different protocols are comparable.</value>
+  </data>
+  <data name="TbMihomoTcpConcurrent" xml:space="preserve">
+    <value>TCP concurrent dial</value>
+  </data>
+  <data name="TbMihomoTcpConcurrentTips" xml:space="preserve">
+    <value>tcp-concurrent: dials every resolved IP at once and keeps the first connection that succeeds.</value>
+  </data>
+  <data name="TbMihomoFindProcessMode" xml:space="preserve">
+    <value>Process matching</value>
+  </data>
+  <data name="TbMihomoFindProcessModeTips" xml:space="preserve">
+    <value>find-process-mode: always = always look the process up, strict = only when rules need it (default), off = never (PROCESS-NAME rules stop matching).</value>
+  </data>
+  <data name="TbMihomoKeepAliveInterval" xml:space="preserve">
+    <value>TCP keep-alive interval (s)</value>
+  </data>
+  <data name="TbMihomoKeepAliveIntervalTips" xml:space="preserve">
+    <value>keep-alive-interval in seconds, e.g. 15. Empty: keep the file value.</value>
+  </data>
+  <data name="TbMihomoSniffer" xml:space="preserve">
+    <value>Domain sniffing</value>
+  </data>
+  <data name="TbMihomoSnifferTips" xml:space="preserve">
+    <value>sniffer.enable: reads the domain from HTTP / TLS / QUIC so domain rules also match connections made to an IP. When turned on and the file has no sniffer section, ports 80, 8080-8880, 443 and 8443 are sniffed.</value>
+  </data>
+  <data name="TbXrayDnsQueryStrategyTips" xml:space="preserve">
+    <value>dns.queryStrategy: UseIPv4 / UseIPv6 only query A / AAAA records, UseSystem follows the system network. Empty: UseIP (or UseIPv4 when "Block AAAA Queries" is on in the DNS settings).</value>
+  </data>
+  <data name="TbXrayDnsDisableCacheTips" xml:space="preserve">
+    <value>dns.disableCache: every query goes to the server.</value>
+  </data>
+  <data name="TbXrayDnsDisableFallback" xml:space="preserve">
+    <value>Disable DNS fallback</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackTips" xml:space="preserve">
+    <value>dns.disableFallback: when the matched server fails, do not try the other servers.</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackIfMatch" xml:space="preserve">
+    <value>No fallback after a domain match</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackIfMatchTips" xml:space="preserve">
+    <value>dns.disableFallbackIfMatch: a domain matched by a server's domain list is only resolved by that server, e.g. China domains never leak to the remote DNS.</value>
+  </data>
+  <data name="TbXrayDnsClientIp" xml:space="preserve">
+    <value>DNS client IP (ECS)</value>
+  </data>
+  <data name="TbXrayDnsClientIpTips" xml:space="preserve">
+    <value>dns.clientIp: sent as EDNS Client Subnet so the DNS returns addresses close to this IP, e.g. your public IP.</value>
+  </data>
+  <data name="TbXrayDnsServeExpiredTtl" xml:space="preserve">
+    <value>Stale record lifetime (s)</value>
+  </data>
+  <data name="TbXrayDnsServeExpiredTtlTips" xml:space="preserve">
+    <value>dns.serveExpiredTTL: how long expired records may be served. Only used when "Serve Stale" is on in the DNS settings; 0 = forever.</value>
+  </data>
+  <data name="TbSingboxDnsClientSubnetTips" xml:space="preserve">
+    <value>dns.client_subnet: EDNS Client Subnet for every query, an IP or prefix such as 1.2.3.0/24.</value>
+  </data>
+  <data name="TbSingboxDnsIndependentCacheTips" xml:space="preserve">
+    <value>dns.independent_cache: separate cache per DNS server, slightly slower. Deprecated since sing-box 1.14.</value>
+  </data>
+  <data name="TbSingboxDnsDisableExpire" xml:space="preserve">
+    <value>Never expire DNS cache</value>
+  </data>
+  <data name="TbSingboxDnsDisableExpireTips" xml:space="preserve">
+    <value>dns.disable_expire. Ignored when "Serve Stale" is on in the DNS settings, which sing-box does not allow together.</value>
+  </data>
+  <data name="TbSingboxDnsCacheCapacity" xml:space="preserve">
+    <value>DNS cache capacity</value>
+  </data>
+  <data name="TbSingboxDnsCacheCapacityTips" xml:space="preserve">
+    <value>dns.cache_capacity: number of entries, at least 1024. Empty: sing-box default.</value>
+  </data>
+  <data name="TbSingboxDnsReverseMapping" xml:space="preserve">
+    <value>DNS reverse mapping</value>
+  </data>
+  <data name="TbSingboxDnsReverseMappingTips" xml:space="preserve">
+    <value>dns.reverse_mapping: remembers which domain an IP was resolved from, so routing and logs see the domain of later connections to that IP.</value>
+  </data>
+  <data name="TbSingboxRouteFindProcess" xml:space="preserve">
+    <value>Look up processes</value>
+  </data>
+  <data name="TbSingboxRouteFindProcessTips" xml:space="preserve">
+    <value>route.find_process: shows the process of each connection in logs and the connection list even without process rules.</value>
+  </data>
+  <data name="TbSingboxRouteDefaultMark" xml:space="preserve">
+    <value>Default routing mark</value>
+  </data>
+  <data name="TbSingboxRouteDefaultMarkTips" xml:space="preserve">
+    <value>route.default_mark (Linux only, ignored elsewhere), e.g. 255 for policy routing. Empty or 0: not set.</value>
+  </data>
+  <data name="TbSingboxCacheFileStoreRdrc" xml:space="preserve">
+    <value>Remember rejected DNS responses</value>
+  </data>
+  <data name="TbSingboxCacheFileStoreRdrcTips" xml:space="preserve">
+    <value>experimental.cache_file.store_rdrc: keeps responses rejected by address-limit DNS rules across restarts. Needs the sing-box cache file to be enabled in the core settings.</value>
+  </data>
+  <data name="TbRuleCoreExtTips" xml:space="preserve">
+    <value>Only for features the common fields cannot express. Xray / sing-box: a JSON object deep-merged into every rule generated from this rule; objects merge recursively, other values replace, null removes a generated field. Example: {"ruleTag":"ads"} for Xray, {"invert":true} or {"process_path_regex":["^/usr/bin/"]} for sing-box. mihomo: one Clash rule per line that replaces the translated rules, each with a policy; {target} stands for this rule's outbound, e.g. DOMAIN-WILDCARD,*.example.com,{target}. Invalid lines are rejected when saving; lines whose policy or rule set does not exist are skipped at startup.</value>
   </data>
 </root>

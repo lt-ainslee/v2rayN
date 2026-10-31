@@ -39,6 +39,8 @@ public class Route4Sbox
 {
     public Rule4Sbox? default_domain_resolver { get; set; } // or string
     public bool? auto_detect_interface { get; set; }
+    public bool? find_process { get; set; }
+    public int? default_mark { get; set; }
     public List<Rule4Sbox> rules { get; set; }
     public List<Ruleset4Sbox>? rule_set { get; set; }
     public string? final { get; set; }
@@ -319,6 +321,7 @@ public class CacheFile4Sbox
     public string? path { get; set; }
     public string? cache_id { get; set; }
     public bool? store_fakeip { get; set; }
+    public bool? store_rdrc { get; set; }
 }
 
 public class Ruleset4Sbox

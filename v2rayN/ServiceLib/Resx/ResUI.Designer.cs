@@ -5921,5 +5921,428 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("MsgUnifiedCatchAllRule", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 {0}: "{1}" is not a valid Clash rule and was skipped 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedRuleLineInvalid {
+            get {
+                return ResourceManager.GetString("MsgUnifiedRuleLineInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 {0}: "{1}" references rule set {2}, which is neither declared with a mihomo source nor a rule-provider of the configuration; the line was skipped 的本地化字符串。
+        /// </summary>
+        public static string MsgUnifiedRuleLineRuleSetMissing {
+            get {
+                return ResourceManager.GetString("MsgUnifiedRuleLineRuleSetMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Invalid input: {0} 的本地化字符串。
+        /// </summary>
+        public static string TbCoreExtensionInvalidInput {
+            get {
+                return ResourceManager.GetString("TbCoreExtensionInvalidInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Keep the configuration file value 的本地化字符串。
+        /// </summary>
+        public static string TbTriStateKeep {
+            get {
+                return ResourceManager.GetString("TbTriStateKeep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 On 的本地化字符串。
+        /// </summary>
+        public static string TbTriStateOn {
+            get {
+                return ResourceManager.GetString("TbTriStateOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Off 的本地化字符串。
+        /// </summary>
+        public static string TbTriStateOff {
+            get {
+                return ResourceManager.GetString("TbTriStateOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Precedence, low to high: shared DNS / routing settings &lt; options on this page &lt; the per-rule core extension (rule details window) &lt; whole-document overrides (full config template, custom DNS  的本地化字符串。
+        /// </summary>
+        public static string TbCoreExtensionPriorityTips {
+            get {
+                return ResourceManager.GetString("TbCoreExtensionPriorityTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 General options: written to every Clash configuration, whatever the mode above 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoSectionGeneral {
+            get {
+                return ResourceManager.GetString("TbMihomoSectionGeneral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Shared settings: only used when the mode above is not Off 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoSectionUnified {
+            get {
+                return ResourceManager.GetString("TbMihomoSectionUnified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.prefer-h3: DoH servers try HTTP/3 first. Not recommended together with respect-rules. 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoPreferH3Tips {
+            get {
+                return ResourceManager.GetString("TbMihomoPreferH3Tips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS cache algorithm 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoDnsCacheAlgorithm {
+            get {
+                return ResourceManager.GetString("TbMihomoDnsCacheAlgorithm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.cache-algorithm: lru (default) or arc. Empty: mihomo default. 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoDnsCacheAlgorithmTips {
+            get {
+                return ResourceManager.GetString("TbMihomoDnsCacheAlgorithmTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Unified delay 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedDelay {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 unified-delay: measures latency without the handshake, so nodes of different protocols are comparable. 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoUnifiedDelayTips {
+            get {
+                return ResourceManager.GetString("TbMihomoUnifiedDelayTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 TCP concurrent dial 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoTcpConcurrent {
+            get {
+                return ResourceManager.GetString("TbMihomoTcpConcurrent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 tcp-concurrent: dials every resolved IP at once and keeps the first connection that succeeds. 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoTcpConcurrentTips {
+            get {
+                return ResourceManager.GetString("TbMihomoTcpConcurrentTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Process matching 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoFindProcessMode {
+            get {
+                return ResourceManager.GetString("TbMihomoFindProcessMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 find-process-mode: always = always look the process up, strict = only when rules need it (default), off = never (PROCESS-NAME rules stop matching). 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoFindProcessModeTips {
+            get {
+                return ResourceManager.GetString("TbMihomoFindProcessModeTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 TCP keep-alive interval (s) 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoKeepAliveInterval {
+            get {
+                return ResourceManager.GetString("TbMihomoKeepAliveInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 keep-alive-interval in seconds, e.g. 15. Empty: keep the file value. 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoKeepAliveIntervalTips {
+            get {
+                return ResourceManager.GetString("TbMihomoKeepAliveIntervalTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Domain sniffing 的本地化字符串。
+        /// </summary>
+        public static string TbMihomoSniffer {
+            get {
+                return ResourceManager.GetString("TbMihomoSniffer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 sniffer.enable: reads the domain from HTTP / TLS / QUIC so domain rules also match connections made to an IP. When turned on and the file has no sniffer section, ports 80, 8080-8880, 443 and 8443 are  的本地化字符串。
+        /// </summary>
+        public static string TbMihomoSnifferTips {
+            get {
+                return ResourceManager.GetString("TbMihomoSnifferTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.queryStrategy: UseIPv4 / UseIPv6 only query A / AAAA records, UseSystem follows the system network. Empty: UseIP (or UseIPv4 when "Block AAAA Queries" is on in the DNS settings). 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsQueryStrategyTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsQueryStrategyTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.disableCache: every query goes to the server. 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableCacheTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableCacheTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Disable DNS fallback 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableFallback {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableFallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.disableFallback: when the matched server fails, do not try the other servers. 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableFallbackTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableFallbackTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No fallback after a domain match 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableFallbackIfMatch {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableFallbackIfMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.disableFallbackIfMatch: a domain matched by a server's domain list is only resolved by that server, e.g. China domains never leak to the remote DNS. 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsDisableFallbackIfMatchTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsDisableFallbackIfMatchTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS client IP (ECS) 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsClientIp {
+            get {
+                return ResourceManager.GetString("TbXrayDnsClientIp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.clientIp: sent as EDNS Client Subnet so the DNS returns addresses close to this IP, e.g. your public IP. 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsClientIpTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsClientIpTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Stale record lifetime (s) 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsServeExpiredTtl {
+            get {
+                return ResourceManager.GetString("TbXrayDnsServeExpiredTtl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.serveExpiredTTL: how long expired records may be served. Only used when "Serve Stale" is on in the DNS settings; 0 = forever. 的本地化字符串。
+        /// </summary>
+        public static string TbXrayDnsServeExpiredTtlTips {
+            get {
+                return ResourceManager.GetString("TbXrayDnsServeExpiredTtlTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.client_subnet: EDNS Client Subnet for every query, an IP or prefix such as 1.2.3.0/24. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsClientSubnetTips {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsClientSubnetTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.independent_cache: separate cache per DNS server, slightly slower. Deprecated since sing-box 1.14. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsIndependentCacheTips {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsIndependentCacheTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Never expire DNS cache 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsDisableExpire {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsDisableExpire", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.disable_expire. Ignored when "Serve Stale" is on in the DNS settings, which sing-box does not allow together. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsDisableExpireTips {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsDisableExpireTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS cache capacity 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsCacheCapacity {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsCacheCapacity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.cache_capacity: number of entries, at least 1024. Empty: sing-box default. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsCacheCapacityTips {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsCacheCapacityTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 DNS reverse mapping 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsReverseMapping {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsReverseMapping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 dns.reverse_mapping: remembers which domain an IP was resolved from, so routing and logs see the domain of later connections to that IP. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxDnsReverseMappingTips {
+            get {
+                return ResourceManager.GetString("TbSingboxDnsReverseMappingTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Look up processes 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxRouteFindProcess {
+            get {
+                return ResourceManager.GetString("TbSingboxRouteFindProcess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 route.find_process: shows the process of each connection in logs and the connection list even without process rules. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxRouteFindProcessTips {
+            get {
+                return ResourceManager.GetString("TbSingboxRouteFindProcessTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Default routing mark 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxRouteDefaultMark {
+            get {
+                return ResourceManager.GetString("TbSingboxRouteDefaultMark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 route.default_mark (Linux only, ignored elsewhere), e.g. 255 for policy routing. Empty or 0: not set. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxRouteDefaultMarkTips {
+            get {
+                return ResourceManager.GetString("TbSingboxRouteDefaultMarkTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Remember rejected DNS responses 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxCacheFileStoreRdrc {
+            get {
+                return ResourceManager.GetString("TbSingboxCacheFileStoreRdrc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 experimental.cache_file.store_rdrc: keeps responses rejected by address-limit DNS rules across restarts. Needs the sing-box cache file to be enabled in the core settings. 的本地化字符串。
+        /// </summary>
+        public static string TbSingboxCacheFileStoreRdrcTips {
+            get {
+                return ResourceManager.GetString("TbSingboxCacheFileStoreRdrcTips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Only for features the common fields cannot express. Xray / sing-box: a JSON object deep-merged into every rule generated from this rule; objects merge recursively, other values replace, null removes a 的本地化字符串。
+        /// </summary>
+        public static string TbRuleCoreExtTips {
+            get {
+                return ResourceManager.GetString("TbRuleCoreExtTips", resourceCulture);
+            }
+        }
     }
 }

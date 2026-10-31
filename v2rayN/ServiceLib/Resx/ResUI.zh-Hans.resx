@@ -1916,7 +1916,7 @@
     <value>自定义规则</value>
   </data>
   <data name="TbClashRulesTips" xml:space="preserve">
-    <value>Clash 规则格式，例如 DOMAIN-SUFFIX,google.com,Proxy 或 RULE-SET,my-set,Proxy。策略不存在的规则会被跳过。</value>
+    <value>每行一条 Clash 规则，例如 DOMAIN-SUFFIX,google.com,Proxy、RULE-SET,my-set,Proxy 或 AND,((NETWORK,UDP),(DST-PORT,443)),REJECT。位于翻译出的规则之前。格式错误的行在保存时提示；策略或规则集不存在的行会在启动时跳过。</value>
   </data>
   <data name="TbClashOverrideInvalidLines" xml:space="preserve">
     <value>{0}：以下行格式无效：{1}</value>
@@ -2027,7 +2027,7 @@
     <value>sing-box：合并到生成规则中的 JSON 对象</value>
   </data>
   <data name="TbRuleMihomoRules" xml:space="preserve">
-    <value>mihomo：替换翻译结果的 Clash 规则（{target} 为策略）</value>
+    <value>mihomo：替换翻译结果的 Clash 规则，每行一条且带策略（{target} 为本规则出口）</value>
   </data>
   <data name="TbRuleCoreExtInvalidJson" xml:space="preserve">
     <value>内核扩展：{0} 不是有效的 JSON 对象</value>
@@ -2060,9 +2060,150 @@
     <value>预览失败：{0}</value>
   </data>
   <data name="MsgUnifiedPreviewMihomoOff" xml:space="preserve">
-    <value>统一配置未应用到 Clash 配置（mihomo 页为「关闭」），将按配置文件原样运行。</value>
+    <value>统一配置未应用到 Clash 配置（mihomo 页为「关闭」）：除下方的通用选项外，按配置文件原样运行。</value>
   </data>
   <data name="MsgUnifiedCatchAllRule" xml:space="preserve">
     <value>规则「{0}」匹配所有流量，其后的规则（包括 Clash 配置原有的规则）不会生效</value>
+  </data>
+  <data name="MsgUnifiedRuleLineInvalid" xml:space="preserve">
+    <value>{0}：「{1}」不是有效的 Clash 规则，已跳过</value>
+  </data>
+  <data name="MsgUnifiedRuleLineRuleSetMissing" xml:space="preserve">
+    <value>{0}：「{1}」引用的规则集 {2} 既未在规则集列表中配置 mihomo 来源，也不是配置文件自带的 rule-provider，已跳过该行</value>
+  </data>
+  <data name="TbCoreExtensionInvalidInput" xml:space="preserve">
+    <value>输入无效：{0}</value>
+  </data>
+  <data name="TbTriStateKeep" xml:space="preserve">
+    <value>保持配置文件中的值</value>
+  </data>
+  <data name="TbTriStateOn" xml:space="preserve">
+    <value>开启</value>
+  </data>
+  <data name="TbTriStateOff" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="TbCoreExtensionPriorityTips" xml:space="preserve">
+    <value>生效优先级（低 → 高）：共享的 DNS / 路由设置 &lt; 本页选项 &lt; 单条规则的内核扩展（规则详情窗口）&lt; 整份文档级覆写（完整配置模板、自定义 DNS JSON、Clash Mixin.yaml）。高一级会覆盖低一级的同名字段；未设置的选项不会改动生成结果。保存前可在「预览」页检查最终效果。</value>
+  </data>
+  <data name="TbMihomoSectionGeneral" xml:space="preserve">
+    <value>通用选项：无论上方模式如何，都会写入所有 Clash 配置</value>
+  </data>
+  <data name="TbMihomoSectionUnified" xml:space="preserve">
+    <value>统一配置相关：仅在上方模式不为「关闭」时生效</value>
+  </data>
+  <data name="TbMihomoPreferH3Tips" xml:space="preserve">
+    <value>dns.prefer-h3：DoH 服务器优先尝试 HTTP/3。不建议与「遵循规则」同时开启。</value>
+  </data>
+  <data name="TbMihomoDnsCacheAlgorithm" xml:space="preserve">
+    <value>DNS 缓存算法</value>
+  </data>
+  <data name="TbMihomoDnsCacheAlgorithmTips" xml:space="preserve">
+    <value>dns.cache-algorithm：lru（默认）或 arc。留空：使用 mihomo 默认值。</value>
+  </data>
+  <data name="TbMihomoUnifiedDelay" xml:space="preserve">
+    <value>统一延迟</value>
+  </data>
+  <data name="TbMihomoUnifiedDelayTips" xml:space="preserve">
+    <value>unified-delay：测速时去除握手耗时，使不同协议的节点延迟可以直接比较。</value>
+  </data>
+  <data name="TbMihomoTcpConcurrent" xml:space="preserve">
+    <value>TCP 并发连接</value>
+  </data>
+  <data name="TbMihomoTcpConcurrentTips" xml:space="preserve">
+    <value>tcp-concurrent：同时连接域名解析出的所有 IP，保留最先成功的连接。</value>
+  </data>
+  <data name="TbMihomoFindProcessMode" xml:space="preserve">
+    <value>进程匹配</value>
+  </data>
+  <data name="TbMihomoFindProcessModeTips" xml:space="preserve">
+    <value>find-process-mode：always 始终查找进程；strict 仅在规则需要时查找（默认）；off 不查找（PROCESS-NAME 等规则将失效）。</value>
+  </data>
+  <data name="TbMihomoKeepAliveInterval" xml:space="preserve">
+    <value>TCP Keep-Alive 间隔（秒）</value>
+  </data>
+  <data name="TbMihomoKeepAliveIntervalTips" xml:space="preserve">
+    <value>keep-alive-interval，单位秒，例如 15。留空：保持配置文件中的值。</value>
+  </data>
+  <data name="TbMihomoSniffer" xml:space="preserve">
+    <value>域名嗅探</value>
+  </data>
+  <data name="TbMihomoSnifferTips" xml:space="preserve">
+    <value>sniffer.enable：从 HTTP / TLS / QUIC 中识别域名，使直接以 IP 发起的连接也能匹配域名规则。开启且配置文件没有 sniffer 段时，将嗅探 80、8080-8880、443、8443 端口。</value>
+  </data>
+  <data name="TbXrayDnsQueryStrategyTips" xml:space="preserve">
+    <value>dns.queryStrategy：UseIPv4 / UseIPv6 仅查询 A / AAAA 记录，UseSystem 跟随系统网络情况。留空：UseIP（DNS 设置中开启「阻止 AAAA」时为 UseIPv4）。</value>
+  </data>
+  <data name="TbXrayDnsDisableCacheTips" xml:space="preserve">
+    <value>dns.disableCache：每次都向服务器查询，不使用缓存。</value>
+  </data>
+  <data name="TbXrayDnsDisableFallback" xml:space="preserve">
+    <value>禁用 DNS 回退查询</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackTips" xml:space="preserve">
+    <value>dns.disableFallback：匹配到的服务器查询失败时，不再尝试其他服务器。</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackIfMatch" xml:space="preserve">
+    <value>域名命中后不回退</value>
+  </data>
+  <data name="TbXrayDnsDisableFallbackIfMatchTips" xml:space="preserve">
+    <value>dns.disableFallbackIfMatch：命中某服务器域名列表的域名只交给该服务器解析，例如国内域名不会再回退到远程 DNS。</value>
+  </data>
+  <data name="TbXrayDnsClientIp" xml:space="preserve">
+    <value>DNS 客户端 IP (ECS)</value>
+  </data>
+  <data name="TbXrayDnsClientIpTips" xml:space="preserve">
+    <value>dns.clientIp：作为 EDNS Client Subnet 发送，让 DNS 返回靠近该 IP 的地址，例如填写本机公网 IP。</value>
+  </data>
+  <data name="TbXrayDnsServeExpiredTtl" xml:space="preserve">
+    <value>过期记录保留时间（秒）</value>
+  </data>
+  <data name="TbXrayDnsServeExpiredTtlTips" xml:space="preserve">
+    <value>dns.serveExpiredTTL：过期记录可继续使用的时长。仅在 DNS 设置中开启「乐观缓存」时生效；0 表示永不过期。</value>
+  </data>
+  <data name="TbSingboxDnsClientSubnetTips" xml:space="preserve">
+    <value>dns.client_subnet：为每次查询附带 EDNS Client Subnet，填写 IP 或网段，例如 1.2.3.0/24。</value>
+  </data>
+  <data name="TbSingboxDnsIndependentCacheTips" xml:space="preserve">
+    <value>dns.independent_cache：每个 DNS 服务器单独缓存，性能略有下降。sing-box 1.14 起已弃用。</value>
+  </data>
+  <data name="TbSingboxDnsDisableExpire" xml:space="preserve">
+    <value>DNS 缓存永不过期</value>
+  </data>
+  <data name="TbSingboxDnsDisableExpireTips" xml:space="preserve">
+    <value>dns.disable_expire。DNS 设置中开启「乐观缓存」时忽略（sing-box 不允许两者同时使用）。</value>
+  </data>
+  <data name="TbSingboxDnsCacheCapacity" xml:space="preserve">
+    <value>DNS 缓存容量</value>
+  </data>
+  <data name="TbSingboxDnsCacheCapacityTips" xml:space="preserve">
+    <value>dns.cache_capacity：缓存条目数，至少 1024。留空：使用 sing-box 默认值。</value>
+  </data>
+  <data name="TbSingboxDnsReverseMapping" xml:space="preserve">
+    <value>DNS 反向映射</value>
+  </data>
+  <data name="TbSingboxDnsReverseMappingTips" xml:space="preserve">
+    <value>dns.reverse_mapping：记录 IP 由哪个域名解析而来，之后连接该 IP 时路由和日志也能看到域名。</value>
+  </data>
+  <data name="TbSingboxRouteFindProcess" xml:space="preserve">
+    <value>查找连接所属进程</value>
+  </data>
+  <data name="TbSingboxRouteFindProcessTips" xml:space="preserve">
+    <value>route.find_process：即使没有进程规则，也在日志和连接列表中显示连接所属的进程。</value>
+  </data>
+  <data name="TbSingboxRouteDefaultMark" xml:space="preserve">
+    <value>默认路由标记</value>
+  </data>
+  <data name="TbSingboxRouteDefaultMarkTips" xml:space="preserve">
+    <value>route.default_mark（仅 Linux，其他系统忽略），用于策略路由，例如 255。留空或 0：不设置。</value>
+  </data>
+  <data name="TbSingboxCacheFileStoreRdrc" xml:space="preserve">
+    <value>缓存被拒绝的 DNS 响应</value>
+  </data>
+  <data name="TbSingboxCacheFileStoreRdrcTips" xml:space="preserve">
+    <value>experimental.cache_file.store_rdrc：跨重启保存被地址限制类 DNS 规则拒绝的响应。需要在内核设置中启用 sing-box 缓存文件。</value>
+  </data>
+  <data name="TbRuleCoreExtTips" xml:space="preserve">
+    <value>仅用于通用字段无法表达的功能。Xray / sing-box：一个 JSON 对象，会深度合并到由本规则生成的每条规则中；对象递归合并，其他值直接替换，写 null 可删除生成的字段。示例：Xray 填 {"ruleTag":"ads"}，sing-box 填 {"invert":true} 或 {"process_path_regex":["^/usr/bin/"]}。mihomo：每行一条 Clash 规则，替换翻译结果，每行都要带策略；{target} 代表本规则的出口，例如 DOMAIN-WILDCARD,*.example.com,{target}。格式错误的行在保存时提示；策略或规则集不存在的行会在启动时跳过。</value>
   </data>
 </root>

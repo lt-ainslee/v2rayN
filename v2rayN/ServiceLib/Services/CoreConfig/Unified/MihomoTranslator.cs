@@ -75,6 +75,10 @@ public class MihomoTranslator(
         {
             dns["prefer-h3"] = true;
         }
+        if (ext.DnsCacheAlgorithm is "lru" or "arc")
+        {
+            dns["cache-algorithm"] = ext.DnsCacheAlgorithm;
+        }
 
         if (dnsPlan.FakeIp)
         {
@@ -312,22 +316,20 @@ public class MihomoTranslator(
         }
         var proxyPolicy = ResolveProxyPolicy(groups, proxyNames, known);
 
+        var availableRuleSets = GetAvailableRuleSets(fileContent);
         var rules = new List<object>();
-        foreach (var line in UnifiedRuleParser.SplitLines(ext.ExtraRules))
-        {
-            if (ClashSyntax.GetRulePolicy(line) is { } target && !known.Contains(target))
-            {
-                diagnostics.Warn(Core, line, string.Format(ResUI.MsgUnifiedPolicyMissing, line, target));
-                continue;
-            }
-            rules.Add(line);
-        }
+        rules.AddRange(FilterHandWrittenRules(ResUI.TbMihomoExtraRules, UnifiedRuleParser.SplitLines(ext.ExtraRules), known, availableRuleSets, usedRuleSets));
 
         var catchAll = false;
         foreach (var rule in plan.Rules.Where(r => r.Scope != ERuleType.DNS))
         {
             var target = ResolveTarget(rule, proxyPolicy, known);
             var translated = TranslateRule(rule, target, usedRuleSets);
+            if (rule.CoreExt?.MihomoRules.IsNullOrEmpty() == false)
+            {
+                // Hand-written lines are checked like the extra rules: mihomo refuses the whole file otherwise.
+                translated = FilterHandWrittenRules(rule.DisplayName, translated, known, availableRuleSets, usedRuleSets);
+            }
             rules.AddRange(translated);
             if (translated.Any(t => t.StartsWith("MATCH,", StringComparison.Ordinal)))
             {
@@ -355,6 +357,51 @@ public class MihomoTranslator(
             }
         }
         fileContent["rules"] = rules;
+    }
+
+    /// <summary>
+    /// Rule sets a rule may reference: declared ones with a mihomo source and the file's own rule-providers.
+    /// </summary>
+    private HashSet<string> GetAvailableRuleSets(Dictionary<string, object> fileContent)
+    {
+        var names = new HashSet<string>(plan.RuleSets.Where(r => r.MihomoSource.IsNotEmpty()).Select(r => r.Name));
+        if (fileContent.GetValueOrDefault("rule-providers") is Dictionary<object, object> providers)
+        {
+            names.UnionWith(providers.Keys.Select(k => k.ToString()).OfType<string>());
+        }
+        return names;
+    }
+
+    /// <summary>
+    /// Keeps the hand-written Clash rule lines mihomo can load: a valid shape, an existing policy and
+    /// rule sets that exist. Rule sets they reference are added to rule-providers.
+    /// </summary>
+    private List<string> FilterHandWrittenRules(string subject, IEnumerable<string> lines, HashSet<string> known,
+        HashSet<string> availableRuleSets, HashSet<string> usedRuleSets)
+    {
+        var result = new List<string>();
+        foreach (var line in lines)
+        {
+            if (!ClashSyntax.IsValidRuleLine(line))
+            {
+                diagnostics.Warn(Core, subject, string.Format(ResUI.MsgUnifiedRuleLineInvalid, subject, line));
+                continue;
+            }
+            if (ClashSyntax.GetRulePolicy(line) is { } target && !known.Contains(target))
+            {
+                diagnostics.Warn(Core, subject, string.Format(ResUI.MsgUnifiedPolicyMissing, line, target));
+                continue;
+            }
+            var ruleSets = ClashSyntax.GetRuleSetReferences(line).ToList();
+            if (ruleSets.FirstOrDefault(r => !availableRuleSets.Contains(r)) is { } missing)
+            {
+                diagnostics.Warn(Core, subject, string.Format(ResUI.MsgUnifiedRuleLineRuleSetMissing, subject, line, missing));
+                continue;
+            }
+            usedRuleSets.UnionWith(ruleSets);
+            result.Add(line);
+        }
+        return result;
     }
 
     /// <summary>

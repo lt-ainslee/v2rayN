@@ -13,10 +13,6 @@ public static class UnifiedPreviewService
         try
         {
             var mihomoMode = config.CoreExtensionItem?.Mihomo.UnifiedMode ?? EMihomoUnifiedMode.Off;
-            if (core == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.Off)
-            {
-                return ResUI.MsgUnifiedPreviewMihomoOff;
-            }
             // Read-only lookup: GetDefaultRouting would save the config when no profile is active.
             var routing = await SQLiteHelper.Instance.TableAsync<RoutingItem>().FirstOrDefaultAsync(it => it.IsActive)
                 ?? new RoutingItem { RuleSet = "[]" };
@@ -24,6 +20,11 @@ public static class UnifiedPreviewService
             var body = core == ECoreType.mihomo
                 ? await PreviewMihomoAsync(config, routing, diagnostics)
                 : await PreviewJsonAsync(config, routing, core, diagnostics);
+            if (core == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.Off)
+            {
+                // Only the general options reach the core; the shared settings are not applied.
+                return $"{ResUI.MsgUnifiedPreviewMihomoOff}{Environment.NewLine}{Environment.NewLine}{body}";
+            }
             if (core == ECoreType.mihomo && mihomoMode == EMihomoUnifiedMode.DnsOnly)
             {
                 // Rules are not applied in this mode, so only DNS notes are relevant (same as at startup).
@@ -110,11 +111,16 @@ public static class UnifiedPreviewService
         var plan = UnifiedPlanBuilder.Build(config.SimpleDNSItem, routing, config.RoutingBasicItem?.DomainStrategy,
             config.RuleSetItems, await UnifiedPlanBuilder.BuildGroupsAsync(groupProfiles));
         var fileContent = await LoadActiveClashConfig(config) ?? CreateStubClashConfig(ext);
+        CoreConfigClashService.ApplyGeneralOptions(fileContent, ext);
+        if (ext.UnifiedMode == EMihomoUnifiedMode.Off)
+        {
+            return CoreConfigClashService.RestoreStrTags(YamlUtils.ToYaml(PickSections(fileContent, GeneralKeys)));
+        }
         var validated = UnifiedPlanValidator.Validate(plan, ECoreType.mihomo, diagnostics,
             CoreConfigClashService.GetAvailableRuleSetNames(config, fileContent));
         new MihomoTranslator(validated, ext, config.ClashUIItem?.EnableIPv6 ?? false, diagnostics).Apply(fileContent);
 
-        var sections = new Dictionary<string, object>();
+        var sections = PickSections(fileContent, GeneralKeys);
         foreach (var key in new[] { "dns", "hosts", "rule-providers", "rules" })
         {
             if (fileContent.GetValueOrDefault(key) is { } section)
@@ -131,6 +137,22 @@ public static class UnifiedPreviewService
                 .ToList();
         }
         return CoreConfigClashService.RestoreStrTags(YamlUtils.ToYaml(sections));
+    }
+
+    /// <summary>The general keys the mihomo extension may set.</summary>
+    private static readonly string[] GeneralKeys = ["unified-delay", "tcp-concurrent", "find-process-mode", "keep-alive-interval", "sniffer"];
+
+    private static Dictionary<string, object> PickSections(Dictionary<string, object> fileContent, IEnumerable<string> keys)
+    {
+        var sections = new Dictionary<string, object>();
+        foreach (var key in keys)
+        {
+            if (fileContent.GetValueOrDefault(key) is { } section)
+            {
+                sections[key] = section;
+            }
+        }
+        return sections;
     }
 
     /// <summary>

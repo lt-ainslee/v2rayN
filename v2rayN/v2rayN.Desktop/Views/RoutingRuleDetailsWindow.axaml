@@ -9,7 +9,7 @@
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
     Title="{x:Static resx:ResUI.menuRoutingRuleDetailsSetting}"
     Width="900"
-    Height="600"
+    Height="800"
     x:DataType="vms:RoutingRuleDetailsViewModel"
     Design.DataContext="{x:Static dd:DesignData.RoutingRuleDetails}"
     ShowInTaskbar="False"
@@ -253,9 +253,17 @@
             HorizontalAlignment="Stretch"
             DockPanel.Dock="Bottom"
             Header="{x:Static resx:ResUI.TbRuleCoreExt}">
-            <Grid ColumnDefinitions="*,*,*">
+            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Margin="{StaticResource Margin4}"
+                    Text="{x:Static resx:ResUI.TbRuleCoreExtTips}"
+                    TextWrapping="Wrap" />
                 <TextBox
                     x:Name="txtXrayJson"
+                    Grid.Row="1"
                     Grid.Column="0"
                     Height="80"
                     Margin="{StaticResource Margin4}"
@@ -265,6 +273,7 @@
                     TextWrapping="NoWrap" />
                 <TextBox
                     x:Name="txtSingboxJson"
+                    Grid.Row="1"
                     Grid.Column="1"
                     Height="80"
                     Margin="{StaticResource Margin4}"
@@ -274,6 +283,7 @@
                     TextWrapping="NoWrap" />
                 <TextBox
                     x:Name="txtMihomoRules"
+                    Grid.Row="1"
                     Grid.Column="2"
                     Height="80"
                     Margin="{StaticResource Margin4}"

@@ -20,7 +20,8 @@ public partial class CoreConfigSingboxService
             {
                 enabled = true,
                 path = Utils.GetBinPath("cache.db"),
-                store_fakeip = context.SimpleDnsItem.FakeIP == true
+                store_fakeip = context.SimpleDnsItem.FakeIP == true,
+                store_rdrc = context.AppConfig.CoreExtensionItem?.Singbox.CacheFileStoreRdrc == true ? true : null,
             };
         }
     }

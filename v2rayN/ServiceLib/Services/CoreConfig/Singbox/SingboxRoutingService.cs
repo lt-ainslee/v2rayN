@@ -9,6 +9,17 @@ public partial class CoreConfigSingboxService
             _coreConfig.route.final = Global.ProxyTag;
             var simpleDnsItem = context.SimpleDnsItem;
 
+            var singboxExt = _config.CoreExtensionItem?.Singbox;
+            if (singboxExt?.RouteFindProcess == true)
+            {
+                _coreConfig.route.find_process = true;
+            }
+            // Routing marks are a Linux feature (route.default_mark is Linux only).
+            if (singboxExt?.RouteDefaultMark is > 0 && Utils.IsLinux())
+            {
+                _coreConfig.route.default_mark = singboxExt.RouteDefaultMark;
+            }
+
             var defaultDomainResolverTag = Global.SingboxDirectDNSTag;
             var dialDnsStrategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4ProxyDial);
 

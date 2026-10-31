@@ -22,6 +22,88 @@ public static class ClashSyntax
     private static readonly HashSet<string> _groupMemberSources =
         ["include-all", "include-all-proxies", "include-all-providers", "use"];
 
+    /// <summary>
+    /// Rule types understood by mihomo (https://wiki.metacubex.one/en/config/rules/).
+    /// </summary>
+    public static readonly HashSet<string> RuleTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "DOMAIN-WILDCARD", "DOMAIN-REGEX", "GEOSITE",
+        "IP-CIDR", "IP-CIDR6", "IP-SUFFIX", "IP-ASN", "GEOIP",
+        "SRC-GEOIP", "SRC-IP-ASN", "SRC-IP-CIDR", "SRC-IP-SUFFIX",
+        "DST-PORT", "SRC-PORT", "IN-PORT", "IN-TYPE", "IN-USER", "IN-NAME", "REMATCH-NAME",
+        "PROCESS-PATH", "PROCESS-PATH-WILDCARD", "PROCESS-PATH-REGEX",
+        "PROCESS-NAME", "PROCESS-NAME-WILDCARD", "PROCESS-NAME-REGEX",
+        "UID", "NETWORK", "DSCP", "RULE-SET", "AND", "OR", "NOT", "SUB-RULE", "MATCH",
+    };
+
+    private static readonly HashSet<string> _logicRuleTypes = new(StringComparer.OrdinalIgnoreCase) { "AND", "OR", "NOT" };
+
+    /// <summary>
+    /// Checks the shape of a Clash rule line: a known type, a payload (except MATCH) and a policy.
+    /// Logical rules must wrap their payload in parentheses. {target} counts as a policy.
+    /// </summary>
+    public static bool IsValidRuleLine(string line)
+    {
+        var parts = SplitTopLevel(line);
+        if (parts.Count < 2 || !RuleTypes.Contains(parts[0]))
+        {
+            return false;
+        }
+        var type = parts[0].ToUpperInvariant();
+        if (type == "MATCH")
+        {
+            return parts.Count == 2;
+        }
+        if (parts.Count < 3)
+        {
+            return false;
+        }
+        if (_logicRuleTypes.Contains(type) || type == "SUB-RULE")
+        {
+            var payload = parts[1];
+            if (!payload.StartsWith('(') || !payload.EndsWith(')'))
+            {
+                return false;
+            }
+            // Every nested condition must be a valid "TYPE,payload" atom as well.
+            var inner = payload[1..^1];
+            return SplitTopLevel(inner).All(sub =>
+                sub.StartsWith('(') && sub.EndsWith(')') && IsValidRuleAtom(sub[1..^1]));
+        }
+        return true;
+    }
+
+    private static bool IsValidRuleAtom(string atom)
+    {
+        var parts = SplitTopLevel(atom);
+        if (parts.Count < 2 || !RuleTypes.Contains(parts[0]) || parts[0].Equals("MATCH", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+        if (_logicRuleTypes.Contains(parts[0]))
+        {
+            var payload = parts[1];
+            return payload.StartsWith('(') && payload.EndsWith(')')
+                && SplitTopLevel(payload[1..^1]).All(sub => sub.StartsWith('(') && sub.EndsWith(')') && IsValidRuleAtom(sub[1..^1]));
+        }
+        return true;
+    }
+
+    /// <summary>The lines of a rule list that are not valid Clash rules.</summary>
+    public static List<string> InvalidRuleLines(string? text) =>
+        UnifiedRuleParser.SplitLines(text).Where(line => !IsValidRuleLine(line)).ToList();
+
+    /// <summary>
+    /// Rule set names referenced by a rule line, including inside logical rules: RULE-SET,name.
+    /// </summary>
+    public static IEnumerable<string> GetRuleSetReferences(string line)
+    {
+        foreach (Match match in Regex.Matches(line, @"(?:^|[(,])\s*RULE-SET\s*,\s*([^,()]+)", RegexOptions.IgnoreCase))
+        {
+            yield return match.Groups[1].Value.Trim();
+        }
+    }
+
     #region Proxy groups and rule providers
 
     /// <summary>

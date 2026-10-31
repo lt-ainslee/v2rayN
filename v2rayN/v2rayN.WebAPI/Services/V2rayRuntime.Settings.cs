@@ -517,10 +517,8 @@ public sealed partial class V2rayRuntime
 
     public async Task<OperationView> UpdateCoreExtensionsAsync(CoreExtensionItem input)
     {
-        var invalidLines = new List<string>();
-        ClashSyntax.ParseProxyGroups(input.Mihomo?.ExtraProxyGroups, invalidLines);
-        invalidLines.AddRange(UnifiedRuleParser.SplitLines(input.Mihomo?.ExtraRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2));
-        if (input.Xray == null || input.Singbox == null || input.Mihomo == null || invalidLines.Count > 0)
+        var invalidLines = CoreExtensionValidator.Validate(input);
+        if (invalidLines.Count > 0)
         {
             return OperationView.Fail("core_extensions_invalid", ApiMessageKeys.CommonInvalidInput, invalidLines);
         }

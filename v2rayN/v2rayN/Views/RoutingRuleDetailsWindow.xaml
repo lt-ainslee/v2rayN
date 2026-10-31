@@ -11,7 +11,7 @@
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
     Title="{x:Static resx:ResUI.menuRoutingRuleDetailsSetting}"
     Width="900"
-    Height="700"
+    Height="800"
     x:TypeArguments="vms:RoutingRuleDetailsViewModel"
     ShowInTaskbar="False"
     Style="{StaticResource WindowGlobal}"
@@ -287,41 +287,49 @@
             Margin="{StaticResource Margin8}"
             DockPanel.Dock="Bottom"
             Header="{x:Static resx:ResUI.TbRuleCoreExt}">
-            <UniformGrid Columns="3">
-                <TextBox
-                    x:Name="txtXrayJson"
-                    Height="80"
+            <DockPanel>
+                <TextBlock
                     Margin="{StaticResource Margin4}"
-                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleXrayJson}"
-                    AcceptsReturn="True"
-                    BorderThickness="1"
-                    HorizontalScrollBarVisibility="Auto"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    TextWrapping="NoWrap"
-                    VerticalScrollBarVisibility="Auto" />
-                <TextBox
-                    x:Name="txtSingboxJson"
-                    Height="80"
-                    Margin="{StaticResource Margin4}"
-                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleSingboxJson}"
-                    AcceptsReturn="True"
-                    BorderThickness="1"
-                    HorizontalScrollBarVisibility="Auto"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    TextWrapping="NoWrap"
-                    VerticalScrollBarVisibility="Auto" />
-                <TextBox
-                    x:Name="txtMihomoRules"
-                    Height="80"
-                    Margin="{StaticResource Margin4}"
-                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleMihomoRules}"
-                    AcceptsReturn="True"
-                    BorderThickness="1"
-                    HorizontalScrollBarVisibility="Auto"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    TextWrapping="NoWrap"
-                    VerticalScrollBarVisibility="Auto" />
-            </UniformGrid>
+                    DockPanel.Dock="Top"
+                    Style="{StaticResource ToolbarTextBlock}"
+                    Text="{x:Static resx:ResUI.TbRuleCoreExtTips}"
+                    TextWrapping="Wrap" />
+                <UniformGrid Columns="3">
+                    <TextBox
+                        x:Name="txtXrayJson"
+                        Height="80"
+                        Margin="{StaticResource Margin4}"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleXrayJson}"
+                        AcceptsReturn="True"
+                        BorderThickness="1"
+                        HorizontalScrollBarVisibility="Auto"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        TextWrapping="NoWrap"
+                        VerticalScrollBarVisibility="Auto" />
+                    <TextBox
+                        x:Name="txtSingboxJson"
+                        Height="80"
+                        Margin="{StaticResource Margin4}"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleSingboxJson}"
+                        AcceptsReturn="True"
+                        BorderThickness="1"
+                        HorizontalScrollBarVisibility="Auto"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        TextWrapping="NoWrap"
+                        VerticalScrollBarVisibility="Auto" />
+                    <TextBox
+                        x:Name="txtMihomoRules"
+                        Height="80"
+                        Margin="{StaticResource Margin4}"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.TbRuleMihomoRules}"
+                        AcceptsReturn="True"
+                        BorderThickness="1"
+                        HorizontalScrollBarVisibility="Auto"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        TextWrapping="NoWrap"
+                        VerticalScrollBarVisibility="Auto" />
+                </UniformGrid>
+            </DockPanel>
         </Expander>
 
         <Grid Margin="{StaticResource Margin8}">

@@ -124,7 +124,7 @@ public partial class RoutingRuleDetailsViewModel : MyReactiveObject, ICloseable
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, ResUI.TbRuleSourceIp, string.Join("; ", invalidSourceIps)));
             return;
         }
-        var invalidMihomoRules = UnifiedRuleParser.SplitLines(MihomoRules).Where(r => ClashSyntax.SplitTopLevel(r).Count < 2).ToList();
+        var invalidMihomoRules = ClashSyntax.InvalidRuleLines(MihomoRules);
         if (invalidMihomoRules.Count > 0)
         {
             NoticeManager.Instance.Enqueue(string.Format(ResUI.TbClashOverrideInvalidLines, "mihomo", string.Join("; ", invalidMihomoRules)));

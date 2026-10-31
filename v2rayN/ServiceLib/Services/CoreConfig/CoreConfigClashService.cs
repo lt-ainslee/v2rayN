@@ -100,6 +100,9 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
                 }
             }
 
+            //General mihomo options from the core extensions
+            ApplyGeneralOptions(fileContent, config.CoreExtensionItem?.Mihomo);
+
             //Shared DNS / routing settings
             try
             {
@@ -207,6 +210,57 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
         return names;
     }
 
+    public static readonly IReadOnlyList<string> FindProcessModes = ["always", "strict", "off"];
+
+    /// <summary>
+    /// General options of the mihomo extension. They do not depend on the shared settings, so they apply
+    /// whatever the unified mode; an unset option keeps the configuration file's value.
+    /// </summary>
+    public static void ApplyGeneralOptions(Dictionary<string, object> fileContent, MihomoExtension? ext)
+    {
+        if (ext == null)
+        {
+            return;
+        }
+        if (ext.UnifiedDelay is { } unifiedDelay)
+        {
+            fileContent["unified-delay"] = unifiedDelay;
+        }
+        if (ext.TcpConcurrent is { } tcpConcurrent)
+        {
+            fileContent["tcp-concurrent"] = tcpConcurrent;
+        }
+        if (ext.FindProcessMode is { } mode && FindProcessModes.Contains(mode))
+        {
+            fileContent["find-process-mode"] = mode;
+        }
+        if (ext.KeepAliveInterval is > 0)
+        {
+            fileContent["keep-alive-interval"] = ext.KeepAliveInterval.Value;
+        }
+        if (ext.SnifferEnabled is { } snifferEnabled)
+        {
+            if (fileContent.GetValueOrDefault("sniffer") is Dictionary<object, object> sniffer)
+            {
+                sniffer["enable"] = snifferEnabled;
+            }
+            else if (snifferEnabled)
+            {
+                fileContent["sniffer"] = new Dictionary<object, object>
+                {
+                    ["enable"] = true,
+                    ["parse-pure-ip"] = true,
+                    ["sniff"] = new Dictionary<object, object>
+                    {
+                        ["HTTP"] = new Dictionary<object, object> { ["ports"] = new List<object> { "80", "8080-8880" }, ["override-destination"] = true },
+                        ["TLS"] = new Dictionary<object, object> { ["ports"] = new List<object> { "443", "8443" } },
+                        ["QUIC"] = new Dictionary<object, object> { ["ports"] = new List<object> { "443", "8443" } },
+                    },
+                };
+            }
+        }
+    }
+
     private async Task ApplyUnifiedSettings(Dictionary<string, object> fileContent)
     {
         var ext = config.CoreExtensionItem?.Mihomo;
@@ -278,54 +332,68 @@ public class CoreConfigClashService(Config config, bool isTunEnabled, CoreConfig
         return;
     }
 
-    private void ModifyContentMerge(Dictionary<string, object> fileContent, string key, object value)
+    /// <summary>
+    /// Applies a Mixin "prepend-key" / "append-key" / "removed-key" entry to a list of the configuration.
+    /// Removal matches strings by prefix (e.g. a rule) and mappings by name (e.g. a proxy group).
+    /// Entries that do not fit (the key is not a list) are skipped instead of failing the whole Mixin.
+    /// </summary>
+    public static void ModifyContentMerge(Dictionary<string, object> fileContent, string key, object value)
     {
-        var blPrepend = false;
-        var blRemoved = false;
-        if (key.StartsWith("prepend-"))
+        string action;
+        if (key.StartsWith("prepend-", StringComparison.Ordinal))
         {
-            blPrepend = true;
-            key = key.Replace("prepend-", "");
+            action = "prepend";
         }
-        else if (key.StartsWith("append-"))
+        else if (key.StartsWith("append-", StringComparison.Ordinal))
         {
-            blPrepend = false;
-            key = key.Replace("append-", "");
+            action = "append";
         }
-        else if (key.StartsWith("removed-"))
+        else if (key.StartsWith("removed-", StringComparison.Ordinal))
         {
-            blRemoved = true;
-            key = key.Replace("removed-", "");
+            action = "removed";
         }
         else
         {
             return;
         }
+        key = key[(action.Length + 1)..];
+        var lstValue = value as List<object> ?? (value is null ? [] : [value]);
+        var existing = fileContent.GetValueOrDefault(key);
 
-        if (!blRemoved && fileContent.TryAdd(key, value))
+        if (action == "removed")
         {
-            return;
-        }
-        var lstOri = (List<object>)fileContent[key];
-        var lstValue = (List<object>)value;
-
-        if (blRemoved)
-        {
-            foreach (var item in lstValue)
+            if (existing is not List<object> lstRemove)
             {
-                lstOri.RemoveAll(t => t.ToString().StartsWith(item.ToString()));
+                return;
+            }
+            foreach (var item in lstValue.Select(t => t?.ToString()).OfType<string>())
+            {
+                lstRemove.RemoveAll(t => t switch
+                {
+                    Dictionary<object, object> map => Equals(map.GetValueOrDefault("name")?.ToString(), item),
+                    _ => t?.ToString()?.StartsWith(item, StringComparison.Ordinal) == true,
+                });
             }
             return;
         }
 
-        if (blPrepend)
+        if (existing == null)
         {
-            lstValue.Reverse();
-            lstValue.ForEach(item => lstOri.Insert(0, item));
+            fileContent[key] = lstValue.ToList();
+            return;
+        }
+        if (existing is not List<object> lstOri)
+        {
+            Logging.SaveLog($"{_tag}-Mixin: {key} is not a list, {action}-{key} skipped");
+            return;
+        }
+        if (action == "prepend")
+        {
+            lstOri.InsertRange(0, lstValue);
         }
         else
         {
-            lstValue.ForEach(lstOri.Add);
+            lstOri.AddRange(lstValue);
         }
     }
 
