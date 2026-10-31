@@ -760,4 +760,26 @@ public class CoreConfigV2rayServiceTests
         await mixed.sniffing.routeOnly.Should().BeFalse();
         await tun.sniffing.routeOnly.Should().BeTrue();
     }
+
+    [Test]
+    public async Task GenerateClientSpeedtestConfig_LogToFileEnabled_ShouldNotWriteLogFiles()
+    {
+        // Regression test for #10440: the unelevated speed test core shared the day's log
+        // files with a root TUN core, could not open them, and exited at startup.
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.CoreBasicItem.LogEnabled = true;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.Xray);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var main = JsonUtils.Deserialize<V2rayConfig>(
+            new CoreConfigV2rayService(context).GenerateClientConfigContent().Data!.ToString())!;
+        var result = new CoreConfigV2rayService(context).GenerateClientSpeedtestConfig(20000);
+
+        await result.Success.Should().BeTrue().Because($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(result.Data!.ToString())!;
+        await main.log.access.Should().NotBeNull();
+        await cfg.log.access.Should().BeNull();
+        await cfg.log.error.Should().BeNull();
+    }
 }
