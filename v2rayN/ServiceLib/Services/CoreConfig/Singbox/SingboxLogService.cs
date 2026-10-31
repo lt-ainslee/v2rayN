@@ -2,7 +2,7 @@ namespace ServiceLib.Services.CoreConfig;
 
 public partial class CoreConfigSingboxService
 {
-    private void GenLog()
+    private void GenLog(bool isSpeedtest = false)
     {
         try
         {
@@ -25,7 +25,9 @@ public partial class CoreConfigSingboxService
             {
                 _coreConfig.log.disabled = true;
             }
-            if (_config.CoreBasicItem.LogEnabled)
+            // Speed test cores run without elevation; on Linux/macOS they cannot write to log
+            // files a root TUN core created first, and the core then exits at startup
+            if (_config.CoreBasicItem.LogEnabled && !isSpeedtest)
             {
                 var dtNow = DateTime.Now;
                 _coreConfig.log.output = Utils.GetLogPath($"sbox_{dtNow:yyyy-MM-dd}.txt");

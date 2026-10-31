@@ -95,7 +95,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
 
             var (lstIpEndPoints, lstTcpConns) = Utils.GetActiveNetworkInfo();
 
-            GenLog();
+            GenLog(isSpeedtest: true);
             GenMinimizedDns();
             _coreConfig.inbounds.Clear();
             _coreConfig.outbounds.RemoveAt(0);
@@ -215,7 +215,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
                 return ret;
             }
 
-            GenLog();
+            GenLog(isSpeedtest: true);
             GenOutbounds();
             GenMinimizedDns();
 

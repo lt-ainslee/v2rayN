@@ -753,4 +753,24 @@ public class CoreConfigSingboxServiceTests
         await proxyOutbound.method.Should().BeEqualTo("aes-128-gcm");
         await proxyOutbound.password.Should().BeEqualTo("custom_password");
     }
+
+    [Test]
+    public async Task GenerateClientSpeedtestConfig_LogToFileEnabled_ShouldNotWriteLogFile()
+    {
+        // Regression test for #10440: see the Xray test of the same name.
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.CoreBasicItem.LogEnabled = true;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.sing_box);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box);
+
+        var main = JsonUtils.Deserialize<SingboxConfig>(
+            new CoreConfigSingboxService(context).GenerateClientConfigContent().Data!.ToString())!;
+        var result = new CoreConfigSingboxService(context).GenerateClientSpeedtestConfig(20000);
+
+        await result.Success.Should().BeTrue().Because($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+        await main.log.output.Should().NotBeNull();
+        await cfg.log.output.Should().BeNull();
+    }
 }

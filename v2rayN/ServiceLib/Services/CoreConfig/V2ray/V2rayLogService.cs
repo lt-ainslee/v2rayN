@@ -2,11 +2,13 @@ namespace ServiceLib.Services.CoreConfig;
 
 public partial class CoreConfigV2rayService
 {
-    private void GenLog()
+    private void GenLog(bool isSpeedtest = false)
     {
         try
         {
-            if (_config.CoreBasicItem.LogEnabled)
+            // Speed test cores run without elevation; on Linux/macOS they cannot write to log
+            // files a root TUN core created first, and the core then exits at startup
+            if (_config.CoreBasicItem.LogEnabled && !isSpeedtest)
             {
                 var dtNow = DateTime.Now;
                 _coreConfig.log.loglevel = _config.CoreBasicItem.Loglevel;
